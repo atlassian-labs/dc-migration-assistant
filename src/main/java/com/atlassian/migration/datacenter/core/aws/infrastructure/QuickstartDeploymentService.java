@@ -96,7 +96,8 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
         ScheduledFuture<?> canceller = scheduledExecutorService.scheduleAtFixedRate(() -> {
             migrationService.error();
             ticker.cancel(true);
-        }, 1, 0, TimeUnit.HOURS);
+            // Need to have non-zero period otherwise we get illegal argument exception
+        }, 1, 100, TimeUnit.HOURS);
 
         stackCompleteFuture.whenComplete((result, thrown) -> {
             ticker.cancel(true);

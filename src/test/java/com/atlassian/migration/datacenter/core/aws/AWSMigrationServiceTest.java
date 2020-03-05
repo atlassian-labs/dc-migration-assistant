@@ -5,6 +5,7 @@ import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.migration.datacenter.core.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.dto.Migration;
+import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
@@ -61,7 +62,7 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldBeInUnStartedStageWhenNoMigrationExists() {
-        ao.migrate(Migration.class);
+        setupEntities();
 
         MigrationStage initialStage = sut.getMigrationStage();
 
@@ -84,7 +85,8 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldTransitionStageToAuthenticationWhenCreated() {
-        ao.migrate();
+        setupEntities();
+
         assertNumberOfMigrations(0);
 
         assertTrue(sut.startMigration());
@@ -169,13 +171,13 @@ public class AWSMigrationServiceTest {
 
 
     // MigrationServiceV2 Tests
+
     @Test
     public void shouldBeAbleToGetCurrentStage() {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
 
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
     }
-
     @Test
     public void shouldTransitionToCurrentStagesNextStageOnChange() {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
@@ -214,10 +216,17 @@ public class AWSMigrationServiceTest {
     }
 
     private Migration initializeAndCreateSingleMigrationWithStage(MigrationStage stage) {
-        ao.migrate(Migration.class);
+        setupEntities();
+
         Migration migration = ao.create(Migration.class);
         migration.setStage(stage);
         migration.save();
+
         return migration;
+    }
+
+    private void setupEntities() {
+        ao.migrate(Migration.class);
+        ao.migrate(MigrationContext.class);
     }
 }
