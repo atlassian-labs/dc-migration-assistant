@@ -5,6 +5,7 @@ import com.atlassian.migration.datacenter.core.exceptions.InfrastructureProvisio
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.fs.S3UploadJobRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
+import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -85,10 +86,15 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
             // left off.
             return migrations[0];
         } else if (migrations.length == 0){
-            // We didn't start the migration, so we need to create record in the db
+            // We didn't start the migration, so we need to create record in the db and a migration context
             Migration migration = ao.create(Migration.class);
             migration.setStage(NOT_STARTED);
             migration.save();
+
+            MigrationContext context = ao.create(MigrationContext.class);
+            context.setMigration(migration);
+            context.save();
+
             return migration;
         } else {
             throw new RuntimeException("Invalid State - should only be 1 migration");

@@ -9,6 +9,6 @@ public interface ApplicationDeploymentService {
     ApplicationDeploymentStatus getDeploymentStatus();
 
     enum ApplicationDeploymentStatus {
-        CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILEd
+        CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILED
     }
 }
