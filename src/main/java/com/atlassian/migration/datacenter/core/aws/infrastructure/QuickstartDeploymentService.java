@@ -6,14 +6,16 @@ import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
-import org.tuckey.web.filters.urlrewrite.Run;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class QuickstartDeploymentService implements ApplicationDeploymentService {
 
@@ -72,7 +74,8 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
     private void scheduleMigrationServiceTransition(String deploymentId) {
         CompletableFuture<String> stackCompleteFuture = new CompletableFuture<>();
 
-        ScheduledFuture<?> ticker = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+        final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        ScheduledFuture<?> ticker = scheduledExecutorService.scheduleAtFixedRate(() -> {
             final StackStatus status = cfnApi.getStatus(deploymentId);
             if (status.equals(StackStatus.CREATE_COMPLETE)) {
                 migrationService.nextStage();
@@ -84,8 +87,14 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
             }
         }, 0, 30, TimeUnit.SECONDS);
 
+        ScheduledFuture<?> canceller = scheduledExecutorService.scheduleAtFixedRate(() -> {
+            migrationService.error();
+            ticker.cancel(true);
+        }, 1, 0, TimeUnit.HOURS);
+
         stackCompleteFuture.whenComplete((result, thrown) -> {
             ticker.cancel(true);
+            canceller.cancel(true);
         });
     }
 }
