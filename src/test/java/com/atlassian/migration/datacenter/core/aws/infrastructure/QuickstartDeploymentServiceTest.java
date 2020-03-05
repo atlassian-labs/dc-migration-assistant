@@ -50,6 +50,17 @@ class QuickstartDeploymentServiceTest {
         verify(mockMigrationService).nextStage();
     }
 
+    @Test
+    void shouldTransitionMigrationServiceToErrorWhenDeploymentFails() throws InterruptedException {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_FAILED);
+
+        deploySimpleStack();
+
+        Thread.sleep(100);
+
+        verify(mockMigrationService).error();
+    }
+
     private void deploySimpleStack() {
         deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
     }

@@ -27,8 +27,13 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
 
         Executors.newFixedThreadPool(1).submit(() -> {
             while (true) {
-                if (cfnApi.getStatus(deploymentId).equals(StackStatus.CREATE_COMPLETE)) {
+                final StackStatus status = cfnApi.getStatus(deploymentId);
+                if (status.equals(StackStatus.CREATE_COMPLETE)) {
                     migrationService.nextStage();
+                    return;
+                }
+                if (status.equals(StackStatus.CREATE_FAILED)) {
+                    migrationService.error();
                     return;
                 }
             }
