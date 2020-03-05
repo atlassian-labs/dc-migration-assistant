@@ -6,7 +6,11 @@ import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeployme
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class QuickstartDeploymentService implements ApplicationDeploymentService {
 
@@ -25,18 +29,25 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
     public void deployApplication(String deploymentId, Map<String, String> params) {
         cfnApi.provisionStack(QUICKSTART_TEMPLATE_URL, deploymentId, params);
 
-        Executors.newFixedThreadPool(1).submit(() -> {
-            while (true) {
-                final StackStatus status = cfnApi.getStatus(deploymentId);
-                if (status.equals(StackStatus.CREATE_COMPLETE)) {
-                    migrationService.nextStage();
-                    return;
-                }
-                if (status.equals(StackStatus.CREATE_FAILED)) {
-                    migrationService.error();
-                    return;
-                }
+        scheduleMigrationServiceTransition(deploymentId);
+    }
+
+    private void scheduleMigrationServiceTransition(String deploymentId) {
+        CompletableFuture<String> stackCompleteFuture = new CompletableFuture<>();
+        ScheduledFuture<?> ticker = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            final StackStatus status = cfnApi.getStatus(deploymentId);
+            if (status.equals(StackStatus.CREATE_COMPLETE)) {
+                migrationService.nextStage();
+                stackCompleteFuture.complete("");
             }
+            if (status.equals(StackStatus.CREATE_FAILED)) {
+                migrationService.error();
+                stackCompleteFuture.complete("");
+            }
+        }, 0, 30, TimeUnit.SECONDS);
+
+        stackCompleteFuture.whenComplete((result, thrown) -> {
+            ticker.cancel(true);
         });
     }
 

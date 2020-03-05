@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.util.HashMap;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
