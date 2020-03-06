@@ -47,6 +47,8 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
 
         cfnApi.provisionStack(QUICKSTART_TEMPLATE_URL, deploymentId, params);
 
+        migrationService.nextStage();
+
         addDeploymentIdToMigrationContext(deploymentId);
 
         scheduleMigrationServiceTransition(deploymentId);

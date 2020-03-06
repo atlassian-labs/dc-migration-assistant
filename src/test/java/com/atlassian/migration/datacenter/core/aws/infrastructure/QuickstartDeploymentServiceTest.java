@@ -18,6 +18,7 @@ import java.util.HashMap;
 import static com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService.ApplicationDeploymentStatus.CREATE_IN_PROGRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +74,7 @@ class QuickstartDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        verify(mockMigrationService).nextStage();
+        verify(mockMigrationService, times(2)).nextStage();
     }
 
     @Test
@@ -86,6 +87,18 @@ class QuickstartDeploymentServiceTest {
         Thread.sleep(100);
 
         verify(mockMigrationService).error();
+    }
+
+    @Test
+    void shouldTransitionToWaitingForDeploymentWhileDeploymentIsCompleting() throws InvalidMigrationStageError, InterruptedException {
+        initialiseValidMigration();
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
+
+        deploySimpleStack();
+
+        Thread.sleep(100);
+
+        verify(mockMigrationService).nextStage();
     }
 
     @Test
