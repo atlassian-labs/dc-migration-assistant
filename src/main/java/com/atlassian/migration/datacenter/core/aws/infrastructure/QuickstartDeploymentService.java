@@ -2,8 +2,10 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
+import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
@@ -38,7 +40,11 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
      *               should be the parameter value.
      */
     @Override
-    public void deployApplication(String deploymentId, Map<String, String> params) {
+    public void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError {
+        if(!migrationService.getCurrentStage().equals(MigrationStage.PROVISION_APPLICATION)) {
+            throw new InvalidMigrationStageError("must be in " + MigrationStage.PROVISION_APPLICATION.toString() + " to deploy application");
+        }
+
         cfnApi.provisionStack(QUICKSTART_TEMPLATE_URL, deploymentId, params);
 
         addDeploymentIdToMigrationContext(deploymentId);
