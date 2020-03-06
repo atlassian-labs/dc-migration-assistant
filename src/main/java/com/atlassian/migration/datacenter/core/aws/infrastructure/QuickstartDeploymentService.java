@@ -65,6 +65,7 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
             case CREATE_IN_PROGRESS:
                 return ApplicationDeploymentStatus.CREATE_IN_PROGRESS;
             default:
+                migrationService.error();
                 throw new RuntimeException("Unexpected stack status");
         }
     }
@@ -78,6 +79,7 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
     private MigrationContext getMigrationContext() {
         MigrationContext[] migrationContexts = ao.find(MigrationContext.class);
         if (migrationContexts.length == 0) {
+            migrationService.error();
             throw new RuntimeException("No migration context exists, are you really in a migration?");
         }
         return migrationContexts[0];
