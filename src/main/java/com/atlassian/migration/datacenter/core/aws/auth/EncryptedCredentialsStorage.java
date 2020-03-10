@@ -1,7 +1,6 @@
 package com.atlassian.migration.datacenter.core.aws.auth;
 
 import com.atlassian.jira.config.util.JiraHome;
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import org.apache.log4j.Logger;
@@ -43,8 +42,8 @@ public class EncryptedCredentialsStorage implements InitializingBean, ReadCreden
     private PluginSettings pluginSettings;
 
     @Inject
-    public EncryptedCredentialsStorage(@ComponentImport PluginSettingsFactory pluginSettingsFactory,
-                                       @ComponentImport JiraHome jiraHome) {
+    public EncryptedCredentialsStorage(PluginSettingsFactory pluginSettingsFactory,
+                                       JiraHome jiraHome) {
         this.pluginSettingsFactory = pluginSettingsFactory;
         this.jiraHome = jiraHome;
     }

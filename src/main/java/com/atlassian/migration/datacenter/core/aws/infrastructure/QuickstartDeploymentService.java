@@ -7,7 +7,6 @@ import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -30,7 +29,7 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
     private final MigrationServiceV2 migrationService;
     private final ActiveObjects ao;
 
-    public QuickstartDeploymentService(@ComponentImport ActiveObjects ao, CfnApi cfnApi, MigrationServiceV2 migrationService) {
+    public QuickstartDeploymentService(ActiveObjects ao, CfnApi cfnApi, MigrationServiceV2 migrationService) {
         this.ao = ao;
         this.cfnApi = cfnApi;
         this.migrationService = migrationService;

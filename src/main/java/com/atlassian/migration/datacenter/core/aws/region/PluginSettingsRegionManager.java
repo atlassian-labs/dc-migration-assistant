@@ -1,7 +1,6 @@
 package com.atlassian.migration.datacenter.core.aws.region;
 
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ public class PluginSettingsRegionManager implements RegionService {
     private final GlobalInfrastructure globalInfrastructure;
 
     @Autowired
-    public PluginSettingsRegionManager(@ComponentImport PluginSettingsFactory pluginSettingsFactory, GlobalInfrastructure globalInfrastructure) {
+    public PluginSettingsRegionManager(PluginSettingsFactory pluginSettingsFactory, GlobalInfrastructure globalInfrastructure) {
         this.pluginSettingsFactory = pluginSettingsFactory;
         this.globalInfrastructure = globalInfrastructure;
     }

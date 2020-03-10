@@ -1,6 +1,5 @@
 package com.atlassian.migration.datacenter;
 
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.permission.PermissionEnforcer;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
@@ -26,9 +25,9 @@ public class TemplateServlet extends HttpServlet {
     private final PermissionEnforcer permissionEnforcer;
     private final LoginUriProvider loginUriProvider;
 
-    public TemplateServlet(@ComponentImport final SoyTemplateRenderer templateRenderer,
-                           @ComponentImport final PermissionEnforcer permissionEnforcer,
-                           @ComponentImport final LoginUriProvider loginUriProvider) {
+    public TemplateServlet(final SoyTemplateRenderer templateRenderer,
+                           final PermissionEnforcer permissionEnforcer,
+                           final LoginUriProvider loginUriProvider) {
         this.templateRenderer = templateRenderer;
         this.permissionEnforcer = permissionEnforcer;
         this.loginUriProvider = loginUriProvider;

@@ -10,7 +10,6 @@ import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -48,11 +47,11 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private FileSystemMigrationReport report;
     private AtomicBoolean isDoneCrawling;
     private ConcurrentLinkedQueue<Path> uploadQueue;
-    private S3UploadConfig config;
+    private S3UploadConfig s3UploadConfig;
 
     public S3FilesystemMigrationService(RegionService regionService,
                                         AwsCredentialsProvider credentialsProvider,
-                                        @ComponentImport JiraHome jiraHome, MigrationServiceV2 migrationService) {
+                                        JiraHome jiraHome, MigrationServiceV2 migrationService) {
         this.regionService = regionService;
         this.credentialsProvider = credentialsProvider;
         this.jiraHome = jiraHome;
@@ -100,7 +99,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         report.setStatus(RUNNING);
 
         S3AsyncClient s3AsyncClient = buildS3Client();
-        config = new S3UploadConfig(getS3Bucket(), s3AsyncClient, getSharedHomeDir());
+        s3UploadConfig = new S3UploadConfig(getS3Bucket(), s3AsyncClient, getSharedHomeDir());
     }
 
     private S3AsyncClient buildS3Client() {
@@ -115,7 +114,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         CompletionService<Void> completionService = new ExecutorCompletionService<>(uploadExecutorService);
 
         Runnable uploaderFunction = () -> {
-            Uploader uploader = new S3Uploader(config, report, report);
+            Uploader uploader = new S3Uploader(s3UploadConfig, report, report);
             uploader.upload(uploadQueue, isDoneCrawling);
         };
 
@@ -134,7 +133,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         } finally {
             // FIXME: the uploader will continue uploading until the queue is empty even though we probably need to abort in this scenario as it's indeterminate whether all files have been uploaded or not (should we try fix this now or create a bug and follow up?)
             isDoneCrawling.set(true);
-            logger.info("Finished traversing directory [{}], {} files are remaining to upload", config.getSharedHome(), uploadQueue.size());
+            logger.info("Finished traversing directory [{}], {} files are remaining to upload", s3UploadConfig.getSharedHome(), uploadQueue.size());
         }
     }
 

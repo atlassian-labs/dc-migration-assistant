@@ -11,7 +11,6 @@ import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.scheduler.SchedulerService;
 import com.atlassian.scheduler.SchedulerServiceException;
 import com.atlassian.scheduler.config.JobConfig;
@@ -47,10 +46,10 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(@ComponentImport ActiveObjects ao,
+    public AWSMigrationService(ActiveObjects ao,
                                FilesystemMigrationService fileService,
                                CfnApi cfnApi,
-                               @ComponentImport SchedulerService schedulerService) {
+                               SchedulerService schedulerService) {
         this.ao = requireNonNull(ao);
         this.fsService = fileService;
         this.cfnApi = cfnApi;
