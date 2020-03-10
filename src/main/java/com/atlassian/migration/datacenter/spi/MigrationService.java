@@ -11,6 +11,7 @@ import java.util.Optional;
  * Abstraction of an on-premise to cloud migration modeled as a finite state machine.
  */
 @Transactional
+@Deprecated
 public interface MigrationService {
 
     /**

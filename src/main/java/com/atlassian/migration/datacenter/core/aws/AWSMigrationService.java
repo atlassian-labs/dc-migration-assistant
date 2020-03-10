@@ -3,6 +3,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.migration.datacenter.core.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.core.fs.S3UploadJobRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -173,12 +174,12 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
     }
 
     @Override
-    public Migration createMigration() {
+    public Migration createMigration() throws MigrationAlreadyExistsException {
         Migration migration = loadMigration();
         if (migration.getStage().equals(NOT_STARTED)) {
             return migration;
         }
-        throw new RuntimeException("Migration already exists");
+        throw new MigrationAlreadyExistsException(String.format("Found existing migration in Stage - `%s`", migration.getStage()));
     }
 
     @Override

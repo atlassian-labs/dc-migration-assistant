@@ -51,7 +51,8 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
     public S3FilesystemMigrationService(RegionService regionService,
                                         AwsCredentialsProvider credentialsProvider,
-                                        JiraHome jiraHome, MigrationServiceV2 migrationService) {
+                                        JiraHome jiraHome,
+                                        MigrationServiceV2 migrationService) {
         this.regionService = regionService;
         this.credentialsProvider = credentialsProvider;
         this.jiraHome = jiraHome;

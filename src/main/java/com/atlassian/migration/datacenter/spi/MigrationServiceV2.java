@@ -1,6 +1,7 @@
 package com.atlassian.migration.datacenter.spi;
 
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.dto.Migration;
 
 /**
@@ -11,7 +12,7 @@ public interface MigrationServiceV2 {
     /**
      * Creates a new migration in the initial stage
      */
-    Migration createMigration();
+    Migration createMigration() throws MigrationAlreadyExistsException;
 
     /**
      * Gets the current stage of the migration

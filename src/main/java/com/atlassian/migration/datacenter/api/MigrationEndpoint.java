@@ -1,6 +1,7 @@
 package com.atlassian.migration.datacenter.api;
 
-import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
+import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 
 import javax.ws.rs.Consumes;
@@ -18,9 +19,9 @@ import javax.ws.rs.core.Response;
 @Path("/migration")
 public class MigrationEndpoint {
 
-    private MigrationService migrationService;
+    private MigrationServiceV2 migrationService;
 
-    public MigrationEndpoint(MigrationService migrationService) {
+    public MigrationEndpoint(MigrationServiceV2 migrationService) {
         this.migrationService = migrationService;
     }
 
@@ -31,13 +32,13 @@ public class MigrationEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMigrationStatus() {
-        if (migrationService.getMigrationStage() == MigrationStage.NOT_STARTED) {
+        if (migrationService.getCurrentStage() == MigrationStage.NOT_STARTED) {
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .build();
         } else {
             return Response
-                    .ok(migrationService.getMigrationStage().toString())
+                    .ok(migrationService.getCurrentStage().toString())
                     .build();
         }
     }
@@ -51,11 +52,12 @@ public class MigrationEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createMigration() {
-        if (migrationService.startMigration()) {
+        try {
+            migrationService.createMigration();
             return Response
                     .noContent()
                     .build();
-        } else {
+        } catch (MigrationAlreadyExistsException e) {
             return Response
                     .status(Response.Status.CONFLICT)
                     .entity("migration already exists")

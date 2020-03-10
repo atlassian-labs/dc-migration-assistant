@@ -4,6 +4,7 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.migration.datacenter.core.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -198,7 +199,7 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void shouldCreateMigrationInNotStarted() {
+    public void shouldCreateMigrationInNotStarted() throws MigrationAlreadyExistsException {
         ao.migrate(Migration.class);
         Migration migration = sut.createMigration();
 
