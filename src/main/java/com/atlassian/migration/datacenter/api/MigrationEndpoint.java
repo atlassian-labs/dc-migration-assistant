@@ -1,8 +1,8 @@
 package com.atlassian.migration.datacenter.api;
 
-import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
+import com.google.common.collect.ImmutableMap;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -19,9 +19,9 @@ import javax.ws.rs.core.Response;
 @Path("/migration")
 public class MigrationEndpoint {
 
-    private MigrationServiceV2 migrationService;
+    private MigrationService migrationService;
 
-    public MigrationEndpoint(MigrationServiceV2 migrationService) {
+    public MigrationEndpoint(MigrationService migrationService) {
         this.migrationService = migrationService;
     }
 
@@ -32,13 +32,13 @@ public class MigrationEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMigrationStatus() {
-        if (migrationService.getCurrentStage() == MigrationStage.NOT_STARTED) {
+        if (migrationService.getMigrationStage() == MigrationStage.NOT_STARTED) {
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .build();
         } else {
             return Response
-                    .ok(migrationService.getCurrentStage().toString())
+                    .ok(ImmutableMap.of("stage", migrationService.getMigrationStage().toString()))
                     .build();
         }
     }
@@ -52,15 +52,14 @@ public class MigrationEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createMigration() {
-        try {
-            migrationService.createMigration();
+        if (migrationService.startMigration()) {
             return Response
                     .noContent()
                     .build();
-        } catch (MigrationAlreadyExistsException e) {
+        } else {
             return Response
                     .status(Response.Status.CONFLICT)
-                    .entity("migration already exists")
+                    .entity(ImmutableMap.of("error", "migration already exists"))
                     .build();
         }
     }

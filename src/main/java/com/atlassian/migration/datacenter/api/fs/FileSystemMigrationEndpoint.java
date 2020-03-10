@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -41,10 +42,16 @@ public class FileSystemMigrationEndpoint {
     public Response runFileMigration() {
         Response response;
         if (fsMigrationService.isRunning()) {
-            response = Response.status(Response.Status.CONFLICT).entity("S3 migration is already running ").build();
+            response = Response
+                    .status(Response.Status.CONFLICT)
+                    .entity(ImmutableMap.of("status", fsMigrationService.getReport().getStatus()))
+                    .build();
         } else {
             boolean started = migrationService.startFilesystemMigration();
-            response = Response.status(Response.Status.ACCEPTED).entity("S3 Migration started = " + started).build();
+            response = Response
+                    .status(Response.Status.ACCEPTED)
+                    .entity(ImmutableMap.of("migrationScheduled", started))
+                    .build();
         }
         return response;
     }
@@ -57,7 +64,7 @@ public class FileSystemMigrationEndpoint {
         if (report == null) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
-                    .entity("no file system migration exists")
+                    .entity(ImmutableMap.of("error", "no file system migration exists"))
                     .build();
         }
 

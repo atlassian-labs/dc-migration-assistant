@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.ws.rs.core.Response;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +30,7 @@ public class MigrationEndpointTest {
 
         Response response = sut.getMigrationStatus();
 
-        assertEquals(MigrationStage.AUTHENTICATION.toString(), response.getEntity());
+        assertThat(response.getEntity().toString(), containsString(MigrationStage.AUTHENTICATION.toString()));
     }
 
     @Test

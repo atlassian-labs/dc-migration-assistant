@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.RUNNING;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -130,6 +132,6 @@ public class FileSystemMigrationProgressEndpointTest {
         final Response response = endpoint.getFilesystemMigrationStatus();
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-        assertEquals("no file system migration exists", response.getEntity());
+        assertThat(response.getEntity().toString(), containsString("no file system migration exists"));
     }
 }

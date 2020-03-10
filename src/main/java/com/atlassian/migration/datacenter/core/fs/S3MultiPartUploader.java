@@ -3,7 +3,6 @@ package com.atlassian.migration.datacenter.core.fs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
@@ -36,69 +35,50 @@ import java.util.concurrent.ExecutionException;
 public class S3MultiPartUploader {
     private final static Logger logger = LoggerFactory.getLogger(S3MultiPartUploader.class);
     private final S3UploadConfig config;
+    private final File file;
+    private final String key;
 
-    private int sizeToUpload = 50 * 1024 * 1024; // 50MB
-    private List<CompletedPart> completedParts;
+    private int sizeToUpload = 100 * 1024 * 1024; // 100 MB
+    private List<CompletedPart> completedParts = new ArrayList<>();
+    private ByteBuffer buffer;
+    private int uploadPartNumber = 1;
 
-    public S3MultiPartUploader(S3UploadConfig config) {
+    public S3MultiPartUploader(S3UploadConfig config, File file, String key) {
         this.config = config;
+        this.file = file;
+        this.key = key;
     }
 
-    /**
-     * Upload the file in multiple parts
-     *
-     * @param file file to upload
-     * @param key  S3 key for the file
-     * @throws ExecutionException
-     * @throws InterruptedException
-     */
-    public void multiPartUpload(File file, String key) throws ExecutionException, InterruptedException {
-        completedParts = new ArrayList<>();
-        final S3AsyncClient s3AsyncClient = config.getS3AsyncClient();
+    public void upload() throws ExecutionException, InterruptedException {
+        // lazily loaded to save memory
+        buffer = ByteBuffer.allocate(getSizeToUpload());
 
-        CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
-                .bucket(config.getBucketName())
-                .key(key)
-                .build();
-        CreateMultipartUploadResponse response = s3AsyncClient.createMultipartUpload(createMultipartUploadRequest).get();
-        String uploadId = response.uploadId();
-
-        final ByteBuffer buffer = ByteBuffer.allocate(getSizeToUpload());
-        int uploadPartNumber = 1;
+        String uploadId = initiateUpload();
 
         try (FileInputStream fileInputStream = new FileInputStream(file);
              BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream)) {
 
-            while (bufferedInputStream.read(buffer.array()) > 0) {
+            int readBytes;
+            while ((readBytes = bufferedInputStream.read(buffer.array())) > 0) {
+                logger.trace("Read {} bytes from file {}", readBytes, file);
 
-                UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
-                        .bucket(config.getBucketName())
-                        .key(key)
-                        .uploadId(uploadId)
-                        .partNumber(uploadPartNumber)
-                        .build();
-                String etag = s3AsyncClient
-                        .uploadPart(uploadPartRequest, AsyncRequestBody.fromByteBuffer(buffer))
-                        .get()
-                        .eTag();
-
+                String etag = uploadChunk(uploadId, uploadPartNumber, readBytes);
                 logger.debug("Uploaded part {} with etag {}", uploadPartNumber, etag);
 
-                CompletedPart part = CompletedPart.builder()
-                        .partNumber(uploadPartNumber)
-                        .eTag(etag)
-                        .build();
-                completedParts.add(part);
-
-                uploadPartNumber++;
+                uploadPartNumber = completePart(uploadPartNumber, etag);
             }
         } catch (IOException e) {
             logger.error("Cannot open file for the multi-part upload", e);
         }
         buffer.clear();
 
-        completeUpload(key, uploadId).get();
-        logger.debug("Finished multipart upload for {} with {} parts", key, completedParts.size());
+        logger.trace("Finished uploading parts, sending complete request.");
+        try {
+            completeUpload(key, uploadId).get();
+            logger.debug("Finished multipart upload for {} with {} parts", key, completedParts.size());
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Encountered error when uploading multipart file.", e);
+        }
     }
 
     /**
@@ -117,6 +97,47 @@ public class S3MultiPartUploader {
      */
     public void setSizeToUpload(int sizeToUpload) {
         this.sizeToUpload = sizeToUpload;
+    }
+
+    private String initiateUpload() throws InterruptedException, ExecutionException {
+        CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
+                .bucket(config.getBucketName())
+                .key(key)
+                .build();
+        CreateMultipartUploadResponse response = config.getS3AsyncClient().createMultipartUpload(createMultipartUploadRequest).get();
+        return response.uploadId();
+    }
+
+    private String uploadChunk(String uploadId, int uploadPartNumber, int readBytes) throws InterruptedException, ExecutionException {
+        UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
+                .bucket(config.getBucketName())
+                .key(key)
+                .uploadId(uploadId)
+                .partNumber(uploadPartNumber)
+                .build();
+
+        AsyncRequestBody body;
+        if (readBytes < buffer.limit()) {
+            // We need to limit the buffer if the rest of the file is smaller than the allocated size.
+            // If don't do this, the size of the sent part will be always equal to the buffer size.
+            body = AsyncRequestBody.fromByteBuffer((ByteBuffer) buffer.limit(readBytes));
+        } else {
+            body = AsyncRequestBody.fromByteBuffer(buffer);
+        }
+        return config.getS3AsyncClient()
+                .uploadPart(uploadPartRequest, body)
+                .get()
+                .eTag();
+    }
+
+    private int completePart(int uploadPartNumber, String etag) {
+        CompletedPart part = CompletedPart.builder()
+                .partNumber(uploadPartNumber)
+                .eTag(etag)
+                .build();
+        completedParts.add(part);
+
+        return uploadPartNumber + 1;
     }
 
     private CompletableFuture<CompleteMultipartUploadResponse> completeUpload(String key, String uploadId) {
