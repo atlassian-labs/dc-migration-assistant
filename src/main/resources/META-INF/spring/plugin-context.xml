@@ -8,5 +8,6 @@
        http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:annotation-config/>
-    <bean class="com.atlassian.migration.datacenter.configuration.MigrationAssistantConfiguration" />
+    <context:component-scan base-package="com.atlassian.migration.datacenter" />
+<!--    <bean class="com.atlassian.migration.datacenter.configuration.MigrationAssistantSpringConfiguration" />-->
 </beans>
