@@ -94,9 +94,12 @@ public class JiraConfiguration implements ApplicationConfiguration
             URI absURI = URI.create(urlStr);
             URI dbURI = URI.create(absURI.getSchemeSpecificPart());
             String host = dbURI.getHost();
+            Integer port = dbURI.getPort();
+            if (port == -1)
+                port = 5432;
             String name = dbURI.getPath().substring(1); // Remove leading '/'
 
-            return new DatabaseConfiguration(host, name, username, password);
+            return new DatabaseConfiguration(host, port, name, username, password);
         } catch (Exception e) {
             throw new ConfigurationReadException("Failed to parse dbconfig.xml", e);
         }

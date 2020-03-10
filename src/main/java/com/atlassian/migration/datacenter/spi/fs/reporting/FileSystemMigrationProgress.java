@@ -18,12 +18,12 @@ public interface FileSystemMigrationProgress {
     void reportFileFound();
 
     /**
-     * Gets the number of files which are currently being uploaded but not yet confirmed to be uploaded successfully
+     * Gets the number of files which have had their upload commenced
      */
     @JsonProperty("filesInFlight")
-    Long getNumberOfFilesInFlight();
+    Long getNumberOfCommencedFileUploads();
 
-    void reportFileInFlight();
+    void reportFileUploadCommenced();
 
     /**
      * Gets the number of files which have been successfully migrated

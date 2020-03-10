@@ -113,13 +113,13 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     }
 
     @Override
-    public Long getNumberOfFilesInFlight() {
-        return progress.getNumberOfFilesInFlight();
+    public Long getNumberOfCommencedFileUploads() {
+        return progress.getNumberOfCommencedFileUploads();
     }
 
     @Override
-    public void reportFileInFlight() {
-        progress.reportFileInFlight();
+    public void reportFileUploadCommenced() {
+        progress.reportFileUploadCommenced();
     }
 
     @Override

@@ -138,12 +138,11 @@ class S3UploaderTest {
 
         Thread.sleep(100);
 
-        assertEquals(1, progress.getNumberOfFilesInFlight());
+        assertEquals(1, progress.getNumberOfCommencedFileUploads());
 
         isCrawlDone.set(true);
 
         submit.get();
-        assertEquals(0, progress.getNumberOfFilesInFlight());
     }
 
     Path addFileToQueue(String fileName) throws IOException {

@@ -9,13 +9,15 @@ public class DatabaseConfiguration
     private String name;
     private String username;
     private String password;
+    private Integer port;
 
-    public DatabaseConfiguration(String host, String name, String username, String password)
+    public DatabaseConfiguration(String host, Integer port, String name, String username, String password)
     {
         this.host = host;
         this.name = name;
         this.username = username;
         this.password = password;
+        this.port = port;
     }
 
     public String getHost()
@@ -38,4 +40,8 @@ public class DatabaseConfiguration
         return password;
     }
 
+    public Integer getPort()
+    {
+        return port;
+    }
 }

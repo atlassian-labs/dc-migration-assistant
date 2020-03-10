@@ -36,22 +36,10 @@ public class DefaultFileSystemMigrationProgressTest {
     }
 
     @Test
-    void shouldCountInFlightFile() {
-        sut.reportFileInFlight();
+    void shouldCountCommencedFileUploads() {
+        sut.reportFileUploadCommenced();
 
-        assertEquals(1, sut.getNumberOfFilesInFlight());
-    }
-
-    @Test
-    void ShouldRemoveFileFromInFlightWhenItIsMigrated() {
-        sut.reportFileInFlight();
-        sut.reportFileInFlight();
-
-        assertEquals(2, sut.getNumberOfFilesInFlight());
-
-        sut.reportFileMigrated();
-
-        assertEquals(1, sut.getNumberOfFilesInFlight());
+        assertEquals(1, sut.getNumberOfCommencedFileUploads());
     }
 
     @Test
