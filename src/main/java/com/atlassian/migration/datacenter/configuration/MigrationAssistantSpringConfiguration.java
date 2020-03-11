@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({
         MigrationAssistantBeanConfiguration.class,
-        MigrationAssistantImportConfiguration.class
+        MigrationAssistantOsgiImportConfiguration.class
 })
 public class MigrationAssistantSpringConfiguration {
 }

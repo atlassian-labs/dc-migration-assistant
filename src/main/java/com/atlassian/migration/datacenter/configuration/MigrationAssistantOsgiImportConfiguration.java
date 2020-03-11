@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import static com.atlassian.plugins.osgi.javaconfig.OsgiServices.importOsgiService;
 
 @Configuration
-public class MigrationAssistantImportConfiguration {
+public class MigrationAssistantOsgiImportConfiguration {
     @Bean
     public PluginSettingsFactory getPluginSettingsFactory() {
         return importOsgiService(PluginSettingsFactory.class);

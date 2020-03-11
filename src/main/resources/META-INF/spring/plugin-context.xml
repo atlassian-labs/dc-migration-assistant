@@ -9,5 +9,4 @@
 
     <context:annotation-config/>
     <context:component-scan base-package="com.atlassian.migration.datacenter" />
-<!--    <bean class="com.atlassian.migration.datacenter.configuration.MigrationAssistantSpringConfiguration" />-->
 </beans>
