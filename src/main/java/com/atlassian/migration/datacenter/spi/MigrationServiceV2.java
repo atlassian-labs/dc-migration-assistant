@@ -10,7 +10,9 @@ import com.atlassian.migration.datacenter.dto.Migration;
 public interface MigrationServiceV2 {
 
     /**
-     * Creates a new migration in the initial stage
+     * Creates a new migration in the initial stage. Using this method will create just one migration object in the database
+     * <b>or</b> find the existing migration object and return it.
+     * @throws {@link MigrationAlreadyExistsException} when a migration object already exists.
      */
     Migration createMigration() throws MigrationAlreadyExistsException;
 

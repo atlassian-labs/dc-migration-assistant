@@ -1,6 +1,8 @@
 package com.atlassian.migration.datacenter.api;
 
-import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
+import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.google.common.collect.ImmutableMap;
 
@@ -19,9 +21,9 @@ import javax.ws.rs.core.Response;
 @Path("/migration")
 public class MigrationEndpoint {
 
-    private MigrationService migrationService;
+    private MigrationServiceV2 migrationService;
 
-    public MigrationEndpoint(MigrationService migrationService) {
+    public MigrationEndpoint(MigrationServiceV2 migrationService) {
         this.migrationService = migrationService;
     }
 
@@ -32,13 +34,13 @@ public class MigrationEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMigrationStatus() {
-        if (migrationService.getMigrationStage() == MigrationStage.NOT_STARTED) {
+        if (migrationService.getCurrentStage() == MigrationStage.NOT_STARTED) {
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .build();
         } else {
             return Response
-                    .ok(ImmutableMap.of("stage", migrationService.getMigrationStage().toString()))
+                    .ok(ImmutableMap.of("stage", migrationService.getCurrentStage().toString()))
                     .build();
         }
     }
@@ -52,14 +54,19 @@ public class MigrationEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createMigration() {
-        if (migrationService.startMigration()) {
-            return Response
-                    .noContent()
-                    .build();
-        } else {
+        try {
+            migrationService.createMigration();
+            migrationService.transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+            return Response.noContent().build();
+        } catch (MigrationAlreadyExistsException e) {
             return Response
                     .status(Response.Status.CONFLICT)
                     .entity(ImmutableMap.of("error", "migration already exists"))
+                    .build();
+        } catch (InvalidMigrationStageError invalidMigrationStageError) {
+            return Response
+                    .status(Response.Status.CONFLICT)
+                    .entity(ImmutableMap.of("error", "Unable to transition migration from initial state"))
                     .build();
         }
     }

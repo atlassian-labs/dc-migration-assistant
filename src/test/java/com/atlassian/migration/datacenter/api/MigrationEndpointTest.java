@@ -1,32 +1,41 @@
 package com.atlassian.migration.datacenter.api;
 
-import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
+import com.atlassian.migration.datacenter.dto.Migration;
+import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.ws.rs.core.Response;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class MigrationEndpointTest {
 
     @Mock
-    private MigrationService mockMigrationService;
+    private MigrationServiceV2 migrationService;
 
     @InjectMocks
     private MigrationEndpoint sut;
 
     @Test
     public void testOKAndMigrationStatusWhenMigrationExists() {
-        when(mockMigrationService.getMigrationStage()).thenReturn(MigrationStage.AUTHENTICATION);
+        when(migrationService.getCurrentStage()).thenReturn(MigrationStage.AUTHENTICATION);
 
         Response response = sut.getMigrationStatus();
 
@@ -35,7 +44,7 @@ public class MigrationEndpointTest {
 
     @Test
     public void testNotFoundWhenMigrationDoesNotExist() {
-        when(mockMigrationService.getMigrationStage()).thenReturn(MigrationStage.NOT_STARTED);
+        when(migrationService.getCurrentStage()).thenReturn(MigrationStage.NOT_STARTED);
 
         Response response = sut.getMigrationStatus();
 
@@ -43,8 +52,10 @@ public class MigrationEndpointTest {
     }
 
     @Test
-    public void testNoContentWhenCreatingMigrationAndNoneExists() {
-        when(mockMigrationService.startMigration()).thenReturn(true);
+    public void testNoContentWhenCreatingMigrationAndNoneExists() throws Exception {
+        Migration stubMigration = Mockito.mock(Migration.class);
+        when(migrationService.createMigration()).thenReturn(stubMigration);
+        doNothing().when(migrationService).transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
 
         Response response = sut.createMigration();
 
@@ -52,12 +63,28 @@ public class MigrationEndpointTest {
     }
 
     @Test
-    public void testBadRequestWhenCreatingMigrationAndOneExists() {
-        when(mockMigrationService.startMigration()).thenReturn(false);
+    public void testBadRequestWhenCreatingMigrationAndOneExists() throws Exception {
+        Migration stubMigration = Mockito.mock(Migration.class);
+        when(migrationService.createMigration()).thenReturn(stubMigration);
+        doThrow(InvalidMigrationStageError.class).when(migrationService).transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+
 
         Response response = sut.createMigration();
 
         assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
+        Map<String, String> entity = (Map<String, String>) response.getEntity();
+        assertEquals("Unable to transition migration from initial state", entity.get("error"));
     }
 
+    @Test
+    public void testBadRequestWhenCreatingMigrationAndUnableToTransitionPastTheInitialStage() throws Exception {
+        doThrow(MigrationAlreadyExistsException.class).when(migrationService).createMigration();
+
+        Response response = sut.createMigration();
+
+        assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
+        Map<String, String> entity = (Map<String, String>) response.getEntity();
+        assertEquals("migration already exists", entity.get("error"));
+        verify(migrationService, never()).transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+    }
 }
