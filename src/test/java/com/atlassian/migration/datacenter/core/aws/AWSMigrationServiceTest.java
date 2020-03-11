@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 ;
@@ -51,7 +50,7 @@ public class AWSMigrationServiceTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, filesystemMigrationService, cfnApi, schedulerService);
+        sut = new AWSMigrationService(ao);
     }
 
     @Test
