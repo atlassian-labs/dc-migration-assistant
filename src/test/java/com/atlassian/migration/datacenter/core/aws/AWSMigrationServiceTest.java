@@ -209,7 +209,7 @@ public class AWSMigrationServiceTest {
     @Test
     public void shouldThrowExceptionWhenMigrationExistsAlready() {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
-        assertThrows(RuntimeException.class, () -> sut.createMigration());
+        assertThrows(MigrationAlreadyExistsException.class, () -> sut.createMigration());
     }
 
     @Test
