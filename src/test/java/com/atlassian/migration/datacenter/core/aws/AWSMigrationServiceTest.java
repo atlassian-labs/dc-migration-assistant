@@ -50,9 +50,7 @@ public class AWSMigrationServiceTest {
     @Before
     public void setup() {
         assertNotNull(entityManager);
-
         ao = new TestActiveObjects(entityManager);
-
         sut = new AWSMigrationService(ao, filesystemMigrationService, cfnApi, schedulerService);
     }
 
@@ -123,12 +121,38 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void errorShouldSetCurrentStageToError() {
+    public void shouldSetCurrentStageToErrorOnError() {
         initializeAndCreateSingleMigrationWithStage(PROVISION_APPLICATION);
 
         sut.error();
 
         assertEquals(ERROR, sut.getCurrentStage());
+    }
+
+    @Test
+    public void shouldRaiseErrorOnGetCurrentMigrationWhenMoreThanOneExists(){
+        initializeAndCreateSingleMigrationWithStage(MigrationStage.WAIT_FS_MIGRATION_COPY);
+        initializeAndCreateSingleMigrationWithStage(ERROR);
+        assertNumberOfMigrations(2);
+
+        assertThrows(Exception.class, () -> sut.getCurrentMigration(), "Invalid State - should only be 1 migration");
+    }
+
+    @Test
+    public void shouldGetCurrentMigrationWhenOneExists(){
+        Migration existingMigration = initializeAndCreateSingleMigrationWithStage(MigrationStage.WAIT_FS_MIGRATION_COPY);
+
+        Migration currentMigration = sut.getCurrentMigration();
+        assertEquals(currentMigration.getID(), existingMigration.getID());
+        assertEquals(currentMigration.getStage(), existingMigration.getStage());
+    }
+
+    @Test
+    public void shouldCreateMigrationWhenNoneExists(){
+        setupEntities();
+        Migration migration = sut.getCurrentMigration();
+        assertNumberOfMigrations(1);
+        assertEquals(NOT_STARTED, migration.getStage());
     }
 
     private void assertNumberOfMigrations(int i) {

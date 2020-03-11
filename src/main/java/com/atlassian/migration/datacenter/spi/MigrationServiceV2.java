@@ -21,6 +21,12 @@ public interface MigrationServiceV2 {
      */
     MigrationStage getCurrentStage();
 
+
+    /**
+     * Gets the Migration Object
+     */
+    Migration getCurrentMigration();
+
     /**
      * Tries to transition the migration state from one to another
      * @param from the state you are expected to be in currently when beginning the transition

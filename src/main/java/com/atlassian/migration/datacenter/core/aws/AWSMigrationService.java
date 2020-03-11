@@ -48,31 +48,9 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
         this.schedulerService = schedulerService;
     }
 
-    private Migration loadMigration() {
-        Migration[] migrations = ao.find(Migration.class);
-        if (migrations.length == 1) {
-            // In case we have interrupted migration (e.g. the node went down), we want to pick up where we've
-            // left off.
-            return migrations[0];
-        } else if (migrations.length == 0){
-            // We didn't start the migration, so we need to create record in the db and a migration context
-            Migration migration = ao.create(Migration.class);
-            migration.setStage(NOT_STARTED);
-            migration.save();
-
-            MigrationContext context = ao.create(MigrationContext.class);
-            context.setMigration(migration);
-            context.save();
-
-            return migration;
-        } else {
-            throw new RuntimeException("Invalid State - should only be 1 migration");
-        }
-    }
-
 
     public boolean startFilesystemMigration() {
-        Migration migration = loadMigration();
+        Migration migration = findFirstOrCreateMigration();
         if (migration.getStage() == NOT_STARTED) {
             return false;
         }
@@ -107,7 +85,7 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
 
     @Override
     public Migration createMigration() throws MigrationAlreadyExistsException {
-        Migration migration = loadMigration();
+        Migration migration = findFirstOrCreateMigration();
         if (migration.getStage().equals(NOT_STARTED)) {
             return migration;
         }
@@ -116,12 +94,17 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
 
     @Override
     public MigrationStage getCurrentStage() {
-        return loadMigration().getStage();
+        return findFirstOrCreateMigration().getStage();
+    }
+
+    @Override
+    public Migration getCurrentMigration() {
+        return findFirstOrCreateMigration();
     }
 
     @Override
     public void transition(MigrationStage from, MigrationStage to) throws InvalidMigrationStageError {
-        Migration migration = loadMigration();
+        Migration migration = findFirstOrCreateMigration();
         final MigrationStage currentStage = migration.getStage();
         if (!currentStage.equals(from)) {
             throw InvalidMigrationStageError.errorWithMessage(from,currentStage);
@@ -131,12 +114,34 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
 
     @Override
     public void error() {
-        Migration migration = loadMigration();
+        Migration migration = findFirstOrCreateMigration();
         setCurrentStage(migration, ERROR);
     }
 
     private void setCurrentStage(Migration migration, MigrationStage stage) {
         migration.setStage(stage);
         migration.save();
+    }
+
+    private Migration findFirstOrCreateMigration() {
+        Migration[] migrations = ao.find(Migration.class);
+        if (migrations.length == 1) {
+            // In case we have interrupted migration (e.g. the node went down), we want to pick up where we've
+            // left off.
+            return migrations[0];
+        } else if (migrations.length == 0){
+            // We didn't start the migration, so we need to create record in the db and a migration context
+            Migration migration = ao.create(Migration.class);
+            migration.setStage(NOT_STARTED);
+            migration.save();
+
+            MigrationContext context = ao.create(MigrationContext.class);
+            context.setMigration(migration);
+            context.save();
+
+            return migration;
+        } else {
+            throw new RuntimeException("Invalid State - should only be 1 migration");
+        }
     }
 }
