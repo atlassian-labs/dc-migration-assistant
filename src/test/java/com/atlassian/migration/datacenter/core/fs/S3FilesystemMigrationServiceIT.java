@@ -10,6 +10,7 @@ import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
+import com.atlassian.scheduler.SchedulerService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -40,12 +41,14 @@ class S3FilesystemMigrationServiceIT {
     @Mock
     AtlassianPluginAWSCredentialsProvider credentialsProvider;
 
-    //TODO: Review why we use mocks in integration tests.
     @Mock
     MigrationServiceV2 migrationService;
 
     @Mock
     JiraHome jiraHome;
+
+    @Mock
+    private SchedulerService schedulerService;
 
     @BeforeEach
     void setup() throws Exception {
@@ -60,7 +63,7 @@ class S3FilesystemMigrationServiceIT {
         when(jiraHome.getHome()).thenReturn(dir.toFile());
         when(migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
 
-        FilesystemMigrationService fsService = new S3FilesystemMigrationService(regionService, credentialsProvider, jiraHome, migrationService);
+        FilesystemMigrationService fsService = new S3FilesystemMigrationService(regionService, credentialsProvider, jiraHome, migrationService, schedulerService);
 
         fsService.startMigration();
 

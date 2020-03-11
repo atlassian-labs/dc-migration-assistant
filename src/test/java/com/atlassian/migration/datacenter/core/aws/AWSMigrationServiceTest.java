@@ -55,25 +55,6 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void shouldNotStartFileSystemMigrationWhenNoMigrationExists() throws Exception {
-        ao.migrate(Migration.class);
-
-        boolean success = sut.startFilesystemMigration();
-
-        assertFalse(success);
-        verify(this.filesystemMigrationService, never()).startMigration();
-    }
-
-    @Test
-    public void shouldStartFsMigrationWhenMigrationStageIsReadyForFsSync() {
-        initializeAndCreateSingleMigrationWithStage(FS_MIGRATION_COPY);
-        boolean success = sut.startFilesystemMigration();
-        assertTrue(success);
-    }
-
-    // MigrationServiceV2 Tests
-
-    @Test
     public void shouldBeInNotStartedStageWhenNoMigrationsExist() {
         setupEntities();
         MigrationStage initialStage = sut.getCurrentStage();

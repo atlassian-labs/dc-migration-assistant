@@ -13,5 +13,6 @@ import java.util.Optional;
 @Transactional
 @Deprecated
 public interface MigrationService {
+    @Deprecated
     boolean startFilesystemMigration();
 }

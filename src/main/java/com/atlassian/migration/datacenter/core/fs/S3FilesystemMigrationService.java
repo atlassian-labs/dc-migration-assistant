@@ -6,10 +6,17 @@ import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageE
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFilesystemMigrationProgress;
+import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
+import com.atlassian.scheduler.SchedulerService;
+import com.atlassian.scheduler.SchedulerServiceException;
+import com.atlassian.scheduler.config.JobConfig;
+import com.atlassian.scheduler.config.JobId;
+import com.atlassian.scheduler.config.JobRunnerKey;
+import com.atlassian.scheduler.config.RunMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -28,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
+import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.RUNNING;
@@ -43,20 +51,23 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private final RegionService regionService;
     private final JiraHome jiraHome;
     private final MigrationServiceV2 migrationService;
+    private final SchedulerService schedulerService;
 
     private FileSystemMigrationReport report;
     private AtomicBoolean isDoneCrawling;
     private ConcurrentLinkedQueue<Path> uploadQueue;
     private S3UploadConfig s3UploadConfig;
 
+    //TODO: Region Service and provider will be replaced by the S3 Client
     public S3FilesystemMigrationService(RegionService regionService,
                                         AwsCredentialsProvider credentialsProvider,
                                         JiraHome jiraHome,
-                                        MigrationServiceV2 migrationService) {
+                                        MigrationServiceV2 migrationService, SchedulerService schedulerService) {
         this.regionService = regionService;
         this.credentialsProvider = credentialsProvider;
         this.jiraHome = jiraHome;
         this.migrationService = migrationService;
+        this.schedulerService = schedulerService;
     }
 
     @Override
@@ -67,6 +78,49 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     @Override
     public FileSystemMigrationReport getReport() {
         return report;
+    }
+
+    @Override
+    public Boolean scheduleMigration() {
+        Migration currentMigration = this.migrationService.getCurrentMigration();
+        //TODO: Review why this check is needed?
+        if (currentMigration.getStage() == NOT_STARTED) {
+            return false;
+        }
+
+        final JobRunnerKey runnerKey = JobRunnerKey.of(S3UploadJobRunner.KEY);
+        JobId jobId = JobId.of(S3UploadJobRunner.KEY + currentMigration.getID());
+        logger.info("Starting filesystem migration");
+
+        //TODO: Can the job runner be injected? It has no state
+        schedulerService.registerJobRunner(runnerKey, new S3UploadJobRunner(this));
+        logger.info("Registered new job runner for S3");
+
+//      TODO: don't schedule when the job is running, there are few edge cases we need to cover
+//        JobDetails jobDetails = schedulerService.getJobDetails(jobId);
+//        if (jobDetails != null) {
+//            final Date nextRunTime = jobDetails.getNextRunTime();
+//            if (nextRunTime != null && nextRunTime.before(new Date())) {
+//                return false;
+//            }
+//        }
+
+        JobConfig jobConfig = JobConfig.forJobRunnerKey(runnerKey)
+                .withSchedule(null) // run now
+                .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER);
+        try {
+            logger.info("Scheduling new job for S3 upload runner");
+
+            this.migrationService.transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+
+            schedulerService.scheduleJob(jobId, jobConfig);
+        } catch (SchedulerServiceException | InvalidMigrationStageError e) {
+            logger.error("Exception when scheduling S3 upload job", e);
+            this.schedulerService.unscheduleJob(jobId);
+            migrationService.error();
+            return false;
+        }
+        return true;
     }
 
     /**

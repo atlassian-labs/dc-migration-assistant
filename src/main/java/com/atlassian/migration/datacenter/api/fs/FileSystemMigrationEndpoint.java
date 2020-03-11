@@ -1,6 +1,5 @@
 package com.atlassian.migration.datacenter.api.fs;
 
-import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -22,13 +21,11 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 @Path("/migration/fs")
 public class FileSystemMigrationEndpoint {
 
-    private final MigrationService migrationService;
     private final FilesystemMigrationService fsMigrationService;
 
     private final ObjectMapper mapper;
 
-    public FileSystemMigrationEndpoint(MigrationService migrationService, FilesystemMigrationService fsMigrationService) {
-        this.migrationService = migrationService;
+    public FileSystemMigrationEndpoint(FilesystemMigrationService fsMigrationService) {
         this.fsMigrationService = fsMigrationService;
         this.mapper = new ObjectMapper();
         this.mapper.setVisibility(PropertyAccessor.ALL, Visibility.ANY);
@@ -40,20 +37,17 @@ public class FileSystemMigrationEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/start")
     public Response runFileMigration() {
-        Response response;
         if (fsMigrationService.isRunning()) {
-            response = Response
+            return Response
                     .status(Response.Status.CONFLICT)
                     .entity(ImmutableMap.of("status", fsMigrationService.getReport().getStatus()))
                     .build();
-        } else {
-            boolean started = migrationService.startFilesystemMigration();
-            response = Response
-                    .status(Response.Status.ACCEPTED)
-                    .entity(ImmutableMap.of("migrationScheduled", started))
-                    .build();
         }
-        return response;
+        boolean started = fsMigrationService.scheduleMigration();
+        return Response
+                .status(Response.Status.ACCEPTED)
+                .entity(ImmutableMap.of("migrationScheduled", started))
+                .build();
     }
 
     @GET
