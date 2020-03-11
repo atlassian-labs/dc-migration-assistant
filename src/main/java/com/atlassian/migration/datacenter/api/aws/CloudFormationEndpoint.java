@@ -1,9 +1,9 @@
 package com.atlassian.migration.datacenter.api.aws;
 
-import com.atlassian.migration.datacenter.core.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
+import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,11 +11,9 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Optional;
 
 /**
  * REST API Endpoint for managing AWS provisioning.
@@ -23,11 +21,11 @@ import java.util.Optional;
 @Path("/aws/stack")
 public class CloudFormationEndpoint {
 
-    private MigrationService migrationService;
+    private final ApplicationDeploymentService deploymentService;
     private static final Logger log = LoggerFactory.getLogger(CloudFormationEndpoint.class);
 
-    public CloudFormationEndpoint(MigrationService migrationService) {
-        this.migrationService = migrationService;
+    public CloudFormationEndpoint(ApplicationDeploymentService deploymentService) {
+        this.deploymentService = deploymentService;
     }
 
     @POST
@@ -36,27 +34,29 @@ public class CloudFormationEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response provisionInfrastructure(ProvisioningConfig provisioningConfig) {
         try {
-            String stackId = migrationService.provisionInfrastructure(provisioningConfig);
+            String stackName = provisioningConfig.getStackName();
+            this.deploymentService.deployApplication(stackName, provisioningConfig.getParams());
             //Should be updated to URI location after get stack details Endpoint is built
-            return Response.status(Response.Status.ACCEPTED).entity(stackId).build();
+            return Response.status(Response.Status.ACCEPTED).entity(stackName).build();
         } catch (InvalidMigrationStageError e) {
             log.error("Migration stage is not valid.", e);
-            return Response.status(Response.Status.CONFLICT).build();
-        } catch (InfrastructureProvisioningError e) {
-            log.error("Unable to provision cloud formation stack on AWS", e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response
+                    .status(Response.Status.CONFLICT)
+                    .entity(ImmutableMap.of("error", e.getMessage()))
+                    .build();
         }
     }
 
     @GET
-    @Path("/{stackId}/status")
+    @Path("/status")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getInfrastructureStatus(@PathParam("stackId") String stackId) {
-        Optional<String> status = migrationService.getInfrastructureProvisioningStatus(stackId);
-        if (status.isPresent()) {
-            return Response.status(Response.Status.OK).entity(status.get()).build();
+    public Response getInfrastructureStatus() {
+        try {
+            ApplicationDeploymentService.ApplicationDeploymentStatus status = deploymentService.getDeploymentStatus();
+            return Response.status(Response.Status.OK).entity(ImmutableMap.of("status", status)).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.NOT_FOUND).entity(ImmutableMap.of("error", e.getMessage())).build();
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
     }
 }
