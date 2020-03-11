@@ -1,7 +1,6 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.migration.datacenter.core.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.core.fs.S3UploadJobRunner;
@@ -11,7 +10,6 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
-import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import com.atlassian.scheduler.SchedulerService;
 import com.atlassian.scheduler.SchedulerServiceException;
 import com.atlassian.scheduler.config.JobConfig;
@@ -21,16 +19,9 @@ import com.atlassian.scheduler.config.RunMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
-import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
-import java.util.Optional;
-
-import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
-import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
-import static com.atlassian.migration.datacenter.spi.MigrationStage.WAIT_PROVISION_APPLICATION;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -55,20 +46,6 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
         this.fsService = fileService;
         this.cfnApi = cfnApi;
         this.schedulerService = schedulerService;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean startMigration() {
-        if (getMigrationStage() != NOT_STARTED) {
-            return false;
-        }
-
-        updateMigrationStage(AUTHENTICATION);
-
-        return true;
     }
 
     /**
@@ -101,43 +78,6 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
         }
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String provisionInfrastructure(ProvisioningConfig config) throws InvalidMigrationStageError, InfrastructureProvisioningError {
-        //TODO: Refactor this to a state machine as part of https://aws-partner.atlassian.net/browse/CHET-101. This will be extracted to a different class then
-        MigrationStage currentMigrationStage = getMigrationStage();
-        if (currentMigrationStage != PROVISION_APPLICATION) {
-            throw new InvalidMigrationStageError(String.format("Expected migration stage was %s, but found %s", PROVISION_APPLICATION, currentMigrationStage));
-        }
-
-        Optional<String> stackIdentifier = this.cfnApi.provisionStack(config.getTemplateUrl(), config.getStackName(), config.getParams());
-        if (stackIdentifier.isPresent()) {
-            updateMigrationStage(WAIT_PROVISION_APPLICATION);
-            return stackIdentifier.get();
-        } else {
-            updateMigrationStage(ERROR);
-            throw new InfrastructureProvisioningError(String.format("Unable to provision stack (URL - %s) with name - %s", config.getTemplateUrl(), config.getStackName()));
-        }
-    }
-
-    @Override
-    public Optional<String> getInfrastructureProvisioningStatus(String stackId) {
-        try {
-            StackStatus status = this.cfnApi.getStatus(stackId);
-            return Optional.of(status.toString());
-        } catch (StackInstanceNotFoundException e) {
-            return Optional.empty();
-        }
-    }
-
-    public void updateMigrationStage(MigrationStage stage) {
-        Migration migration = loadMigration();
-        migration.setStage(stage);
-        migration.save();
-    }
 
     public boolean startFilesystemMigration() {
         Migration migration = loadMigration();
