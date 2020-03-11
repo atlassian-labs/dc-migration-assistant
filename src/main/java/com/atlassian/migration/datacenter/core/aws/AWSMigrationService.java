@@ -48,14 +48,6 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
         this.schedulerService = schedulerService;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MigrationStage getMigrationStage() {
-        return loadMigration().getStage();
-    }
-
     private Migration loadMigration() {
         Migration[] migrations = ao.find(Migration.class);
         if (migrations.length == 1) {

@@ -57,28 +57,6 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void shouldBeInUnStartedStageWhenNoMigrationExists() {
-        setupEntities();
-
-        MigrationStage initialStage = sut.getMigrationStage();
-
-        assertEquals(NOT_STARTED, initialStage);
-    }
-
-    @Test
-    public void shouldGetCorrectMigrationStage() {
-        initializeAndCreateSingleMigrationWithStage(NOT_STARTED);
-
-        assertNumberOfMigrations(1);
-
-        ao.flushAll();
-
-        MigrationStage currentStage = sut.getMigrationStage();
-
-        assertEquals(NOT_STARTED, currentStage);
-    }
-
-    @Test
     public void shouldNotStartFileSystemMigrationWhenNoMigrationExists() throws Exception {
         ao.migrate(Migration.class);
 
@@ -98,11 +76,19 @@ public class AWSMigrationServiceTest {
     // MigrationServiceV2 Tests
 
     @Test
+    public void shouldBeInNotStartedStageWhenNoMigrationsExist() {
+        setupEntities();
+        MigrationStage initialStage = sut.getCurrentStage();
+        assertEquals(NOT_STARTED, initialStage);
+    }
+
+    @Test
     public void shouldBeAbleToGetCurrentStage() {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
 
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
     }
+
     @Test
     public void shouldTransitionWhenSourceStageIsCurrentStage() throws InvalidMigrationStageError {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);

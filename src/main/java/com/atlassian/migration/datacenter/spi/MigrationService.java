@@ -13,12 +13,5 @@ import java.util.Optional;
 @Transactional
 @Deprecated
 public interface MigrationService {
-
-    /**
-     * @return the stage that the current migration is up to.
-     * @see MigrationStage
-     */
-    MigrationStage getMigrationStage();
-
     boolean startFilesystemMigration();
 }
