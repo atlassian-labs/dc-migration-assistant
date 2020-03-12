@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   run_tests:
-    name: Run all tests with Java ${{ matrix.java }}
+    name: Run all tests with Java ${{ matrix.java }} and with profile ${{ matrix.profile }}
     runs-on: ubuntu-latest
 
     strategy:
