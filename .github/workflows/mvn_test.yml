@@ -4,8 +4,7 @@ on: [push]
 
 jobs:
   run_unit_tests:
-    name: Run tests with Java ${{ matrix.java }}
-
+    name: Run unit tests with Java ${{ matrix.java }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -33,8 +32,7 @@ jobs:
       - name: Test with maven
         run: mvn -B verify
   run_integrtaion_tests:
-    name: Run tests with Java ${{ matrix.java }}
-
+    name: Run integration tests with Java ${{ matrix.java }}
     runs-on: ubuntu-latest
 
     strategy:
