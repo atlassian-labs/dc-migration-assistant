@@ -3,6 +3,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
+import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -11,6 +12,8 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Proxy;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -47,7 +50,8 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
 
     @Override
     public Migration getCurrentMigration() {
-        return findFirstOrCreateMigration();
+        Migration migration = findFirstOrCreateMigration();
+        return (Migration) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{Migration.class}, new ReadOnlyEntityInvocationHandler<>(migration));
     }
 
     @Override
@@ -94,3 +98,4 @@ public class AWSMigrationService implements MigrationService, MigrationServiceV2
         }
     }
 }
+

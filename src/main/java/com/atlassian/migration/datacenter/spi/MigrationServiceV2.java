@@ -23,7 +23,9 @@ public interface MigrationServiceV2 {
 
 
     /**
-     * Gets the Migration Object
+     * Gets the Migration Object that can only be read. Setter invocation must to happen through the {@link MigrationServiceV2} interface
+     *
+     * @return a read-only migration object.
      */
     Migration getCurrentMigration();
 
