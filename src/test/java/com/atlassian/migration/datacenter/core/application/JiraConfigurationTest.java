@@ -83,6 +83,7 @@ class JiraConfigurationTest
         assertEquals("dbhost", config.getHost());
         assertEquals("dbname", config.getName());
         assertEquals(9876, config.getPort());
+        assertEquals(DatabaseConfiguration.DBType.POSTGRESQL, config.getType());
     }
 
     @Test

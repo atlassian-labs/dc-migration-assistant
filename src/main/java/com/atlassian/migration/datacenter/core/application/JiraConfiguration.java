@@ -1,6 +1,7 @@
 package com.atlassian.migration.datacenter.core.application;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
@@ -93,13 +94,14 @@ public class JiraConfiguration implements ApplicationConfiguration
             // JDBC URIs are absolute, so we need to parse them in 2 steps.
             URI absURI = URI.create(urlStr);
             URI dbURI = URI.create(absURI.getSchemeSpecificPart());
+            DBType type = DBType.valueOf(dbURI.getScheme().toUpperCase());
             String host = dbURI.getHost();
             Integer port = dbURI.getPort();
             if (port == -1)
                 port = 5432;
             String name = dbURI.getPath().substring(1); // Remove leading '/'
 
-            return new DatabaseConfiguration(host, port, name, username, password);
+            return new DatabaseConfiguration(type, host, port, name, username, password);
         } catch (Exception e) {
             throw new ConfigurationReadException("Failed to parse dbconfig.xml", e);
         }

@@ -1,12 +1,10 @@
-package com.atlassian.migration.datacenter.core.aws.db;
+package com.atlassian.migration.datacenter.core.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,13 +13,13 @@ import java.util.Optional;
 /**
  * Copyright Atlassian: 03/03/2020
  */
-public class PostgresMigration implements DatabaseMigration
+public class PostgresExtractor implements DatabaseExtractor
 {
     private ApplicationConfiguration applicationConfiguration;
 
     private static String pddumpPaths[] = {"/usr/bin/pg_dump", "/usr/local/bin/pg_dump"};
 
-    public PostgresMigration(ApplicationConfiguration applicationConfiguration)
+    public PostgresExtractor(ApplicationConfiguration applicationConfiguration)
     {
         this.applicationConfiguration = applicationConfiguration;
     }
@@ -37,23 +35,31 @@ public class PostgresMigration implements DatabaseMigration
         return Optional.empty();
     }
 
+    @Override
+    public Process startDatabaseDump(Path target) throws DatabaseMigrationFailure
+    {
+        return startDatabaseDump(target, false);
+    }
+
     /**
      * Invoke `pg_dump` against the database details store in the supplied ApplicationConfiguration. Some important notes:
      *
      * <ul>
      * <li>It is the responsibility of the caller to ensure that the filesystems the target resides on has sufficient space.</li>
-     * <li>stderr is redirected to the stderr of the calling process.</li>
+     * <li>stdio & stderr are redirected to the stderr of the calling process.</li>
      * </ul>
      *
-     * @param to - The file to dump the compressed database export to.
+     * @param target - The directory to dump the compressed database export to.
+     * @param parallel - Whether to use parallel dump strategy.
      * @return The underlying process object.
      * @throws DatabaseMigrationFailure on failure.
      */
     @Override
-    public Process startDatabaseDump(File to) throws DatabaseMigrationFailure
+    public Process startDatabaseDump(Path target, Boolean parallel) throws DatabaseMigrationFailure
     {
         String pgdump = getPgdumpPath()
             .orElseThrow(() -> new DatabaseMigrationFailure("Failed to find appropriate pg_dump executable."));
+        Integer numJobs = parallel ? 4 : 1;  // Common-case for now, could be tunable or num-CPUs.
 
         DatabaseConfiguration config = applicationConfiguration.getDatabaseConfiguration();
 
@@ -61,12 +67,14 @@ public class PostgresMigration implements DatabaseMigration
                                                     "--no-owner",
                                                     "--no-acl",
                                                     "--compress=9",
+                                                    "--format=directory",
+                                                    "--jobs", numJobs.toString(),
+                                                    "--file", target.toString(),
                                                     "--dbname", config.getName(),
                                                     "--host", config.getHost(),
                                                     "--port", config.getPort().toString(),
                                                     "--username", config.getUsername())
-            .inheritIO()
-            .redirectOutput(Redirect.to(to));
+            .inheritIO();
         builder.environment().put("PGPASSWORD", config.getPassword());
 
         try {
@@ -86,7 +94,7 @@ public class PostgresMigration implements DatabaseMigration
      * @throws DatabaseMigrationFailure on failure, including a non-zero exit code.
      */
     @Override
-    public void dumpDatabase(File to) throws DatabaseMigrationFailure
+    public void dumpDatabase(Path to) throws DatabaseMigrationFailure
     {
         Process proc = startDatabaseDump(to);
 

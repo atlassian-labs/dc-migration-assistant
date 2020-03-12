@@ -1,4 +1,4 @@
-package com.atlassian.migration.datacenter.core.aws.db;
+package com.atlassian.migration.datacenter.core.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
@@ -18,6 +18,8 @@ import org.testcontainers.utility.MountableFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
  */
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
-class PostgresMigrationIT
+class PostgresExtractorIT
 {
     @Container
     public static PostgreSQLContainer postgres = (PostgreSQLContainer) new PostgreSQLContainer("postgres:9.6")
@@ -54,7 +55,8 @@ class PostgresMigrationIT
     void setUp()
     {
         when(configuration.getDatabaseConfiguration())
-            .thenReturn(new DatabaseConfiguration(postgres.getContainerIpAddress(),
+            .thenReturn(new DatabaseConfiguration(DatabaseConfiguration.DBType.POSTGRESQL,
+                                                  postgres.getContainerIpAddress(),
                                                   postgres.getMappedPort(5432),
                                                   postgres.getDatabaseName(),
                                                   postgres.getUsername(),
@@ -86,20 +88,23 @@ class PostgresMigrationIT
     }
 
     @Test
-    void testDatabaseDump() throws InterruptedException, IOException
+    void testDatabaseDump() throws IOException
     {
-        PostgresMigration migration = new PostgresMigration(configuration);
-        Path dumpFile = tempDir.resolve("dump.sql.gz");
+        PostgresExtractor migration = new PostgresExtractor(configuration);
+        Path target = tempDir.resolve("database.dump");
 
-        migration.dumpDatabase(dumpFile.toFile());
-        assertTrue(dumpFile.toFile().exists());
+        migration.dumpDatabase(target);
+        assertTrue(target.toFile().exists());
+        assertTrue(target.toFile().isDirectory());
 
-        InputStream stream = new GZIPInputStream(new FileInputStream(dumpFile.toFile()));
         boolean found = false;
-        for (String line: IOUtils.readLines(stream, "UTF-8")) {
-            if (line.contains("As an Agile team, I'd like to learn about Scrum")) {
-                found = true;
-                break;
+        for (Path p: Files.newDirectoryStream(target, "*.gz")) {
+            InputStream stream = new GZIPInputStream(new FileInputStream(p.toFile()));
+            for (String line : IOUtils.readLines(stream, "UTF-8")) {
+                if (line.contains("As an Agile team, I'd like to learn about Scrum")) {
+                    found = true;
+                    break;
+                }
             }
         }
         assertTrue(found);

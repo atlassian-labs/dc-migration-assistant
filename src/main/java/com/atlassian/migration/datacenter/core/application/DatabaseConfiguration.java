@@ -5,19 +5,28 @@ package com.atlassian.migration.datacenter.core.application;
  */
 public class DatabaseConfiguration
 {
+    public enum DBType {
+        POSTGRESQL,
+        MYSQL,
+        SQLSERVER,
+        ORACLE
+    }
+
     private String host;
     private String name;
     private String username;
     private String password;
     private Integer port;
+    private DBType type;
 
-    public DatabaseConfiguration(String host, Integer port, String name, String username, String password)
+    public DatabaseConfiguration(DBType type, String host, Integer port, String name, String username, String password)
     {
         this.host = host;
         this.name = name;
         this.username = username;
         this.password = password;
         this.port = port;
+        this.type = type;
     }
 
     public String getHost()
@@ -43,5 +52,10 @@ public class DatabaseConfiguration
     public Integer getPort()
     {
         return port;
+    }
+
+    public DBType getType()
+    {
+        return type;
     }
 }
