@@ -3,7 +3,7 @@ package com.atlassian.migration.datacenter.api;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.dto.Migration;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 public class MigrationEndpointTest {
 
     @Mock
-    private MigrationServiceV2 migrationService;
+    private MigrationService migrationService;
 
     @InjectMocks
     private MigrationEndpoint sut;

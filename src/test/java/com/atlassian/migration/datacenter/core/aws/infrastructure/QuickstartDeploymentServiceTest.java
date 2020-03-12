@@ -4,7 +4,7 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class QuickstartDeploymentServiceTest {
     CfnApi mockCfnApi;
 
     @Mock
-    MigrationServiceV2 mockMigrationService;
+    MigrationService mockMigrationService;
 
     @Mock
     ActiveObjects mockAo;

@@ -4,7 +4,7 @@ import com.atlassian.migration.datacenter.core.aws.auth.WriteCredentialsService;
 import com.atlassian.migration.datacenter.core.aws.region.InvalidAWSRegionException;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.cloud.CloudProviderConfigurationService;
 import org.slf4j.Logger;
@@ -17,9 +17,9 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
 
     private final WriteCredentialsService writeCredentialsService;
     private final RegionService regionService;
-    private final MigrationServiceV2 migrationService;
+    private final MigrationService migrationService;
 
-    public AWSConfigurationService(WriteCredentialsService writeCredentialsService, RegionService regionService, MigrationServiceV2 migrationService) {
+    public AWSConfigurationService(WriteCredentialsService writeCredentialsService, RegionService regionService, MigrationService migrationService) {
         this.writeCredentialsService = writeCredentialsService;
         this.regionService = regionService;
         this.migrationService = migrationService;

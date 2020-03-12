@@ -4,7 +4,7 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import org.slf4j.Logger;
@@ -26,10 +26,10 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
     private static final String QUICKSTART_TEMPLATE_URL = "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml";
 
     private final CfnApi cfnApi;
-    private final MigrationServiceV2 migrationService;
+    private final MigrationService migrationService;
     private final ActiveObjects ao;
 
-    public QuickstartDeploymentService(ActiveObjects ao, CfnApi cfnApi, MigrationServiceV2 migrationService) {
+    public QuickstartDeploymentService(ActiveObjects ao, CfnApi cfnApi, MigrationService migrationService) {
         this.ao = ao;
         this.cfnApi = cfnApi;
         this.migrationService = migrationService;

@@ -7,7 +7,7 @@ import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMig
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFilesystemMigrationProgress;
 import com.atlassian.migration.datacenter.dto.Migration;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
-import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.RUNNING;
@@ -51,7 +50,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private final AwsCredentialsProvider credentialsProvider;
     private final RegionService regionService;
     private final JiraHome jiraHome;
-    private final MigrationServiceV2 migrationService;
+    private final MigrationService migrationService;
     private final SchedulerService schedulerService;
 
     private FileSystemMigrationReport report;
@@ -63,7 +62,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     public S3FilesystemMigrationService(RegionService regionService,
                                         AwsCredentialsProvider credentialsProvider,
                                         JiraHome jiraHome,
-                                        MigrationServiceV2 migrationService, SchedulerService schedulerService) {
+                                        MigrationService migrationService, SchedulerService schedulerService) {
         this.regionService = regionService;
         this.credentialsProvider = credentialsProvider;
         this.jiraHome = jiraHome;

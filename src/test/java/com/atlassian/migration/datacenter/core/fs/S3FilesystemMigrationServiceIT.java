@@ -6,7 +6,7 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
@@ -42,7 +42,7 @@ class S3FilesystemMigrationServiceIT {
     AtlassianPluginAWSCredentialsProvider credentialsProvider;
 
     @Mock
-    MigrationServiceV2 migrationService;
+    MigrationService migrationService;
 
     @Mock
     JiraHome jiraHome;

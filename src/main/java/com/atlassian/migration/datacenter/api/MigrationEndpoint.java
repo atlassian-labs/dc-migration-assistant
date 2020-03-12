@@ -2,7 +2,7 @@ package com.atlassian.migration.datacenter.api;
 
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.google.common.collect.ImmutableMap;
 
@@ -21,9 +21,9 @@ import javax.ws.rs.core.Response;
 @Path("/migration")
 public class MigrationEndpoint {
 
-    private MigrationServiceV2 migrationService;
+    private MigrationService migrationService;
 
-    public MigrationEndpoint(MigrationServiceV2 migrationService) {
+    public MigrationEndpoint(MigrationService migrationService) {
         this.migrationService = migrationService;
     }
 

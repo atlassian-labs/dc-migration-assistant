@@ -7,7 +7,6 @@ import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHan
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
-import com.atlassian.migration.datacenter.spi.MigrationServiceV2;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,7 @@ import static java.util.Objects.requireNonNull;
  * Manages a migration from on-premise to self-hosted AWS.
  */
 @Component
-public class AWSMigrationService implements MigrationService, MigrationServiceV2 {
+public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
 

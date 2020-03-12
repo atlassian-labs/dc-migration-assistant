@@ -1,11 +1,8 @@
 package com.atlassian.migration.datacenter.api.fs;
 
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
-import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
-import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
