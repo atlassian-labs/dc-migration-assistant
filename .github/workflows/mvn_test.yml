@@ -3,13 +3,14 @@ name: Tests
 on: [push]
 
 jobs:
-  run_unit_tests:
-    name: Run unit tests with Java ${{ matrix.java }}
+  run_tests:
+    name: Run all tests with Java ${{ matrix.java }}
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         java: [ 8, 11 ]
+        profile: ['integration', '!integration']
 
     steps:
       - name: Checkout code
@@ -30,32 +31,4 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Test with maven
-        run: mvn -B verify
-  run_integrtaion_tests:
-    name: Run integration tests with Java ${{ matrix.java }}
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        java: [ 8, 11 ]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Cache maven repository
-        uses: actions/cache@v1
-        env:
-          cache-name: cache-m2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Setup Java ${{ matrix.java }}
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java }}
-      - name: Integration tests
-        run: mvn -B clean verify -Pintegration
+        run: mvn -B clean verify -P ${{ matrix.profile}}
