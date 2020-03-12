@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
-            <version>{apache.felix.framework.version}</version>
+            <version>${apache.felix.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
