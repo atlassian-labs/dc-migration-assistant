@@ -17,6 +17,4 @@ public class MigrationAssistantBeanConfiguration {
                 .region(Region.of(regionService.getRegion()))
                 .build();
     }
-
-
 }

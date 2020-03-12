@@ -54,7 +54,7 @@ public class CloudFormationEndpoint {
     public Response getInfrastructureStatus() {
         try {
             ApplicationDeploymentService.ApplicationDeploymentStatus status = deploymentService.getDeploymentStatus();
-            return Response.status(Response.Status.OK).entity(ImmutableMap.of("status", status)).build();
+            return Response.ok(ImmutableMap.of("status", status)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.NOT_FOUND).entity(ImmutableMap.of("error", e.getMessage())).build();
         }

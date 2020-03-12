@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
 
@@ -16,6 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,14 +29,15 @@ class CloudFormationEndpointTest {
 
     @Test
     public void shouldAcceptRequestToProvisionCloudFormationStack() throws Exception {
-        ProvisioningConfig provisioningConfig = new ProvisioningConfig("url", "stack-name", new HashMap<>());
-
-        Mockito.doNothing().when(deploymentService).deployApplication(provisioningConfig.getStackName(), provisioningConfig.getParams());
+        String stackName = "stack-name";
+        ProvisioningConfig provisioningConfig = new ProvisioningConfig("url", stackName, new HashMap<>());
 
         Response response = endpoint.provisionInfrastructure(provisioningConfig);
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
         assertEquals(provisioningConfig.getStackName(), response.getEntity());
+
+        verify(deploymentService).deployApplication(stackName, new HashMap<>());
     }
 
     @Test
@@ -43,7 +45,7 @@ class CloudFormationEndpointTest {
         ProvisioningConfig provisioningConfig = new ProvisioningConfig("url", "stack-name", new HashMap<>());
 
         String errorMessage = "migration status is FUBAR";
-        Mockito.doThrow(new InvalidMigrationStageError(errorMessage)).when(deploymentService).deployApplication(provisioningConfig.getStackName(), provisioningConfig.getParams());
+        doThrow(new InvalidMigrationStageError(errorMessage)).when(deploymentService).deployApplication(provisioningConfig.getStackName(), provisioningConfig.getParams());
 
 
         Response response = endpoint.provisionInfrastructure(provisioningConfig);
@@ -66,7 +68,7 @@ class CloudFormationEndpointTest {
     @Test
     public void shouldGetHandleErrorWhenStatusCannotBeRetrieved() {
         String expectedErrorMessage = "stack Id not found";
-        Mockito.doThrow(StackInstanceNotFoundException.builder().message(expectedErrorMessage).build()).when(this.deploymentService).getDeploymentStatus();
+        doThrow(StackInstanceNotFoundException.builder().message(expectedErrorMessage).build()).when(this.deploymentService).getDeploymentStatus();
 
         Response response = endpoint.getInfrastructureStatus();
 

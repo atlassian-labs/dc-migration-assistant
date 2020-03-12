@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
@@ -83,8 +84,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     @Override
     public Boolean scheduleMigration() {
         Migration currentMigration = this.migrationService.getCurrentMigration();
-        //TODO: Review why this check is needed?
-        if (currentMigration.getStage() == NOT_STARTED) {
+        if (currentMigration.getStage() != FS_MIGRATION_COPY) {
             return false;
         }
 
@@ -95,15 +95,6 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         //TODO: Can the job runner be injected? It has no state
         schedulerService.registerJobRunner(runnerKey, new S3UploadJobRunner(this));
         logger.info("Registered new job runner for S3");
-
-//      TODO: don't schedule when the job is running, there are few edge cases we need to cover
-//        JobDetails jobDetails = schedulerService.getJobDetails(jobId);
-//        if (jobDetails != null) {
-//            final Date nextRunTime = jobDetails.getNextRunTime();
-//            if (nextRunTime != null && nextRunTime.before(new Date())) {
-//                return false;
-//            }
-//        }
 
         JobConfig jobConfig = JobConfig.forJobRunnerKey(runnerKey)
                 .withSchedule(null) // run now

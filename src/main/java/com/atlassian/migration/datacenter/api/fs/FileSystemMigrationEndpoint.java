@@ -44,8 +44,9 @@ public class FileSystemMigrationEndpoint {
                     .build();
         }
         boolean started = fsMigrationService.scheduleMigration();
-        return Response
-                .status(Response.Status.ACCEPTED)
+        Response.ResponseBuilder builder = started ? Response.status(Response.Status.ACCEPTED) : Response.status(Response.Status.CONFLICT);
+
+        return builder
                 .entity(ImmutableMap.of("migrationScheduled", started))
                 .build();
     }

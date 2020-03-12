@@ -159,4 +159,14 @@ public class FileSystemMigrationProgressEndpointTest {
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
         assertEquals(true, ((Map<String,String>) response.getEntity()).get("migrationScheduled"));
     }
+
+    @Test
+    void shouldNotRunFileMigrationWhenWhenUnableToScheduleMigration(){
+        when(fsMigrationService.isRunning()).thenReturn(false);
+        when(fsMigrationService.scheduleMigration()).thenReturn(false);
+        Response response = endpoint.runFileMigration();
+
+        assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
+        assertEquals(false, ((Map<String,String>) response.getEntity()).get("migrationScheduled"));
+    }
 }

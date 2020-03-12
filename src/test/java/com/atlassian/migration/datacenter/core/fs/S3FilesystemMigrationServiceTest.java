@@ -80,7 +80,7 @@ class S3FilesystemMigrationServiceTest {
     }
 
     @Test
-    void shouldNotScheduleMigrationWhenCurrentMigrationStageIsNotStarted() {
+    void shouldNotScheduleMigrationWhenCurrentMigrationStageIsNotFilesystemMigrationCopy() {
         Migration mockMigration = Mockito.mock(Migration.class);
 
         when(migrationService.getCurrentMigration()).thenReturn(mockMigration);

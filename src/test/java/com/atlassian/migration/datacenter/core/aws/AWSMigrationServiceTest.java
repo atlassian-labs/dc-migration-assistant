@@ -25,13 +25,9 @@ import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
 
-;
 
 // We have to use the JUnit 4 API because there is no JUnit 5 active objects extension :(
 @RunWith(ActiveObjectsJUnitRunner.class)

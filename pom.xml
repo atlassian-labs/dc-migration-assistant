@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
-            <version>4.0.0</version>
+            <version>{apache.felix.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -491,6 +491,7 @@
         <sal.version>4.0.0</sal.version>
         <spring.version>5.0.10.RELEASE</spring.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
+        <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
         <amps.version>8.0.2</amps.version>
         <soy.version>5.0.0</soy.version>
