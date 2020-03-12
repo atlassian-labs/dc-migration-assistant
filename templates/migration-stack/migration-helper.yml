@@ -2,52 +2,26 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Jira / Confluence Server to DC (AWS) Helper
 Parameters:
 
-  SolutionStackName:
-    Description: "Elastic Beanstalk Solutions Stack used to define the environment - No need to change"
+  NetworkPrivateSubnet:
+    Description: "Private SubnetId where Migration helper will be placed - Must have connection to desitnation Storage"
     Type: String
-    Default: "64bit Amazon Linux 2018.03 v2.9.5 running Python 3.6"
-  HelperSourceBucket:
-    Description: "Source bucket where you will place migration helper code."
-    Type: String
-    Default: "sssalim-mortha-code-bucket"
-  HelperSourceZipFile:
-    Description: "Source migration helper zip file."
-    Type: String
-    Default: "MigrationHelper.zip"
-  NetworkPublicSubnet:
-    Description: "Public SubnetId where Migration helper will be placed - Must have connection to desitnation Storage"
-    Type: String
-    Default: "subnet-0d82a3a40a689b562"
-  TrustedSourceIP:
-    Description: "Trusted Source IP for Helper Instance"
-    Type: String
-    Default: "121.200.5.142/32"
   EFSFileSystemId:
     Description: "The Elastic File System Id we will mount to the Migration Helper EC2 Instance"
     Type: String
-    Default: "fs-1d888924"
   EFSSecurityGroup:
     Description: "The Security Group attached to EFS, access to NFS port will be open from Migration Helper Security Group"
     Type: String
-    Default: "sg-0c4e900309b248970"
   HelperInstanceType:
     Description: "The Instance Type of Helper EC2 Instance"
     Type: String
-    Default: "m5.2xlarge"
   HelperVpcId:
     Description: "The VPC for Helper EC2 Instance"
     Type: String
-    Default: "vpc-039876f938d90c7a1"
-
-
-Outputs:
-  HelperEnvironment:
-    Value: !Ref HelperEnvironment
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
 Resources:
-
-  #Pending
-  #DatabaseTransferBucketPolicy:
 
   #S3 Bucket for Database Transfer
   DatabaseTransferBucket:
@@ -60,60 +34,112 @@ Resources:
               SSEAlgorithm: AES256
     DeletionPolicy: Delete
 
-
-
   #EC2 Migration Helper
-  HelperApplication:
-    Type: AWS::ElasticBeanstalk::Application
+  HelperLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+        AWS::CloudFormation::Init:
+          configSets:
+            full_efs_config: [create_efs_script,mount_efs]
+          create_efs_script:
+            files:
+              /tmp/mount-efs.sh:
+                content: !Sub
+                  - |
+                    #!/bin/bash
+
+                    EFS_REGION=${AWS::Region}
+                    EFS_MOUNT_DIR=/efs/
+                    EFS_FILE_SYSTEM_ID=${EFSID}
+
+                    echo "Mounting EFS filesystem $EFS_FILE_SYSTEM_ID to directory $EFS_MOUNT_DIR ..."
+
+                    echo 'Stopping NFS ID Mapper...'
+                    service rpcidmapd status &> /dev/null
+                    if [ $? -ne 0 ] ; then
+                        echo 'rpc.idmapd is already stopped!'
+                    else
+                        service rpcidmapd stop
+                        if [ $? -ne 0 ] ; then
+                            echo 'ERROR: Failed to stop NFS ID Mapper!'
+                            exit 1
+                        fi
+                    fi
+
+                    echo 'Checking if EFS mount directory exists...'
+                    if [ ! -d $EFS_MOUNT_DIR ]; then
+                        echo "Creating directory $EFS_MOUNT_DIR ..."
+                        mkdir -p $EFS_MOUNT_DIR
+                        if [ $? -ne 0 ]; then
+                            echo 'ERROR: Directory creation failed!'
+                            exit 1
+                        fi
+                    else
+                        echo "Directory $EFS_MOUNT_DIR already exists!"
+                    fi
+
+                    mountpoint -q $EFS_MOUNT_DIR
+                    if [ $? -ne 0 ]; then
+                        echo "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FILE_SYSTEM_ID.efs.$EFS_REGION.amazonaws.com:/ $EFS_MOUNT_DIR"
+                        mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FILE_SYSTEM_ID.efs.$EFS_REGION.amazonaws.com:/ $EFS_MOUNT_DIR
+                        if [ $? -ne 0 ] ; then
+                            echo 'ERROR: Mount command failed!'
+                            exit 1
+                        fi
+                        chmod 777 $EFS_MOUNT_DIR
+                        runuser -l  ec2-user -c "touch $EFS_MOUNT_DIR}/it_works"
+                        if [[ $? -ne 0 ]]; then
+                            echo 'ERROR: Permission Error!'
+                            exit 1
+                        else
+                            runuser -l  ec2-user -c "rm -f $EFS_MOUNT_DIR/it_works"
+                        fi
+                    else
+                        echo "Directory $EFS_MOUNT_DIR is already a valid mountpoint!"
+                    fi
+
+                    echo 'EFS mount complete.'
+                  - { EFSID: !Ref EFSFileSystemId }
+                mode: "000755"
+          mount_efs:
+            commands:
+              01_mount:
+                command: /tmp/mount-efs.sh
     Properties:
-      ApplicationVersions:
-        - Description: Version 1.0
-          SourceBundle:
-            S3Bucket: !Ref HelperSourceBucket
-            S3Key: !Ref HelperSourceZipFile
-          VersionLabel: "HelperScript V 1.0"
-      Description: "Jira / Confluence Migration Helper Application"
-  HelperEnvironment:
-    DependsOn:
-      - CreateKeypairCustom
-      - OpenEFSAccessCustom
-    Type: AWS::ElasticBeanstalk::Environment
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref "HelperInstanceType"
+      IamInstanceProfile: !Ref "HelperInstanceProfile"
+      SecurityGroups:
+        - !Ref HelperSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource HelperLaunchConfig --configsets full_efs_config --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelperServerGroup --region ${AWS::Region}
+  HelperServerGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+        Count: '1'
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 2
+        MinInstancesInService: 1
+        PauseTime: PT15M
+        WaitOnResourceSignals: true
     Properties:
-      ApplicationName: !Ref HelperApplication
-      Description: "Jira / Confluence Migration Helper Environment"
-      SolutionStackName: !Ref SolutionStackName
-      VersionLabel: "HelperScript V 1.0"
-      OptionSettings:
-        - Namespace: 'aws:ec2:vpc'
-          OptionName: Subnets
-          Value: !Ref NetworkPublicSubnet
-        - Namespace: 'aws:elasticbeanstalk:environment'
-          OptionName: EnvironmentType
-          Value: SingleInstance
-        - Namespace: 'aws:autoscaling:launchconfiguration'
-          OptionName: EC2KeyName
-          Value: !GetAtt CreateKeypairCustom.KeyPair
-        - Namespace: 'aws:autoscaling:launchconfiguration'
-          OptionName: SSHSourceRestriction
-          Value: !Join [ ",", [ "tcp,22,22", !Ref TrustedSourceIP ] ]
-        - Namespace: 'aws:autoscaling:launchconfiguration'
-          OptionName: SecurityGroups
-          Value: !Ref HelperSecurityGroup
-        - Namespace: 'aws:autoscaling:launchconfiguration'
-          OptionName: IamInstanceProfile
-          Value: !Ref HelperInstanceProfile
-        - Namespace: 'aws:autoscaling:launchconfiguration'
-          OptionName: InstanceType
-          Value: !Ref HelperInstanceType
-        - Namespace: 'aws:elasticbeanstalk:application:environment'
-          OptionName: FILE_SYSTEM_ID
-          Value: !Ref EFSFileSystemId
-        - Namespace: 'aws:elasticbeanstalk:application:environment'
-          OptionName: MOUNT_DIRECTORY
-          Value: '/efs'
-        - Namespace: 'aws:elasticbeanstalk:application:environment'
-          OptionName: REGION
-          Value: !Ref 'AWS::Region'
+      VPCZoneIdentifier:
+        - !Ref 'NetworkPrivateSubnet'
+      LaunchConfigurationName: !Ref 'HelperLaunchConfig'
+      MinSize: '1'
+      MaxSize: '1'
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: !Ref 'AWS::StackName'
+
   HelperInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -146,68 +172,8 @@ Resources:
     Properties:
       GroupDescription: Allow SSH Port from Trusted
       VpcId: !Ref HelperVpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !Ref TrustedSourceIP
-  CreateKeypairCustom:
-    Type: Custom::CreateKeypairCustom
-    Version: 1.0
-    Properties:
-      ServiceToken: !GetAtt CreateKeypair.Arn
-      KeyName: !Sub 'mighelper-keypair-${AWS::Region}-${AWS::AccountId}'
-      SSMParamName: !Sub 'mighelper-keypair-${AWS::Region}-${AWS::AccountId}'
-  CreateKeypair:
-    Type: "AWS::Lambda::Function"
-    Properties:
-      Handler: index.lambda_handler
-      Role: !GetAtt CreateKeypaireExecutionRole.Arn
-      Runtime: python3.7
-      Timeout: 120
-      Code:
-        ZipFile: |
-          import json
-          import boto3
-          import cfnresponse
 
-          ec2client = boto3.client('ec2')
-          ssmclient = boto3.client('ssm')
-
-          def lambda_handler(event, context):
-            try:
-                if event['RequestType'] == 'Delete':
-                      key = event['ResourceProperties']['KeyName']
-                      ssmparamname = event['ResourceProperties']['SSMParamName']
-                      keyresponse = ec2client.delete_key_pair(KeyName=key)
-                      ssmparam = ssmclient.delete_parameter(
-                          Name=ssmparamname
-                      )
-                      responseData = {'Delete': 'SUCCESS'}
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
-                if event['RequestType'] == 'Create':
-
-                      key = event['ResourceProperties']['KeyName']
-                      ssmparamname = event['ResourceProperties']['SSMParamName']
-                      keyresponse = ec2client.create_key_pair(KeyName=key)
-                      ssmparam = ssmclient.put_parameter(
-                          Name=ssmparamname,
-                          Description='Migration Helper Public Key',
-                          Value=keyresponse['KeyMaterial'],
-                          Type='String'
-                      )
-                      responseData = {'SSMParameter': ssmparamname, 'KeyPair': key}
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
-                if event['RequestType'] == 'Update':
-                      key = event['ResourceProperties']['KeyName']
-                      ssmparamname = event['ResourceProperties']['SSMParamName']
-                      responseData = {'SSMParameter': ssmparamname, 'KeyPair': key}
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
-            except Exception as e:
-                responseData = {'Error': str(e)}
-                cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
-
-  CreateKeypaireExecutionRole:
+  ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -242,7 +208,7 @@ Resources:
     Type: "AWS::Lambda::Function"
     Properties:
       Handler: index.lambda_handler
-      Role: !GetAtt CreateKeypaireExecutionRole.Arn
+      Role: !GetAtt ExecutionRole.Arn
       Runtime: python3.7
       Timeout: 120
       Code:
@@ -260,9 +226,9 @@ Resources:
                           GroupId=efssg,
                           IpPermissions=[
                               {'IpProtocol': 'tcp',
-                               'FromPort': 2049,
-                               'ToPort': 2049,
-                               'UserIdGroupPairs': [{'GroupId': evsg}]}
+                              'FromPort': 2049,
+                              'ToPort': 2049,
+                              'UserIdGroupPairs': [{'GroupId': evsg}]}
                           ]
                       )
                       print(response)
@@ -273,9 +239,9 @@ Resources:
                           GroupId=efssg,
                           IpPermissions=[
                               {'IpProtocol': 'tcp',
-                               'FromPort': 2049,
-                               'ToPort': 2049,
-                               'UserIdGroupPairs': [{'GroupId': evsg}]}
+                              'FromPort': 2049,
+                              'ToPort': 2049,
+                              'UserIdGroupPairs': [{'GroupId': evsg}]}
                           ]
                       )
                       responseData = {'Create': 'SUCCESS'}
