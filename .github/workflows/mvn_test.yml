@@ -4,13 +4,13 @@ on: [push]
 
 jobs:
   run_tests:
-    name: Run tests with Java ${{ matrix.java }}
-
+    name: Java${{ matrix.java }} ${{ matrix.profile }} test
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         java: [ 8, 11 ]
+        profile: ['integration', '!integration']
 
     steps:
       - name: Checkout code
@@ -31,6 +31,4 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Test with maven
-        run: mvn -B verify
-      - name: Integration tests
-        run: mvn -B clean verify -Pintegration
+        run: mvn -B clean verify -P ${{ matrix.profile}}

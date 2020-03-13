@@ -24,10 +24,10 @@ Parameters:
 Resources:
 
   #S3 Bucket for Database Transfer
-  DatabaseTransferBucket:
+  MigrationBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'dbtransbucket-${AWS::Region}-${AWS::AccountId}'
+      BucketName: !Sub 'atl-migrationbucket-${AWS::StackName}'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -40,10 +40,10 @@ Resources:
     Metadata:
         AWS::CloudFormation::Init:
           configSets:
-            full_efs_config: [create_efs_script,mount_efs]
+            full_efs_config: [create_efs_script,mount_efs,prepare_efs_sync_script]
           create_efs_script:
             files:
-              /tmp/mount-efs.sh:
+              /opt/atlassian/dc-migration-assistant/mount-efs.sh:
                 content: !Sub
                   - |
                     #!/bin/bash
@@ -87,12 +87,12 @@ Resources:
                             exit 1
                         fi
                         chmod 777 $EFS_MOUNT_DIR
-                        runuser -l  ec2-user -c "touch $EFS_MOUNT_DIR}/it_works"
+                        runuser -l  ec2-user -c "touch $EFS_MOUNT_DIR/mount_worked"
                         if [[ $? -ne 0 ]]; then
                             echo 'ERROR: Permission Error!'
                             exit 1
                         else
-                            runuser -l  ec2-user -c "rm -f $EFS_MOUNT_DIR/it_works"
+                            runuser -l  ec2-user -c "rm -f $EFS_MOUNT_DIR/mount_worked"
                         fi
                     else
                         echo "Directory $EFS_MOUNT_DIR is already a valid mountpoint!"
@@ -104,7 +104,35 @@ Resources:
           mount_efs:
             commands:
               01_mount:
-                command: /tmp/mount-efs.sh
+                command: /opt/atlassian/dc-migration-assistant/mount-efs.sh
+          prepare_efs_sync_script:
+            files:
+              /opt/atlassian/dc-migration-assistant/copy-shared-home.sh:
+                content: !Sub
+                  - |
+                    #!/bin/bash
+                    SYNC_LOG_FILE="/var/atlassian/dc-migration-assistant/sync-log.txt"
+                    echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
+                    aws s3 sync s3://${MigrationBucket}/shared-home /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
+                    echo "s3 sync with shared home complete" >> $SYNC_LOG_FILE
+                  - { MigrationBucket: !Ref MigrationBucket
+             }
+                mode: "000755"
+            commands:
+              # Default UID from dc-deployments-automation (not set by quick start) https://bitbucket.org/atlassian/dc-deployments-automation/src/81c2bc9fe8bd3fd00f3538f8d5cc7c32d3e24898/group_vars/aws_node_local.yml#lines-18
+              # We need to use useradd because using a cfn-init user gives us a non-interactive user
+              01_create_jira_user:
+                test: "grep -qv jira /etc/passwd"
+                command: "useradd -u 2001 jira"
+                ignoreErrors: false
+              02_create_migration_dirs:
+                test: "test ! -d /var/atlassian/dc-migration-assistant"
+                command: mkdir -p /var/atlassian/dc-migration-assistant
+                ignoreErrors: false
+              03_set_migration_dir_perms:
+                command: chown jira:jira /var/atlassian/dc-migration-assistant
+                ignoreErrors: false
+
     Properties:
       ImageId: !Ref LatestAmiId
       InstanceType: !Ref "HelperInstanceType"
@@ -159,20 +187,40 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Policies:
-        - PolicyName: Administrator
+        - PolicyName: MigrationBucketFullAccess
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-              - Sid: Administrator
-                Action: '*'
+              - Action: 's3:*'
                 Effect: Allow
-                Resource: '*'
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket
+           }]
+              - Action:
+                  - 's3:ListBucket'
+                  - 's3:HeadBucket'
+                Effect: Allow
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket
+           }]
+
+      # TODO: Reduce this to minimum required perms
+      #   - PolicyName: Administrator
+      #     PolicyDocument:
+      #       Version: 2012-10-17
+      #       Statement:
+      #         - Sid: Administrator
+      #           Action: '*'
+      #           Effect: Allow
+      #           Resource: '*'
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
   HelperSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow SSH Port from Trusted
       VpcId: !Ref HelperVpcId
 
+  # OpenEFS to Helper security group
   ExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -276,3 +324,29 @@ Resources:
               - Effect: "Allow"
                 Action: "*"
                 Resource: "*"
+
+  # Shared Home Download SSM Document
+  SharedHomeDownloadDocument:
+    Type: "AWS::SSM::Document"
+    Properties:
+      Content:
+        schemaVersion: "2.2"
+        description: "This document is used by the Atlassian DC Migration Assistant to copy down your Jira shared home from S3 to the new stack EFS"
+        mainSteps:
+        - action: "aws:runShellScript"
+          name: "copySharedHomeFromS3ToEFS"
+          inputs:
+            runCommand:
+            - "#!/bin/bash"
+            - runuser -l jira -c 'at -f /opt/atlassian/dc-migration-assistant/copy-shared-home.sh now'
+            timeoutSeconds: "10"
+            workingDirectory: "/opt/atlassian/dc-migration-assistant/"
+      DocumentType: "Command"
+
+Outputs:
+  DownloadSSMDocument:
+    Description: "The name of the SSM document to be invoked to copy all files in the migration bucket (under the prefix shared-home)"
+    Value: !Ref SharedHomeDownloadDocument
+  MigrationBucket:
+    Description: "The name of the s3 bucket to be used for facilitating this migration"
+    Value: !Ref MigrationBucket
