@@ -18,6 +18,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -55,7 +58,7 @@ class DatabaseMigrationServiceIT
     };
 
     private AwsCredentialsProvider credentialsProvider = new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider());
-    private S3Client s3client;
+    private S3AsyncClient s3client;
     private String bucket = "trebuchet-testing";
 
     @Mock(lenient = true)
@@ -65,8 +68,7 @@ class DatabaseMigrationServiceIT
     Path tempDir;
 
     @BeforeEach
-    void setUp() throws URISyntaxException
-    {
+    void setUp() throws Exception {
         when(configuration.getDatabaseConfiguration())
             .thenReturn(new DatabaseConfiguration(DatabaseConfiguration.DBType.POSTGRESQL,
                                                   postgres.getContainerIpAddress(),
@@ -75,31 +77,31 @@ class DatabaseMigrationServiceIT
                                                   postgres.getUsername(),
                                                   postgres.getPassword()));
 
-        s3client = S3Client.builder()
+        s3client = S3AsyncClient.builder()
             .endpointOverride(new URI(s3.getEndpointConfiguration(S3).getServiceEndpoint()))
             .credentialsProvider(credentialsProvider)
             .region(Region.of(regionService.getRegion()))
             .build();
+
         CreateBucketRequest req = CreateBucketRequest.builder()
             .bucket(bucket)
             .build();
-        CreateBucketResponse resp = s3client.createBucket(req);
+        CreateBucketResponse resp = s3client.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
     }
 
 
     @Test
-    void testDatabaseMigration()
-    {
-        DatabaseMigrationService service = new DatabaseMigrationService(configuration, credentialsProvider, regionService, tempDir,
-                                                                        URI.create(s3.getEndpointConfiguration(S3).getServiceEndpoint()));
+    void testDatabaseMigration() throws ExecutionException, InterruptedException {
+        URI localStackS3Endpoint = URI.create(s3.getEndpointConfiguration(S3).getServiceEndpoint());
+        DatabaseMigrationService service = new DatabaseMigrationService(configuration, credentialsProvider, regionService, tempDir,s3client, localStackS3Endpoint);
         service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()
             .bucket(bucket)
             .key("db.dump/toc.dat")
             .build();
-        HeadObjectResponse resp = s3client.headObject(req);
+        HeadObjectResponse resp = s3client.headObject(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
     }
 
