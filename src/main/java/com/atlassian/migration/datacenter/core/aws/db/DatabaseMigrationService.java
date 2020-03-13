@@ -13,7 +13,6 @@ import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMig
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFilesystemMigrationProgress;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationProgress;
-import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -32,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Copyright Atlassian: 10/03/2020
  */
-@Component
 public class DatabaseMigrationService
 {
     private final ApplicationConfiguration applicationConfiguration;
@@ -45,6 +43,7 @@ public class DatabaseMigrationService
     private Process extractorProcess;
     private AtomicReference<MigrationStatus> status = new AtomicReference();
 
+    //TODO: Move tempdirectory away from the constructor and pass that into the method instead
     public DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,
                                     AwsCredentialsProvider awsCredentialsProvider,
                                     RegionService regionService,

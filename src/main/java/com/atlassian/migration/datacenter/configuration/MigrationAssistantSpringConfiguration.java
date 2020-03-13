@@ -9,8 +9,7 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration
 @Import({
-        MigrationAssistantBeanConfiguration.class,
-        MigrationAssistantOsgiImportConfiguration.class
+        MigrationAssistantBeanConfiguration.class
 })
 public class MigrationAssistantSpringConfiguration {
 }

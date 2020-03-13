@@ -4,6 +4,7 @@ import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient;
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
@@ -20,10 +21,10 @@ import java.util.stream.Collectors;
 public class ProbeAWSAuth {
     private static final Logger logger = LoggerFactory.getLogger(ProbeAWSAuth.class);
 
-    private AtlassianPluginAWSCredentialsProvider credentialsProvider;
+    private AwsCredentialsProvider credentialsProvider;
     private RegionService regionService;
 
-    public ProbeAWSAuth(AtlassianPluginAWSCredentialsProvider credentialsProvider, RegionService regionService) {
+    public ProbeAWSAuth(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
         this.credentialsProvider = credentialsProvider;
         this.regionService = regionService;
     }
