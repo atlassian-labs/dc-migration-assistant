@@ -2,8 +2,6 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
-import com.atlassian.migration.datacenter.core.aws.region.InvalidAWSRegionException;
-import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,18 +14,14 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
@@ -50,14 +44,8 @@ class DatabaseMigrationServiceIT
     @Container
     public LocalStackContainer s3 = new LocalStackContainer()
         .withServices(S3)
-        .withEnv("DEFAULT_REGION", regionService.getRegion());
+        .withEnv("DEFAULT_REGION", Region.US_EAST_1.toString());
 
-    private static RegionService regionService = new RegionService() {
-        public String getRegion() { return "us-east-1"; }
-        public void storeRegion(String string) throws InvalidAWSRegionException { throw new UnsupportedOperationException(); }
-    };
-
-    private AwsCredentialsProvider credentialsProvider = new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider());
     private S3AsyncClient s3client;
     private String bucket = "trebuchet-testing";
 
@@ -79,8 +67,8 @@ class DatabaseMigrationServiceIT
 
         s3client = S3AsyncClient.builder()
             .endpointOverride(new URI(s3.getEndpointConfiguration(S3).getServiceEndpoint()))
-            .credentialsProvider(credentialsProvider)
-            .region(Region.of(regionService.getRegion()))
+            .credentialsProvider(new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider()))
+            .region(Region.US_EAST_1)
             .build();
 
         CreateBucketRequest req = CreateBucketRequest.builder()
@@ -94,7 +82,7 @@ class DatabaseMigrationServiceIT
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException {
         URI localStackS3Endpoint = URI.create(s3.getEndpointConfiguration(S3).getServiceEndpoint());
-        DatabaseMigrationService service = new DatabaseMigrationService(configuration, credentialsProvider, regionService, tempDir,s3client, localStackS3Endpoint);
+        DatabaseMigrationService service = new DatabaseMigrationService(configuration, tempDir,s3client, localStackS3Endpoint);
         service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()
