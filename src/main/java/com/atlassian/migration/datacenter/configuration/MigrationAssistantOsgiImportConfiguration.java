@@ -2,6 +2,8 @@ package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.aws.auth.EncryptedCredentialsStorage;
+import com.atlassian.migration.datacenter.core.aws.auth.ReadCredentialsService;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.permission.PermissionEnforcer;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;

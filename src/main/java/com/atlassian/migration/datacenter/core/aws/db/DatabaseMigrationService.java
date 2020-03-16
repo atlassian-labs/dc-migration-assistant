@@ -1,7 +1,6 @@
 package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
-import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
@@ -13,11 +12,7 @@ import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMig
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFilesystemMigrationProgress;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationProgress;
-import org.springframework.stereotype.Component;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,43 +27,31 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Copyright Atlassian: 10/03/2020
  */
-@Component
 public class DatabaseMigrationService
 {
     private final ApplicationConfiguration applicationConfiguration;
-    private final AwsCredentialsProvider awsCredentialsProvider;
-    private final RegionService regionService;
     private final Optional<URI> endpointOverride;
     private final Path tempDirectory;
+    private final S3AsyncClient s3AsyncClient;
 
-    private ExecutorService dbMigrationThread;
     private Process extractorProcess;
     private AtomicReference<MigrationStatus> status = new AtomicReference();
 
+    //TODO: Move tempdirectory away from the constructor and pass that into the method instead
     public DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,
-                                    AwsCredentialsProvider awsCredentialsProvider,
-                                    RegionService regionService,
-                                    Path tempDirectory)
+                                    Path tempDirectory, S3AsyncClient client)
     {
-        this.applicationConfiguration = applicationConfiguration;
-        this.awsCredentialsProvider = awsCredentialsProvider;
-        this.regionService = regionService;
-        this.tempDirectory = tempDirectory;
-        this.endpointOverride = Optional.empty();
-        this.setStatus(MigrationStatus.NOT_STARTED);
+        this(applicationConfiguration, tempDirectory, client, null);
     }
 
-    public DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,
-                                    AwsCredentialsProvider awsCredentialsProvider,
-                                    RegionService regionService,
-                                    Path tempDirectory,
-                                    URI endointOverride)
-    {
+    DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,
+                             Path tempDirectory,
+                             S3AsyncClient s3AsyncClient,
+                             URI endpointOverride) {
         this.applicationConfiguration = applicationConfiguration;
-        this.awsCredentialsProvider = awsCredentialsProvider;
-        this.regionService = regionService;
         this.tempDirectory = tempDirectory;
-        this.endpointOverride = Optional.of(endointOverride);
+        this.s3AsyncClient = s3AsyncClient;
+        this.endpointOverride = Optional.ofNullable(endpointOverride);
         this.setStatus(MigrationStatus.NOT_STARTED);
     }
 
@@ -78,7 +61,6 @@ public class DatabaseMigrationService
      */
     public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure
     {
-        dbMigrationThread = Executors.newSingleThreadExecutor();
         DatabaseExtractor extractor = DatabaseExtractorFactory.getExtractor(applicationConfiguration);
         Path target = tempDirectory.resolve("db.dump");
 
@@ -98,16 +80,8 @@ public class DatabaseMigrationService
         FileSystemMigrationProgress progress = new DefaultFilesystemMigrationProgress();
         FileSystemMigrationErrorReport report = new DefaultFileSystemMigrationErrorReport();
 
-        S3AsyncClientBuilder builder = S3AsyncClient.builder()
-            .credentialsProvider(awsCredentialsProvider)
-            .region(Region.of(regionService.getRegion()));
-        if (endpointOverride.isPresent()) {
-            builder = builder.endpointOverride(endpointOverride.get());
-        }
-        S3AsyncClient client = builder.build();
-
         String bucket = System.getProperty("S3_TARGET_BUCKET_NAME", "trebuchet-testing");
-        S3UploadConfig config = new S3UploadConfig(bucket, client, target.getParent());
+        S3UploadConfig config = new S3UploadConfig(bucket, this.s3AsyncClient, target.getParent());
 
         S3Uploader uploader = new S3Uploader(config, report, progress);
         Crawler crawler = new DirectoryStreamCrawler(report, progress);

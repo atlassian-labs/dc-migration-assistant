@@ -6,12 +6,10 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
-@Component
 public class AtlassianPluginAWSCredentialsProvider implements AwsCredentialsProvider {
 
     private final ReadCredentialsService readCredentialsService;
 
-    @Autowired
     public AtlassianPluginAWSCredentialsProvider(ReadCredentialsService readCredentialsService) {
         this.readCredentialsService = readCredentialsService;
     }

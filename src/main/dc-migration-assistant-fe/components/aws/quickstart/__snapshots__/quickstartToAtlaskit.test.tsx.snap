@@ -43,7 +43,7 @@ exports[`Quick Start to Atlaskit Input Converter Should create a select input wh
 exports[`Quick Start to Atlaskit Input Converter Should create a toggle input when there are two allowed values that are boolean 1`] = `
 <input
   checked=""
-  class="sc-fzXfLP cOsBmS"
+  class="sc-fzoLsD gRKRqN"
   id="uid5"
   name="TestParam"
   type="checkbox"
@@ -84,14 +84,14 @@ exports[`Quick Start to Atlaskit Input Converter Should create multi select inpu
         class="css-1r2gs9k-loadingIndicator"
       >
         <span
-          class="sc-AykKH efaQvt"
+          class="sc-AxgMl cKcSCL"
         >
           <span
-            class="sc-AykKF guWTxi"
+            class="sc-AxhCb hGmQpe"
             size="16"
           >
             <svg
-              class="sc-AykKG bRRuJZ"
+              class="sc-AxhUy cAxFuU"
               focusable="false"
               height="16"
               size="16"
@@ -114,7 +114,8 @@ exports[`Quick Start to Atlaskit Input Converter Should create multi select inpu
       >
         <span
           aria-label="open"
-          class="sc-AykKC irHdoa"
+          class="sc-AxjAm jaeKPl"
+          role="img"
         >
           <svg
             focusable="false"

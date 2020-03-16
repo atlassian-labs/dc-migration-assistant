@@ -11,7 +11,6 @@ import software.amazon.awssdk.regions.Region;
  * Manages the persistence and retrieval of the region used to make AWS SDK API calls.
  * The region is stored in the plugin settings of this app.
  */
-@Component
 public class PluginSettingsRegionManager implements RegionService {
 
     private static final String AWS_REGION_PLUGIN_STORAGE_KEY = "com.atlassian.migration.datacenter.core.aws.region";
@@ -20,7 +19,6 @@ public class PluginSettingsRegionManager implements RegionService {
     private final PluginSettingsFactory pluginSettingsFactory;
     private final GlobalInfrastructure globalInfrastructure;
 
-    @Autowired
     public PluginSettingsRegionManager(PluginSettingsFactory pluginSettingsFactory, GlobalInfrastructure globalInfrastructure) {
         this.pluginSettingsFactory = pluginSettingsFactory;
         this.globalInfrastructure = globalInfrastructure;
