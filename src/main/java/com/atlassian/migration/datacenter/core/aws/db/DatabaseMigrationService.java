@@ -31,16 +31,6 @@ public class DatabaseMigrationService
     private AtomicReference<MigrationStatus> status = new AtomicReference<>();
     private DatabaseArchivalService databaseArchivalService;
 
-    @Deprecated
-    public DatabaseMigrationService(Path tempDirectory,
-                                    S3AsyncClient s3AsyncClient, MigrationService migrationService)
-    {
-        this.tempDirectory = tempDirectory;
-        this.s3AsyncClient = s3AsyncClient;
-        this.migrationService = migrationService;
-        this.setStatus(MigrationStatus.NOT_STARTED);
-    }
-
     public DatabaseMigrationService(Path tempDirectory, S3AsyncClient s3AsyncClient, MigrationService migrationService, DatabaseArchivalService databaseArchivalService)
     {
         this.tempDirectory = tempDirectory;

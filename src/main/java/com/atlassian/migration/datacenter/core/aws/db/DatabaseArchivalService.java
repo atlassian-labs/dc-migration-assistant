@@ -33,7 +33,7 @@ public class DatabaseArchivalService {
         this.databaseExtractor = DatabaseExtractorFactory.getExtractor(applicationConfiguration);
     }
 
-    DatabaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor){
+    public DatabaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor){
         this.migrationService = migrationService;
         this.databaseExtractor = databaseExtractor;
     }
