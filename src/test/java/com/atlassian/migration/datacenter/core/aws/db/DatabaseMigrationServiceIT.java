@@ -88,7 +88,8 @@ class DatabaseMigrationServiceIT
 
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError {
-        DatabaseMigrationService service = new DatabaseMigrationService(configuration, tempDir, s3client, migrationService);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(configuration, migrationService);
+        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, s3client, migrationService, databaseArchivalService);
         service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()

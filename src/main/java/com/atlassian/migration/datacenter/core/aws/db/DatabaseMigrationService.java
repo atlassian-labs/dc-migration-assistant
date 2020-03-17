@@ -26,23 +26,31 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DatabaseMigrationService
 {
     private static final String TARGET_BUCKET_NAME = System.getProperty("S3_TARGET_BUCKET_NAME", "trebuchet-testing");
-    private final ApplicationConfiguration applicationConfiguration;
+    //TODO: This will be moved into database archival service
     private final Path tempDirectory;
     private final S3AsyncClient s3AsyncClient;
     private final MigrationService migrationService;
 
-    private Process extractorProcess;
-    private AtomicReference<MigrationStatus> status = new AtomicReference();
+    private AtomicReference<MigrationStatus> status = new AtomicReference<>();
+    private DatabaseArchivalService databaseArchivalService;
 
+    @Deprecated
     public DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,
                                     Path tempDirectory,
                                     S3AsyncClient s3AsyncClient, MigrationService migrationService)
     {
-        this.applicationConfiguration = applicationConfiguration;
         this.tempDirectory = tempDirectory;
         this.s3AsyncClient = s3AsyncClient;
         this.migrationService = migrationService;
         this.setStatus(MigrationStatus.NOT_STARTED);
+    }
+
+    public DatabaseMigrationService(Path tempDirectory, S3AsyncClient s3AsyncClient, MigrationService migrationService, DatabaseArchivalService databaseArchivalService)
+    {
+        this.tempDirectory = tempDirectory;
+        this.s3AsyncClient = s3AsyncClient;
+        this.migrationService = migrationService;
+        this.databaseArchivalService = databaseArchivalService;
     }
 
     /**
@@ -50,32 +58,8 @@ public class DatabaseMigrationService
      * or preferably from ScheduledJob. The status of the migration can be queried via getStatus().
      */
     public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError {
-        Path pathToDatabaseFile = dumpDatabaseToFilesystem();
-        FileSystemMigrationReport report = uploadDatabaseArtifactToS3(pathToDatabaseFile);
-        return report;
-    }
-
-    //TODO: This should be decomposed as a standalone service for easier testing
-    private Path dumpDatabaseToFilesystem() throws InvalidMigrationStageError {
-        DatabaseExtractor extractor = DatabaseExtractorFactory.getExtractor(applicationConfiguration);
-        Path target = tempDirectory.resolve("db.dump");
-
-        this.migrationService.transition(MigrationStage.OFFLINE_WARNING, MigrationStage.DB_MIGRATION_EXPORT);
-
-        extractorProcess = extractor.startDatabaseDump(target);
-        setStatus(MigrationStatus.DUMP_IN_PROGRESS);
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.WAIT_DB_MIGRATION_EXPORT);
-        try {
-            extractorProcess.waitFor();
-        } catch (Exception e) {
-            String msg = "Error while waiting for DB extractor to finish";
-            setStatus(MigrationStatus.error(msg, e));
-            throw new DatabaseMigrationFailure(msg, e);
-        }
-
-        setStatus(MigrationStatus.DUMP_COMPLETE);
-        this.migrationService.transition(MigrationStage.WAIT_DB_MIGRATION_EXPORT, MigrationStage.DB_MIGRATION_UPLOAD);
-        return target;
+        Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory);
+        return uploadDatabaseArtifactToS3(pathToDatabaseFile);
     }
 
     //TODO: This should be decomposed as a standalone service for easier testing
