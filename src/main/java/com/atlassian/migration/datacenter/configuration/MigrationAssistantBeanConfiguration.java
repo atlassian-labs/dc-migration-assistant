@@ -11,6 +11,7 @@ import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCreden
 import com.atlassian.migration.datacenter.core.aws.auth.EncryptedCredentialsStorage;
 import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth;
 import com.atlassian.migration.datacenter.core.aws.auth.ReadCredentialsService;
+import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchivalService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
@@ -96,5 +97,10 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public S3SyncFileSystemDownloader s3SyncFileSystemDownloader(SSMApi ssmApi) {
         return new S3SyncFileSystemDownloader(ssmApi);
+    }
+
+    @Bean
+    public DatabaseArchivalService databaseArchivalService(ApplicationConfiguration applicationConfiguration, MigrationService migrationService) {
+        return new DatabaseArchivalService(applicationConfiguration, migrationService);
     }
 }
