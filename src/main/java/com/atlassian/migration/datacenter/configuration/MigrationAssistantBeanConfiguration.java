@@ -100,7 +100,7 @@ public class MigrationAssistantBeanConfiguration {
     public S3SyncFileSystemDownloader s3SyncFileSystemDownloader(SSMApi ssmApi) {
         return new S3SyncFileSystemDownloader(ssmApi);
     }
-    
+
     @Bean
     public DatabaseExtractor databaseExtractor(ApplicationConfiguration applicationConfiguration) {
         return DatabaseExtractorFactory.getExtractor(applicationConfiguration);

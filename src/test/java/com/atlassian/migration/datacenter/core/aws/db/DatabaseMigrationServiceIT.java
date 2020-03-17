@@ -2,6 +2,7 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
@@ -88,7 +89,7 @@ class DatabaseMigrationServiceIT
 
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError {
-        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(configuration, migrationService);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(migrationService, DatabaseExtractorFactory.getExtractor(configuration));
         DatabaseMigrationService service = new DatabaseMigrationService(tempDir, s3client, migrationService, databaseArchivalService);
         service.performMigration();
 

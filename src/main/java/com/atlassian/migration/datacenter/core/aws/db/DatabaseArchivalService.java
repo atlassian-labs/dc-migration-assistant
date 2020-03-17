@@ -12,9 +12,7 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
-import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -26,12 +24,6 @@ public class DatabaseArchivalService {
 
     private MigrationService migrationService;
     private DatabaseExtractor databaseExtractor;
-
-    public DatabaseArchivalService(ApplicationConfiguration applicationConfiguration, MigrationService migrationService) {
-        this.migrationService = migrationService;
-        //Could be a bean and injected directly. This constructor will get deprecated and favour the package private one instead
-        this.databaseExtractor = DatabaseExtractorFactory.getExtractor(applicationConfiguration);
-    }
 
     public DatabaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor){
         this.migrationService = migrationService;
