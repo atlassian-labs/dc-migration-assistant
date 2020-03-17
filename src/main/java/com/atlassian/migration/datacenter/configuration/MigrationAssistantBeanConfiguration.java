@@ -1,8 +1,10 @@
 package com.atlassian.migration.datacenter.configuration;
 
+import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
+import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.migration.datacenter.core.aws.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
@@ -13,6 +15,7 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.fs.S3SyncFileSystemDownloader;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -75,9 +78,14 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseMigrationService databaseMigrationService(ApplicationConfiguration jiraConfiguration, S3AsyncClient s3AsyncClient) {
+    public DatabaseMigrationService databaseMigrationService(ApplicationConfiguration jiraConfiguration, S3AsyncClient s3AsyncClient, MigrationService migrationService) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
-        return new DatabaseMigrationService(jiraConfiguration, Paths.get(tempDirectoryPath), s3AsyncClient);
+        return new DatabaseMigrationService(jiraConfiguration, Paths.get(tempDirectoryPath), s3AsyncClient, migrationService);
+    }
+
+    @Bean
+    public MigrationService migrationService(ActiveObjects ao){
+        return new AWSMigrationService(ao);
     }
 
     @Bean

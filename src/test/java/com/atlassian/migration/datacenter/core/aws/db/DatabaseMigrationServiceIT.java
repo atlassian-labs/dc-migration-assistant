@@ -2,6 +2,8 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -57,6 +59,9 @@ class DatabaseMigrationServiceIT
     @TempDir
     Path tempDir;
 
+    @Mock(lenient = true)
+    private MigrationService migrationService;
+
     @BeforeEach
     void setUp() throws Exception {
         when(configuration.getDatabaseConfiguration())
@@ -82,8 +87,8 @@ class DatabaseMigrationServiceIT
 
 
     @Test
-    void testDatabaseMigration() throws ExecutionException, InterruptedException {
-        DatabaseMigrationService service = new DatabaseMigrationService(configuration, tempDir, s3client);
+    void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError {
+        DatabaseMigrationService service = new DatabaseMigrationService(configuration, tempDir, s3client, migrationService);
         service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()
