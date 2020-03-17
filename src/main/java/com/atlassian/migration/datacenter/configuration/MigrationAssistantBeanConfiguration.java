@@ -80,7 +80,7 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public DatabaseMigrationService databaseMigrationService(ApplicationConfiguration jiraConfiguration, S3AsyncClient s3AsyncClient, MigrationService migrationService) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
-        return new DatabaseMigrationService(jiraConfiguration, Paths.get(tempDirectoryPath), s3AsyncClient, migrationService);
+        return new DatabaseMigrationService(Paths.get(tempDirectoryPath), s3AsyncClient, migrationService);
     }
 
     @Bean

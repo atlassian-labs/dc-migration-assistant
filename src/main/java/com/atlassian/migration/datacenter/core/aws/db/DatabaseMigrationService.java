@@ -1,8 +1,5 @@
 package com.atlassian.migration.datacenter.core.aws.db;
 
-import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.fs.Crawler;
@@ -35,8 +32,7 @@ public class DatabaseMigrationService
     private DatabaseArchivalService databaseArchivalService;
 
     @Deprecated
-    public DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,
-                                    Path tempDirectory,
+    public DatabaseMigrationService(Path tempDirectory,
                                     S3AsyncClient s3AsyncClient, MigrationService migrationService)
     {
         this.tempDirectory = tempDirectory;

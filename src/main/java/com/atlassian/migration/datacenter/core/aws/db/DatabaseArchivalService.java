@@ -24,21 +24,26 @@ import java.nio.file.Path;
 
 public class DatabaseArchivalService {
 
-    private ApplicationConfiguration applicationConfiguration;
     private MigrationService migrationService;
+    private DatabaseExtractor databaseExtractor;
 
     public DatabaseArchivalService(ApplicationConfiguration applicationConfiguration, MigrationService migrationService) {
-        this.applicationConfiguration = applicationConfiguration;
         this.migrationService = migrationService;
+        //Could be a bean and injected directly. This constructor will get deprecated and favour the package private one instead
+        this.databaseExtractor = DatabaseExtractorFactory.getExtractor(applicationConfiguration);
+    }
+
+    DatabaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor){
+        this.migrationService = migrationService;
+        this.databaseExtractor = databaseExtractor;
     }
 
     public Path archiveDatabase(Path tempDirectory) throws InvalidMigrationStageError {
-        DatabaseExtractor extractor = DatabaseExtractorFactory.getExtractor(applicationConfiguration);
         Path target = tempDirectory.resolve("db.dump");
 
         this.migrationService.transition(MigrationStage.OFFLINE_WARNING, MigrationStage.DB_MIGRATION_EXPORT);
 
-        Process extractorProcess = extractor.startDatabaseDump(target);
+        Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
 
         this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.WAIT_DB_MIGRATION_EXPORT);
         try {
