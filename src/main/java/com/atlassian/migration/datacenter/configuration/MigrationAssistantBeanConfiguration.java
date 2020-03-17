@@ -15,6 +15,8 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchivalService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -98,10 +100,14 @@ public class MigrationAssistantBeanConfiguration {
     public S3SyncFileSystemDownloader s3SyncFileSystemDownloader(SSMApi ssmApi) {
         return new S3SyncFileSystemDownloader(ssmApi);
     }
-
+    
     @Bean
-    public DatabaseArchivalService databaseArchivalService(ApplicationConfiguration applicationConfiguration, MigrationService migrationService) {
-        return new DatabaseArchivalService(applicationConfiguration, migrationService);
+    public DatabaseExtractor databaseExtractor(ApplicationConfiguration applicationConfiguration) {
+        return DatabaseExtractorFactory.getExtractor(applicationConfiguration);
     }
 
+    @Bean
+    public DatabaseArchivalService databaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor) {
+        return new DatabaseArchivalService(migrationService, databaseExtractor);
+    }
 }
