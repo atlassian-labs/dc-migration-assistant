@@ -48,7 +48,7 @@ public class DatabaseArtifactS3UploadService {
         callback.transitionToServiceWaitStage();
         filesystemUploader.uploadDirectory(target);
 
-        callback.transitionToServiceEndStage();
+        callback.transitionToServiceNextStage();
         return fileSystemMigrationReport;
     }
 

@@ -27,23 +27,23 @@ public class DatabaseArchivalService {
         this.databaseExtractor = databaseExtractor;
     }
 
-    public Path archiveDatabase(Path tempDirectory, MigrationStageCallback migrationStageCallback) throws InvalidMigrationStageError {
+    public Path archiveDatabase(Path tempDirectory, MigrationStageCallback archiveStageCallback) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
 
-        migrationStageCallback.transitionToServiceStartStage();
+        archiveStageCallback.transitionToServiceStartStage();
 
         Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
-        migrationStageCallback.transitionToServiceWaitStage();
+        archiveStageCallback.transitionToServiceWaitStage();
 
         try {
             extractorProcess.waitFor();
         } catch (Exception e) {
             String msg = "Error while waiting for DB extractor to finish";
-            migrationStageCallback.transitionToServiceErrorStage();
+            archiveStageCallback.transitionToServiceErrorStage();
             throw new DatabaseMigrationFailure(msg, e);
         }
 
-        migrationStageCallback.transitionToServiceEndStage();
+        archiveStageCallback.transitionToServiceNextStage();
         return target;
     }
 }

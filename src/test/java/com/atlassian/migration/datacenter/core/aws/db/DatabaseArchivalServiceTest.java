@@ -58,7 +58,7 @@ class DatabaseArchivalServiceTest {
 
         verify(this.migrationStageCallback).transitionToServiceStartStage();
         verify(this.migrationStageCallback).transitionToServiceWaitStage();
-        verify(this.migrationStageCallback).transitionToServiceEndStage();
+        verify(this.migrationStageCallback).transitionToServiceNextStage();
     }
 
     @Test
@@ -85,7 +85,7 @@ class DatabaseArchivalServiceTest {
     void shouldThrowExceptionWhenStateTransitionToEndStageIsNotSuccessful() throws Exception {
         when(this.databaseExtractor.startDatabaseDump(tempDir.resolve("db.dump"))).thenReturn(process);
         when(process.waitFor()).thenReturn(0);
-        doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).transitionToServiceEndStage();
+        doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).transitionToServiceNextStage();
 
         assertThrows(InvalidMigrationStageError.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);

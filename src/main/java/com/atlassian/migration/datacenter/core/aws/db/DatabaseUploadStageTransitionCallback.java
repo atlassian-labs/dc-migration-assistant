@@ -35,7 +35,7 @@ public class DatabaseUploadStageTransitionCallback implements MigrationStageCall
     }
 
     @Override
-    public void transitionToServiceEndStage() throws InvalidMigrationStageError {
+    public void transitionToServiceNextStage() throws InvalidMigrationStageError {
         this.migrationService.transition(MigrationStage.DATA_MIGRATION_IMPORT);
     }
 

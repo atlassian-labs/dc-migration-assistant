@@ -18,6 +18,6 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 public interface MigrationStageCallback {
     void transitionToServiceStartStage() throws InvalidMigrationStageError;
     void transitionToServiceWaitStage() throws InvalidMigrationStageError;
-    void transitionToServiceEndStage() throws InvalidMigrationStageError;
+    void transitionToServiceNextStage() throws InvalidMigrationStageError;
     void transitionToServiceErrorStage();
 }

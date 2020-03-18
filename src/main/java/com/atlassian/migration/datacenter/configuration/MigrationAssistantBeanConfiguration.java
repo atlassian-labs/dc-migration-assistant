@@ -114,7 +114,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService) {
+    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier) {
         return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier);
     }
 

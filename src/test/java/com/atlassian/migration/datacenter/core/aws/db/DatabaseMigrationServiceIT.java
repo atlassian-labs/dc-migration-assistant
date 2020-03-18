@@ -110,7 +110,7 @@ class DatabaseMigrationServiceIT
         DatabaseUploadStageTransitionCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
 
         DatabaseMigrationService service = new DatabaseMigrationService(tempDir, databaseArchivalService, archiveStageTransitionCallback, s3UploadService, uploadStageTransitionCallback);
-        
+
         service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()
