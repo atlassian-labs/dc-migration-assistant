@@ -31,6 +31,7 @@ import com.atlassian.migration.datacenter.core.aws.auth.ReadCredentialsService;
 import com.atlassian.migration.datacenter.core.aws.auth.WriteCredentialsService;
 import com.atlassian.migration.datacenter.core.aws.cloud.AWSConfigurationService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchivalService;
+import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchiveStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
@@ -106,10 +107,14 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
+    public DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback(MigrationService migrationService){
+        return new DatabaseArchiveStageTransitionCallback(migrationService);
+    }
 
-    public DatabaseMigrationService databaseMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService, DatabaseArchivalService databaseArchivalService) {
+    @Bean
+    public DatabaseMigrationService databaseMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
-        return new DatabaseMigrationService(Paths.get(tempDirectoryPath), s3AsyncClientSupplier, migrationService, databaseArchivalService);
+        return new DatabaseMigrationService(Paths.get(tempDirectoryPath), s3AsyncClientSupplier, migrationService, databaseArchivalService, stageTransitionCallback);
     }
 
     @Bean
@@ -134,7 +139,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public DatabaseArchivalService databaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor) {
-        return new DatabaseArchivalService(migrationService, databaseExtractor);
+        return new DatabaseArchivalService(databaseExtractor);
     }
 
     public AvailabilityZoneManager availabilityZoneManager(AwsCredentialsProvider awsCredentialsProvider, GlobalInfrastructure globalInfrastructure) {

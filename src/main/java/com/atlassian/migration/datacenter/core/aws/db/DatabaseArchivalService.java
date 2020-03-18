@@ -12,41 +12,40 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
+import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.MigrationService;
-import com.atlassian.migration.datacenter.spi.MigrationStage;
 
 import java.nio.file.Path;
 
 public class DatabaseArchivalService {
 
-    private MigrationService migrationService;
     private DatabaseExtractor databaseExtractor;
 
-    public DatabaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor){
-        this.migrationService = migrationService;
+    public DatabaseArchivalService(DatabaseExtractor databaseExtractor){
         this.databaseExtractor = databaseExtractor;
     }
 
-    public Path archiveDatabase(Path tempDirectory) throws InvalidMigrationStageError {
+    public Path archiveDatabase(Path tempDirectory, MigrationStageCallback migrationStageCallback) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
 
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
+
+        migrationStageCallback.transitionToServiceStartStage();
 
         Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
+        migrationStageCallback.transitionToServiceWaitStage();
 
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT_WAIT);
         try {
             extractorProcess.waitFor();
         } catch (Exception e) {
             String msg = "Error while waiting for DB extractor to finish";
-            this.migrationService.error();
+            migrationStageCallback.transitionToServiceErrorStage();
             throw new DatabaseMigrationFailure(msg, e);
         }
 
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD);
+        migrationStageCallback.transitionToServiceEndStage();
         return target;
     }
 }
+

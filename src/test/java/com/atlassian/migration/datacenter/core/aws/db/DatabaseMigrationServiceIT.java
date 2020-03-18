@@ -102,8 +102,9 @@ class DatabaseMigrationServiceIT
 
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError {
-        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(migrationService, DatabaseExtractorFactory.getExtractor(configuration));
-        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, () -> s3client, migrationService, databaseArchivalService);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration));
+        DatabaseArchiveStageTransitionCallback stageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
+        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, () -> s3client, migrationService, databaseArchivalService, stageTransitionCallback);
 
         service.postConstruct();
         service.performMigration();

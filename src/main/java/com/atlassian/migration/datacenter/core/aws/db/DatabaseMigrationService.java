@@ -44,19 +44,22 @@ public class DatabaseMigrationService
 
     private final Path tempDirectory;
     private S3AsyncClient s3AsyncClient;
+    @Deprecated
     private final MigrationService migrationService;
     private Supplier<S3AsyncClient> s3AsyncClientSupplier;
 
     private AtomicReference<MigrationStage> status = new AtomicReference<>();
     private DatabaseArchivalService databaseArchivalService;
+    private final DatabaseArchiveStageTransitionCallback stageTransitionCallback;
 
 
-    public DatabaseMigrationService(Path tempDirectory, Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService, DatabaseArchivalService databaseArchivalService)
+    public DatabaseMigrationService(Path tempDirectory, Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback)
     {
         this.tempDirectory = tempDirectory;
         this.s3AsyncClientSupplier = s3AsyncClientSupplier;
         this.migrationService = migrationService;
         this.databaseArchivalService = databaseArchivalService;
+        this.stageTransitionCallback = stageTransitionCallback;
     }
 
     @PostConstruct
@@ -69,7 +72,7 @@ public class DatabaseMigrationService
      * or preferably from ScheduledJob. The status of the migration can be queried via getStatus().
      */
     public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError {
-        Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory);
+        Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory, stageTransitionCallback);
         return uploadDatabaseArtifactToS3(pathToDatabaseFile);
     }
 
@@ -99,3 +102,4 @@ public class DatabaseMigrationService
         return status.get();
     }
 }
+
