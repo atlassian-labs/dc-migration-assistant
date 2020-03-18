@@ -28,7 +28,6 @@ public class DevelopEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response setMigrationStage(MigrationStage targetStage) {
         try {
-            final MigrationStage currentStage = migrationService.getCurrentStage();
             migrationService.transition(targetStage);
             return Response
                     .ok(ImmutableMap.of("targetStage", migrationService.getCurrentStage().toString()))

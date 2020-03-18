@@ -16,8 +16,6 @@ import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
-import com.atlassian.migration.datacenter.spi.MigrationService;
-import com.atlassian.migration.datacenter.spi.MigrationStage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +55,7 @@ class DatabaseArchivalServiceTest {
         when(process.waitFor()).thenReturn(0);
         Path target = service.archiveDatabase(tempDir, migrationStageCallback);
         assertTrue(target.endsWith("db.dump"));
-        //TODO: Should this stage to transition to be called pending export?
+
         verify(this.migrationStageCallback).transitionToServiceStartStage();
         verify(this.migrationStageCallback).transitionToServiceWaitStage();
         verify(this.migrationStageCallback).transitionToServiceEndStage();
@@ -79,25 +77,35 @@ class DatabaseArchivalServiceTest {
         assertThrows(InvalidMigrationStageError.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);
         });
+        verify(migrationStageCallback).transitionToServiceStartStage();
     }
 
 
     @Test
     void shouldThrowExceptionWhenStateTransitionToEndStageIsNotSuccessful() throws Exception {
+        when(this.databaseExtractor.startDatabaseDump(tempDir.resolve("db.dump"))).thenReturn(process);
+        when(process.waitFor()).thenReturn(0);
         doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).transitionToServiceEndStage();
 
         assertThrows(InvalidMigrationStageError.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);
         });
+
+        verify(migrationStageCallback).transitionToServiceStartStage();
+        verify(migrationStageCallback).transitionToServiceWaitStage();
     }
 
     @Test
     void shouldThrowExceptionWhenProcessExecutionFails() throws Exception {
         when(this.databaseExtractor.startDatabaseDump(tempDir.resolve("db.dump"))).thenReturn(process);
         when(process.waitFor()).thenThrow(new InterruptedException());
+
         assertThrows(DatabaseMigrationFailure.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);
         });
+
+        verify(migrationStageCallback).transitionToServiceStartStage();
+        verify(migrationStageCallback).transitionToServiceWaitStage();
         verify(migrationStageCallback).transitionToServiceErrorStage();
     }
 }
