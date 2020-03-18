@@ -18,7 +18,8 @@ package com.atlassian.migration.datacenter.spi;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MigrationStageTest
 {
@@ -33,7 +34,8 @@ class MigrationStageTest
     @Test
     void testValidTransition()
     {
-        assertTrue(MigrationStage.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT_WAIT, MigrationStage.DB_MIGRATION_EXPORT));
+        assertTrue(MigrationStage.isValidTransition(MigrationStage.PROVISION_APPLICATION, MigrationStage.PROVISION_APPLICATION_WAIT));
+        assertTrue(MigrationStage.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.DB_MIGRATION_EXPORT_WAIT));
     }
 
     @Test
