@@ -40,7 +40,6 @@ import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
-import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_MIGRATION_STACK_WAIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -85,9 +84,9 @@ public class AWSMigrationServiceTest {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
 
-        sut.transition(PROVISION_MIGRATION_STACK_WAIT);
+        sut.transition(PROVISION_APPLICATION);
 
-        assertEquals(PROVISION_MIGRATION_STACK_WAIT, sut.getCurrentStage());
+        assertEquals(PROVISION_APPLICATION, sut.getCurrentStage());
     }
 
     @Test
@@ -95,7 +94,7 @@ public class AWSMigrationServiceTest {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
 
-        assertThrows(InvalidMigrationStageError.class, () -> sut.transition(PROVISION_APPLICATION));
+        assertThrows(InvalidMigrationStageError.class, () -> sut.transition(PROVISION_APPLICATION_WAIT));
         assertEquals(sut.getCurrentStage(), AUTHENTICATION);
     }
 
