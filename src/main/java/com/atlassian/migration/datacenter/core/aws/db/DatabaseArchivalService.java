@@ -33,11 +33,11 @@ public class DatabaseArchivalService {
     public Path archiveDatabase(Path tempDirectory) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
 
-        this.migrationService.transition(MigrationStage.OFFLINE_WARNING, MigrationStage.DB_MIGRATION_EXPORT);
+        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
 
         Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
 
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.WAIT_DB_MIGRATION_EXPORT);
+        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT_WAIT);
         try {
             extractorProcess.waitFor();
         } catch (Exception e) {
@@ -46,7 +46,7 @@ public class DatabaseArchivalService {
             throw new DatabaseMigrationFailure(msg, e);
         }
 
-        this.migrationService.transition(MigrationStage.WAIT_DB_MIGRATION_EXPORT, MigrationStage.DB_MIGRATION_UPLOAD);
+        this.migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD);
         return target;
     }
 }

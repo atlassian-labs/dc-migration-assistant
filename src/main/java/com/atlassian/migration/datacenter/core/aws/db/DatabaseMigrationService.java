@@ -28,7 +28,7 @@ public class DatabaseMigrationService
     private final S3AsyncClient s3AsyncClient;
     private final MigrationService migrationService;
 
-    private AtomicReference<MigrationStatus> status = new AtomicReference<>();
+    private AtomicReference<MigrationStage> status = new AtomicReference<>();
     private DatabaseArchivalService databaseArchivalService;
 
     public DatabaseMigrationService(Path tempDirectory, S3AsyncClient s3AsyncClient, MigrationService migrationService, DatabaseArchivalService databaseArchivalService)
@@ -58,21 +58,19 @@ public class DatabaseMigrationService
 
         FilesystemUploader filesystemUploader = new FilesystemUploader(crawler, uploader);
 
-        setStatus(MigrationStatus.UPLOAD_IN_PROGRESS);
+        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD);
 
         filesystemUploader.uploadDirectory(target);
 
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD, MigrationStage.DB_MIGRATION_UPLOAD_COMPLETE);
-        setStatus(MigrationStatus.UPLOAD_COMPLETE);
-        setStatus(MigrationStatus.FINISHED);
+        this.migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_COMPLETE);
         return report;
     }
 
-    private void setStatus(MigrationStatus status) {
+    private void setStatus(MigrationStage status) {
         this.status.set(status);
     }
 
-    public MigrationStatus getStatus() {
+    public MigrationStage getStatus() {
         return status.get();
     }
 }

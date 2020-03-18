@@ -56,7 +56,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
     @Override
     public boolean isRunning() {
-        return this.migrationService.getCurrentStage().equals(MigrationStage.WAIT_FS_MIGRATION_COPY);
+        return this.migrationService.getCurrentStage().equals(MigrationStage.FS_MIGRATION_COPY_WAIT);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         try {
             logger.info("Scheduling new job for S3 upload runner");
 
-            this.migrationService.transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+            this.migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
 
             schedulerService.scheduleJob(jobId, jobConfig);
         } catch (SchedulerServiceException | InvalidMigrationStageError e) {
@@ -109,7 +109,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         }
         report = new DefaultFileSystemMigrationReport();
 
-        migrationService.transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+        migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
         report.setStatus(RUNNING);
 
         Crawler homeCrawler = new DirectoryStreamCrawler(report);
@@ -126,7 +126,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         }
 
         if (report.getStatus().equals(DONE)) {
-            this.migrationService.transition(MigrationStage.WAIT_FS_MIGRATION_COPY, MigrationStage.OFFLINE_WARNING);
+            this.migrationService.transition(MigrationStage.OFFLINE_WARNING);
         } else if (!report.getStatus().equals(FAILED)) {
             this.migrationService.error();
             report.setStatus(DONE);

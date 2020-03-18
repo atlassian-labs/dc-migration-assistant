@@ -1,40 +1,67 @@
 package com.atlassian.migration.datacenter.spi;
 
+import java.util.Optional;
+
 /**
  * Represents all possible states of an on-premise to cloud migration.
  */
 public enum MigrationStage {
-    ERROR("error"),
-    FINISHED("finished"),
-    CUTOVER("cutover"),
-    VALIDATE("validate"),
+    NOT_STARTED(),
+    ERROR(),
 
-    DB_MIGRATION_IMPORT("db_migration_down"),
-    DB_MIGRATION_UPLOAD_COMPLETE("db_migration_upload_complete"),
-    DB_MIGRATION_UPLOAD("db_migration_upload"),
-    WAIT_DB_MIGRATION_EXPORT("wait_db_migration_export"),
-    DB_MIGRATION_EXPORT("db_migration_export"),
+    FINISHED(), // TODO: Valid transition
+    CUTOVER(), // TODO: Valid transition
+    VALIDATE(), // TODO: Valid transition
 
-    OFFLINE_WARNING("cutover_warning"),
+    DB_MIGRATION_EXPORT_WAIT(NOT_STARTED),
+    DB_MIGRATION_EXPORT(DB_MIGRATION_EXPORT_WAIT),
+    DB_MIGRATION_UPLOAD(DB_MIGRATION_EXPORT),
+    DB_MIGRATION_UPLOAD_COMPLETE(DB_MIGRATION_UPLOAD),
+    DB_MIGRATION_IMPORT(), // TODO: Valid transition
 
-    WAIT_FS_MIGRATION_COPY("wait_fs_migration_copy"),
-    FS_MIGRATION_COPY("fs_migration_copy"),
+    OFFLINE_WARNING(), // TODO: Valid transition
 
-    WAIT_PROVISION_MIGRATION_STACK("wait_provision_migration"),
-    PROVISION_MIGRATION_STACK("provision_migration"),
-    WAIT_PROVISION_APPLICATION("wait_provision_app"),
-    PROVISION_APPLICATION("provision_app"),
-    AUTHENTICATION("authentication"),
-    NOT_STARTED("not_started");
+    FS_MIGRATION_COPY_WAIT(), // TODO: Valid transition
+    FS_MIGRATION_COPY(FS_MIGRATION_COPY_WAIT),
 
-    private String key;
+    AUTHENTICATION(), // TODO: Valid transition
+    PROVISION_MIGRATION_STACK_WAIT(AUTHENTICATION),
+    PROVISION_MIGRATION_STACK(PROVISION_MIGRATION_STACK_WAIT),
+    PROVISION_APPLICATION_WAIT(PROVISION_MIGRATION_STACK),
+    PROVISION_APPLICATION(PROVISION_APPLICATION_WAIT);
 
-    MigrationStage(String key) {
-        this.key = key;
+    private Optional<MigrationStage> validFrom;
+    private Optional<Throwable> exception;
+
+    MigrationStage() {
+        this.exception = Optional.empty();
+        this.validFrom = Optional.empty();
+    }
+
+    MigrationStage(MigrationStage validFrom)
+    {
+        this.exception = Optional.empty();
+        this.validFrom = Optional.of(validFrom);
+    }
+
+    public static boolean isValidTransition(MigrationStage from, MigrationStage to)
+    {
+        return !to.validFrom.isPresent() || to.validFrom.get().equals(from);
     }
 
     @Override
     public String toString() {
-        return key;
+        return super.toString().toLowerCase();
     }
+
+    public Optional<Throwable> getException()
+    {
+        return exception;
+    }
+
+    public void setException(Optional<Throwable> exception)
+    {
+        this.exception = exception;
+    }
+
 }

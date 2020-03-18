@@ -46,7 +46,7 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
     @Override
     public void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application");
-        migrationService.transition(MigrationStage.PROVISION_APPLICATION, MigrationStage.WAIT_PROVISION_APPLICATION);
+        migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
         cfnApi.provisionStack(QUICKSTART_TEMPLATE_URL, deploymentId, params);
@@ -100,9 +100,9 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
             final StackStatus status = cfnApi.getStatus(deploymentId);
             if (status.equals(StackStatus.CREATE_COMPLETE)) {
                 try {
-                    migrationService.transition(MigrationStage.WAIT_PROVISION_APPLICATION, MigrationStage.PROVISION_MIGRATION_STACK);
+                    migrationService.transition(MigrationStage.PROVISION_MIGRATION_STACK);
                 } catch (InvalidMigrationStageError invalidMigrationStageError) {
-                    logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.WAIT_PROVISION_APPLICATION, invalidMigrationStageError.getMessage());
+                    logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
                 }
                 stackCompleteFuture.complete("");
             }

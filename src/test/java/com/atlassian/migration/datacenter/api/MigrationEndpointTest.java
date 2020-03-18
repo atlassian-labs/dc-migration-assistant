@@ -55,7 +55,7 @@ public class MigrationEndpointTest {
     public void testNoContentWhenCreatingMigrationAndNoneExists() throws Exception {
         Migration stubMigration = Mockito.mock(Migration.class);
         when(migrationService.createMigration()).thenReturn(stubMigration);
-        doNothing().when(migrationService).transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+        doNothing().when(migrationService).transition(MigrationStage.AUTHENTICATION);
 
         Response response = sut.createMigration();
 
@@ -66,7 +66,7 @@ public class MigrationEndpointTest {
     public void testBadRequestWhenCreatingMigrationAndOneExists() throws Exception {
         Migration stubMigration = Mockito.mock(Migration.class);
         when(migrationService.createMigration()).thenReturn(stubMigration);
-        doThrow(InvalidMigrationStageError.class).when(migrationService).transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+        doThrow(InvalidMigrationStageError.class).when(migrationService).transition(MigrationStage.AUTHENTICATION);
 
 
         Response response = sut.createMigration();
@@ -85,6 +85,6 @@ public class MigrationEndpointTest {
         assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
         Map<String, String> entity = (Map<String, String>) response.getEntity();
         assertEquals("migration already exists", entity.get("error"));
-        verify(migrationService, never()).transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+        verify(migrationService, never()).transition(MigrationStage.AUTHENTICATION);
     }
 }

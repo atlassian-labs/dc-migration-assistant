@@ -56,7 +56,7 @@ public class MigrationEndpoint {
     public Response createMigration() {
         try {
             migrationService.createMigration();
-            migrationService.transition(MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION);
+            migrationService.transition(MigrationStage.AUTHENTICATION);
             return Response.noContent().build();
         } catch (MigrationAlreadyExistsException e) {
             return Response

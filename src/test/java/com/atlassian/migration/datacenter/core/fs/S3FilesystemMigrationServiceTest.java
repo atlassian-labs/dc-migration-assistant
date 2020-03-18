@@ -1,9 +1,6 @@
 package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.jira.config.util.JiraHome;
-import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
-import com.atlassian.migration.datacenter.core.aws.region.RegionService;
-import com.atlassian.migration.datacenter.core.exceptions.FileUploadException;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -20,8 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.nio.file.Path;
@@ -63,13 +58,13 @@ class S3FilesystemMigrationServiceTest {
         fsService.startMigration();
 
         assertEquals(FilesystemMigrationStatus.FAILED, fsService.getReport().getStatus());
-        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
     }
 
     @Test
     void shouldFailToStartMigrationWhenMigrationStageIsInvalid() throws InvalidMigrationStageError {
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
-        Mockito.doThrow(InvalidMigrationStageError.class).when(migrationService).transition(any(), any());
+        Mockito.doThrow(InvalidMigrationStageError.class).when(migrationService).transition(any());
 
         assertThrows(InvalidMigrationStageError.class, () -> {
             fsService.startMigration();
@@ -101,7 +96,7 @@ class S3FilesystemMigrationServiceTest {
                 argThat(jobId -> jobId.compareTo(JobId.of(S3UploadJobRunner.KEY + 42)) == 0),
                 argThat(jobConfig -> jobConfig.getRunMode() == RunMode.RUN_ONCE_PER_CLUSTER)
         );
-        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
     }
 
     @Test
@@ -115,7 +110,7 @@ class S3FilesystemMigrationServiceTest {
         Boolean isScheduled = fsService.scheduleMigration();
         assertEquals(false, isScheduled);
 
-        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
         verify(schedulerService).unscheduleJob(argThat(jobId -> jobId.compareTo(JobId.of(S3UploadJobRunner.KEY + 42)) == 0));
         verify(migrationService).error();
     }
@@ -126,7 +121,7 @@ class S3FilesystemMigrationServiceTest {
 
         Mockito.doThrow(InvalidMigrationStageError.class)
                 .when(migrationService)
-                .transition(any(), any());
+                .transition(any());
 
         Boolean isScheduled = fsService.scheduleMigration();
         assertEquals(false, isScheduled);

@@ -54,12 +54,15 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void transition(MigrationStage from, MigrationStage to) throws InvalidMigrationStageError {
+    public void transition(MigrationStage to) throws InvalidMigrationStageError
+    {
         Migration migration = findFirstOrCreateMigration();
-        final MigrationStage currentStage = migration.getStage();
-        if (!currentStage.equals(from)) {
-            throw InvalidMigrationStageError.errorWithMessage(from,currentStage);
+
+        // NOTE: This assumes that the state transitions from the start of the enum to the end.
+        if (!MigrationStage.isValidTransition(getCurrentStage(), to)) {
+            throw InvalidMigrationStageError.errorWithMessage(getCurrentStage(), to);
         }
+
         setCurrentStage(migration, to);
     }
 

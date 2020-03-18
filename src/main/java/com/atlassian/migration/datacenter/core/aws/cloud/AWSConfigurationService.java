@@ -52,6 +52,6 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
         writeCredentialsService.storeAccessKeyId(entity);
         writeCredentialsService.storeSecretAccessKey(secret);
 
-        migrationService.transition(MigrationStage.AUTHENTICATION, MigrationStage.PROVISION_APPLICATION);
+        migrationService.transition(MigrationStage.PROVISION_APPLICATION);
     }
 }

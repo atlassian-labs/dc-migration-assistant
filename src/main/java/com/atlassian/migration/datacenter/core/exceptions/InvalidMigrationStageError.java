@@ -9,14 +9,14 @@ public class InvalidMigrationStageError extends Exception {
     }
 
     public static InvalidMigrationStageError errorWithMessage(MigrationStage expected, MigrationStage actual, String prefix) {
-        String message = String.format("Expected migration stage to be in `%s` but was in `%s`", expected, actual);
+        String message = String.format("Attempt to migrate from `%s` to `%s`", expected, actual);
         if (StringUtils.isNotBlank(prefix)) {
             message = String.format("%s. %s", prefix, message);
         }
         return new InvalidMigrationStageError(message);
     }
 
-    public static InvalidMigrationStageError errorWithMessage(MigrationStage expected, MigrationStage actual) {
-        return errorWithMessage(expected, actual, "");
+    public static InvalidMigrationStageError errorWithMessage(MigrationStage from, MigrationStage to) {
+        return errorWithMessage(from, to, "");
     }
 }

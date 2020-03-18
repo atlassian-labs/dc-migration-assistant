@@ -56,14 +56,14 @@ class DatabaseArchivalServiceTest {
         Path target = service.archiveDatabase(tempDir);
         assertTrue(target.endsWith("db.dump"));
         //TODO: Should this stage to transition to be called pending export?
-        verify(this.migrationService).transition(MigrationStage.OFFLINE_WARNING, MigrationStage.DB_MIGRATION_EXPORT);
-        verify(this.migrationService).transition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.WAIT_DB_MIGRATION_EXPORT);
-        verify(this.migrationService).transition(MigrationStage.WAIT_DB_MIGRATION_EXPORT, MigrationStage.DB_MIGRATION_UPLOAD);
+        verify(this.migrationService).transition(MigrationStage.DB_MIGRATION_EXPORT);
+        verify(this.migrationService).transition(MigrationStage.DB_MIGRATION_EXPORT_WAIT);
+        verify(this.migrationService).transition(MigrationStage.DB_MIGRATION_UPLOAD);
     }
 
     @Test
     void shouldThrowExceptionWhenStateTransitionIsNotSuccessful() throws Exception {
-        doThrow(InvalidMigrationStageError.class).when(migrationService).transition(MigrationStage.OFFLINE_WARNING, MigrationStage.DB_MIGRATION_EXPORT);
+        doThrow(InvalidMigrationStageError.class).when(migrationService).transition(MigrationStage.DB_MIGRATION_EXPORT);
 
         assertThrows(InvalidMigrationStageError.class, () -> {
             service.archiveDatabase(tempDir);

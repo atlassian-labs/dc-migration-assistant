@@ -21,9 +21,10 @@ import org.mockito.junit.MockitoRule;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
-import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_MIGRATION_STACK_WAIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -68,9 +69,9 @@ public class AWSMigrationServiceTest {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
 
-        sut.transition(AUTHENTICATION, PROVISION_APPLICATION);
+        sut.transition(PROVISION_MIGRATION_STACK_WAIT);
 
-        assertEquals(PROVISION_APPLICATION, sut.getCurrentStage());
+        assertEquals(PROVISION_MIGRATION_STACK_WAIT, sut.getCurrentStage());
     }
 
     @Test
@@ -78,7 +79,7 @@ public class AWSMigrationServiceTest {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
 
-        assertThrows(InvalidMigrationStageError.class, () -> sut.transition(FS_MIGRATION_COPY, PROVISION_APPLICATION));
+        assertThrows(InvalidMigrationStageError.class, () -> sut.transition(PROVISION_APPLICATION));
         assertEquals(sut.getCurrentStage(), AUTHENTICATION);
     }
 
@@ -107,7 +108,7 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldRaiseErrorOnGetCurrentMigrationWhenMoreThanOneExists(){
-        initializeAndCreateSingleMigrationWithStage(MigrationStage.WAIT_FS_MIGRATION_COPY);
+        initializeAndCreateSingleMigrationWithStage(MigrationStage.FS_MIGRATION_COPY_WAIT);
         initializeAndCreateSingleMigrationWithStage(ERROR);
         assertNumberOfMigrations(2);
 
@@ -116,7 +117,7 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldGetCurrentMigrationWhenOneExists(){
-        Migration existingMigration = initializeAndCreateSingleMigrationWithStage(MigrationStage.WAIT_FS_MIGRATION_COPY);
+        Migration existingMigration = initializeAndCreateSingleMigrationWithStage(MigrationStage.FS_MIGRATION_COPY_WAIT);
 
         Migration currentMigration = sut.getCurrentMigration();
         assertEquals(currentMigration.getID(), existingMigration.getID());
