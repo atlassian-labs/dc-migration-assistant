@@ -21,3 +21,14 @@ Prior to accepting your contributions we ask that you please follow the appropri
 
 * [CLA for corporate contributors](https://na2.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=e1c17c66-ca4d-4aab-a953-2c231af4a20b)
 * [CLA for individuals](https://na2.docusign.net/Member/PowerFormSigning.aspx?PowerFormId=3f94fbdc-2fbe-46ac-b14c-5d152700ae5d)
+
+# Intellij Idea settings
+
+## Copyright
+This project is distributed under the Apache v2 license. Intellij provides a tool to automatically add copyright headers to all files. To enable this:
+1. Go to Settting->Editor->Copyright->Copyright Profiles.
+1. Add a new profile with the name `Atlassian Apache 2`
+1. Add the copyright text (available in most code files); the year setting should be `$today.year`.
+1. Go up one setting level to Copyright and add a scope of `All` with this new profile.
+
+The menu option `Update copyright` can be used from the file-tree context menu.

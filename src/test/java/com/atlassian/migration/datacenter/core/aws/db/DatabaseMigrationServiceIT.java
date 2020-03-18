@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Atlassian
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
@@ -33,9 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-/**
- * Copyright Atlassian: 12/03/2020
- */
 @Tag("integration")
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
@@ -90,7 +103,9 @@ class DatabaseMigrationServiceIT
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError {
         DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(migrationService, DatabaseExtractorFactory.getExtractor(configuration));
-        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, s3client, migrationService, databaseArchivalService);
+        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, () -> s3client, migrationService, databaseArchivalService);
+
+        service.postConstruct();
         service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()

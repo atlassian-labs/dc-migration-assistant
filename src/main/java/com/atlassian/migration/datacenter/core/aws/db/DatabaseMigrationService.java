@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Atlassian
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
@@ -12,8 +28,10 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
+import com.atlassian.util.concurrent.Supplier;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
+import javax.annotation.PostConstruct;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,20 +41,27 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DatabaseMigrationService
 {
     private static final String TARGET_BUCKET_NAME = System.getProperty("S3_TARGET_BUCKET_NAME", "trebuchet-testing");
-    //TODO: This will be moved into database archival service
+
     private final Path tempDirectory;
-    private final S3AsyncClient s3AsyncClient;
+    private S3AsyncClient s3AsyncClient;
     private final MigrationService migrationService;
+    private Supplier<S3AsyncClient> s3AsyncClientSupplier;
 
     private AtomicReference<MigrationStage> status = new AtomicReference<>();
     private DatabaseArchivalService databaseArchivalService;
 
-    public DatabaseMigrationService(Path tempDirectory, S3AsyncClient s3AsyncClient, MigrationService migrationService, DatabaseArchivalService databaseArchivalService)
+
+    public DatabaseMigrationService(Path tempDirectory, Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService, DatabaseArchivalService databaseArchivalService)
     {
         this.tempDirectory = tempDirectory;
-        this.s3AsyncClient = s3AsyncClient;
+        this.s3AsyncClientSupplier = s3AsyncClientSupplier;
         this.migrationService = migrationService;
         this.databaseArchivalService = databaseArchivalService;
+    }
+
+    @PostConstruct
+    public void postConstruct() {
+        this.s3AsyncClient = this.s3AsyncClientSupplier.get();
     }
 
     /**
