@@ -32,6 +32,7 @@ import com.atlassian.migration.datacenter.core.aws.auth.WriteCredentialsService;
 import com.atlassian.migration.datacenter.core.aws.cloud.AWSConfigurationService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchivalService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchiveStageTransitionCallback;
+import com.atlassian.migration.datacenter.core.aws.db.DatabaseArtifactS3UploadService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
@@ -107,18 +108,27 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback(MigrationService migrationService){
+    public DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback(MigrationService migrationService) {
         return new DatabaseArchiveStageTransitionCallback(migrationService);
     }
 
     @Bean
-    public DatabaseMigrationService databaseMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback) {
-        String tempDirectoryPath = System.getProperty("java.io.tmpdir");
-        return new DatabaseMigrationService(Paths.get(tempDirectoryPath), s3AsyncClientSupplier, migrationService, databaseArchivalService, stageTransitionCallback);
+    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService) {
+        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, migrationService);
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects ao){
+    public DatabaseMigrationService databaseMigrationService(MigrationService migrationService, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback, DatabaseArtifactS3UploadService s3UploadService) {
+        String tempDirectoryPath = System.getProperty("java.io.tmpdir");
+        return new DatabaseMigrationService(
+                Paths.get(tempDirectoryPath),
+                databaseArchivalService,
+                stageTransitionCallback,
+                s3UploadService);
+    }
+
+    @Bean
+    public MigrationService migrationService(ActiveObjects ao) {
         return new AWSMigrationService(ao);
     }
 
