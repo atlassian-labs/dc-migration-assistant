@@ -82,7 +82,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public EncryptedCredentialsStorage readCredentialsService(Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier, JiraHome jiraHome) {
+    public EncryptedCredentialsStorage encryptedCredentialsStorage(Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier, JiraHome jiraHome) {
         return new EncryptedCredentialsStorage(pluginSettingsFactorySupplier, jiraHome);
     }
 
@@ -138,10 +138,11 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArchivalService databaseArchivalService(MigrationService migrationService, DatabaseExtractor databaseExtractor) {
+    public DatabaseArchivalService databaseArchivalService(DatabaseExtractor databaseExtractor) {
         return new DatabaseArchivalService(databaseExtractor);
     }
 
+    @Bean
     public AvailabilityZoneManager availabilityZoneManager(AwsCredentialsProvider awsCredentialsProvider, GlobalInfrastructure globalInfrastructure) {
         return new AvailabilityZoneManager(awsCredentialsProvider, globalInfrastructure);
     }
