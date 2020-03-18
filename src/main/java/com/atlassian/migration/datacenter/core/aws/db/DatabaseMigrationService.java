@@ -34,14 +34,16 @@ public class DatabaseMigrationService
     private DatabaseArchivalService databaseArchivalService;
     private final DatabaseArchiveStageTransitionCallback stageTransitionCallback;
     private final DatabaseArtifactS3UploadService s3UploadService;
+    private final DatabaseUploadStageTransitionCallback uploadStageTransitionCallback;
 
 
-    public DatabaseMigrationService(Path tempDirectory, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback, DatabaseArtifactS3UploadService s3UploadService)
+    public DatabaseMigrationService(Path tempDirectory, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback, DatabaseArtifactS3UploadService s3UploadService, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback)
     {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
         this.stageTransitionCallback = stageTransitionCallback;
         this.s3UploadService = s3UploadService;
+        this.uploadStageTransitionCallback = uploadStageTransitionCallback;
     }
 
     /**
@@ -50,7 +52,7 @@ public class DatabaseMigrationService
      */
     public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError {
         Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory, stageTransitionCallback);
-        return s3UploadService.uploadDatabaseArtifactToS3(pathToDatabaseFile, TARGET_BUCKET_NAME);
+        return s3UploadService.upload(pathToDatabaseFile, TARGET_BUCKET_NAME, this.uploadStageTransitionCallback);
     }
 
 }

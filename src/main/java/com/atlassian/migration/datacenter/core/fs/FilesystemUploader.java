@@ -61,6 +61,4 @@ public class FilesystemUploader
 
         pool.shutdown();
     }
-
-
 }

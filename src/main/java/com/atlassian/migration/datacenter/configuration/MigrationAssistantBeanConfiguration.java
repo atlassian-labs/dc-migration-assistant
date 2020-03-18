@@ -34,6 +34,7 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchivalService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchiveStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArtifactS3UploadService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
+import com.atlassian.migration.datacenter.core.aws.db.DatabaseUploadStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
@@ -114,17 +115,21 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationService migrationService) {
-        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, migrationService);
+        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier);
     }
 
     @Bean
-    public DatabaseMigrationService databaseMigrationService(MigrationService migrationService, DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback stageTransitionCallback, DatabaseArtifactS3UploadService s3UploadService) {
+    public DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback(MigrationService migrationService){
+        return new DatabaseUploadStageTransitionCallback(migrationService);
+    }
+
+    @Bean
+    public DatabaseMigrationService databaseMigrationService(DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback, DatabaseArtifactS3UploadService s3UploadService, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
         return new DatabaseMigrationService(
                 Paths.get(tempDirectoryPath),
-                databaseArchivalService,
-                stageTransitionCallback,
-                s3UploadService);
+                databaseArchivalService, archiveStageTransitionCallback,
+                s3UploadService, uploadStageTransitionCallback);
     }
 
     @Bean
