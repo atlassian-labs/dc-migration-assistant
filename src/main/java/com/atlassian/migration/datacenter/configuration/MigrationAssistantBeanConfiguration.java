@@ -138,7 +138,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    //Can this be replaced by a prrimary annotation instead? Verify
+    //Can this be replaced by a primary annotation instead? Verify
     @Profile("!allowAnyTransition")
     public MigrationService migrationService(ActiveObjects ao) {
         return new AWSMigrationService(ao);
