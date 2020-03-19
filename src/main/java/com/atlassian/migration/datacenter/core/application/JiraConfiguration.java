@@ -42,7 +42,6 @@ public class JiraConfiguration implements ApplicationConfiguration
         if (!databaseConfiguration.isPresent()) {
             databaseConfiguration = Optional.of(parseDatabaseConfigurationFromXmlFile());
         }
-
         return databaseConfiguration.get();
     }
 
@@ -55,6 +54,5 @@ public class JiraConfiguration implements ApplicationConfiguration
         } catch (IOException e) {
             throw new ConfigurationReadException("Unable to parse database configuration XML file", e);
         }
-
     }
 }
