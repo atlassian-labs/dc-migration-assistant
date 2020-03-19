@@ -332,6 +332,8 @@
                 <version>${amps.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <jvmArgs>${amps.jvm.args}</jvmArgs>
+                    <!--                    Product should be in a product tag-->
                     <product>jira</product>
                     <enableQuickReload>true</enableQuickReload>
                     <instructions>
@@ -539,6 +541,6 @@
         <localstack.version>0.2.1</localstack.version>
         <testcontainers.version>1.13.0</testcontainers.version>
         <postgres.driver.version>42.2.10</postgres.driver.version>
+        <amps.jvm.args/>
     </properties>
-
 </project>

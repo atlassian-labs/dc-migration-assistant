@@ -21,6 +21,7 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
+import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.migration.datacenter.core.aws.SSMApi;
@@ -51,14 +52,17 @@ import com.atlassian.util.concurrent.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 @Configuration
+//ComponentScan is required only because IDEA seems to need it.
 @ComponentScan
 public class MigrationAssistantBeanConfiguration {
     
@@ -133,7 +137,11 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects ao) {
+    public MigrationService migrationService(ActiveObjects ao, Environment environment) {
+        boolean isDevelopProfileActive = Arrays.stream(environment.getActiveProfiles()).anyMatch(x -> x.equalsIgnoreCase("develop"));
+        if (isDevelopProfileActive) {
+            return new AllowAnyTransitionMigrationServiceFacade(ao);
+        }
         return new AWSMigrationService(ao);
     }
 

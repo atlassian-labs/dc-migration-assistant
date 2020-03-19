@@ -87,12 +87,12 @@ public class AWSMigrationService implements MigrationService {
         setCurrentStage(migration, ERROR);
     }
 
-    private void setCurrentStage(Migration migration, MigrationStage stage) {
+    protected void setCurrentStage(Migration migration, MigrationStage stage) {
         migration.setStage(stage);
         migration.save();
     }
 
-    private Migration findFirstOrCreateMigration() {
+    protected Migration findFirstOrCreateMigration() {
         Migration[] migrations = ao.find(Migration.class);
         if (migrations.length == 1) {
             // In case we have interrupted migration (e.g. the node went down), we want to pick up where we've
