@@ -201,6 +201,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ssm</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.10.3</version>
+        </dependency>
 
         <!-- Test Dependencies follow -->
         <dependency>
@@ -342,6 +347,7 @@
                             com.atlassian.analytics.api.annotations;resolution:="optional",
                             com.atlassian.confluence.*;resolution:="optional",
                             org.slf4j,
+                            !com.sun.activation.*,
                             !com.google.protobuf.*,
                             !com.jcraft.jzlib,
                             !com.ning.compress.*,

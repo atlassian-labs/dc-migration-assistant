@@ -16,6 +16,10 @@
 
 package com.atlassian.migration.datacenter.core.application;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+
 public class DatabaseConfiguration
 {
     public enum DBType {
