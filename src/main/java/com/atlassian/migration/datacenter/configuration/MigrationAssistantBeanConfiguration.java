@@ -52,6 +52,7 @@ import com.atlassian.util.concurrent.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -137,11 +138,9 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects ao, Environment environment) {
-        boolean isDevelopProfileActive = Arrays.stream(environment.getActiveProfiles()).anyMatch(x -> x.equalsIgnoreCase("develop"));
-        if (isDevelopProfileActive) {
-            return new AllowAnyTransitionMigrationServiceFacade(ao);
-        }
+    //Can this be replaced by a prrimary annotation instead? Verify
+    @Profile("!allowAnyTransition")
+    public MigrationService migrationService(ActiveObjects ao) {
         return new AWSMigrationService(ao);
     }
 

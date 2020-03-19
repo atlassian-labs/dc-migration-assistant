@@ -12,8 +12,19 @@
 
 package com.atlassian.migration.datacenter.configuration;
 
+import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
+import com.atlassian.migration.datacenter.spi.MigrationService;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 
 @Configuration
 public class MigrationAssistantProfileSpecificConfiguration {
+    @Bean
+    @Profile("allowAnyTransition")
+    public MigrationService allowAnyTransitionMigrationService(ActiveObjects ao){
+        return new AllowAnyTransitionMigrationServiceFacade(ao);
+    }
 }

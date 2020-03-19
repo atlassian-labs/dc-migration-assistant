@@ -47,6 +47,9 @@ Here are the SDK commands you'll use immediately:
 
 * Run the plugin in a product: `mvn amps:run -Dproduct=[jira|confluence|refapp] -Dproduct.version=<version e.g. 8.5.0>`
     * If you want to remotely debug your code running in the product, run `mvn amps:debug -Dproduct=[jira|confluence|refapp]` and create IDEA _Remote_ run configuration (defaults are ok)
+    * To run the plugin in `development` mode that allows access to the `/develop/migration/stage` endpoint you need a spring profile titled `allowAnyTransition` to be enabled. To do so during development or testing, either -
+        - Add the following command suffix `-Damps.jvm.args="-Dspring.profiles.active=allowAnyTransition"` to `amps:run` or `amps:debug`
+        - Set an environment variable to enable the spring profile. i.e.  `SPRING_PROFILES_ACTIVE=allowAnyTransition mvn amps:run ...`
 * Build the plugin: `mvn package` and quick reload will reinstall the plugin in the product (https://developer.atlassian.com/server/framework/atlassian-sdk/automatic-plugin-reinstallation-with-quickreload/)
     * If you are not changing frontend, you can run `mvn package -Pno-frontend` - this will disable frontend tasks and speed up maven process
 * When in doubt, `mvn clean` it out
