@@ -58,8 +58,11 @@ public class DatabaseConfigurationXmlElement {
             throw new ConfigurationReadException("Database configuration file has invalid values");
         }
     }
-}
 
+    public boolean isDataSourcePresent(){
+        return dbConfigXmlElement != null;
+    }
+}
 
 class DbConfigXmlElement {
     private static final String BASE64_CLASS = "com.atlassian.db.config.password.ciphers.base64.Base64Cipher";

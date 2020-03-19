@@ -19,7 +19,6 @@ package com.atlassian.migration.datacenter.core.db;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType;
 import com.atlassian.migration.datacenter.core.exceptions.DatabaseMigrationFailure;
-import org.springframework.stereotype.Component;
 
 public class DatabaseExtractorFactory
 {
@@ -27,8 +26,13 @@ public class DatabaseExtractorFactory
     {
         if (config.getDatabaseConfiguration().getType().equals(DBType.POSTGRESQL)) {
             return new PostgresExtractor(config);
-        } else {
-            throw new DatabaseMigrationFailure("Unsupported database type: " + config.getDatabaseConfiguration().getType());
         }
+
+        //Profile scoped perhaps?
+        if (config.getDatabaseConfiguration().getType().equals(DBType.H2)) {
+            return new UnSupportedDatabaseExtractor();
+        }
+
+        throw new DatabaseMigrationFailure("Unsupported database type: " + config.getDatabaseConfiguration().getType());
     }
 }

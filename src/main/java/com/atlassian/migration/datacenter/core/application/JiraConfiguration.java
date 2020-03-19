@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.application;
 
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.exceptions.ConfigurationReadException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class JiraConfiguration implements ApplicationConfiguration
     {
         this.jiraHome = jiraHome;
         this.xmlMapper = new XmlMapper();
+        this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Override
@@ -50,6 +52,9 @@ public class JiraConfiguration implements ApplicationConfiguration
 
         try {
             DatabaseConfigurationXmlElement xmlElement = this.xmlMapper.readValue(databaseConfig.toFile(), DatabaseConfigurationXmlElement.class);
+            if(!xmlElement.isDataSourcePresent()){
+                return DatabaseConfiguration.h2();
+            }
             return xmlElement.toDatabaseConfiguration();
         } catch (IOException e) {
             throw new ConfigurationReadException("Unable to parse database configuration XML file", e);
