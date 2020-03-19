@@ -13,6 +13,8 @@
 package com.atlassian.migration.datacenter.core.application;
 
 
+import com.atlassian.migration.datacenter.core.exceptions.ConfigurationReadException;
+import com.atlassian.migration.datacenter.core.exceptions.UnsupportedPasswordEncodingException;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
@@ -49,11 +51,11 @@ public class DatabaseConfigurationXmlElement {
         return new DatabaseConfiguration(type, host, port, name, userName, password);
     }
 
-    private void validateRequiredValues(String... values) throws ApplicationConfiguration.ConfigurationReadException {
+    private void validateRequiredValues(String... values) throws ConfigurationReadException {
 
         boolean allValuesValid = Stream.of(values).allMatch(StringUtils::isNotBlank);
         if (!allValuesValid) {
-            throw new ApplicationConfiguration.ConfigurationReadException("Database configuration file has invalid values");
+            throw new ConfigurationReadException("Database configuration file has invalid values");
         }
     }
 }
@@ -80,10 +82,10 @@ class DbConfigXmlElement {
         return userName;
     }
 
-    public String getPassword() throws ApplicationConfiguration.ConfigurationReadException {
+    public String getPassword() throws UnsupportedPasswordEncodingException {
         if (cipher != null) {
             if (!cipher.equals(BASE64_CLASS)) {
-                throw new ApplicationConfiguration.UnsupportedPasswordEncoding("Unsupported database password encryption in dbconfig.xml; see documentation for detail: " + cipher);
+                throw new UnsupportedPasswordEncodingException("Unsupported database password encryption in dbconfig.xml; see documentation for detail: " + cipher);
             }
             return new String(Base64.getDecoder().decode(password));
         }

@@ -17,6 +17,8 @@
 package com.atlassian.migration.datacenter.core.application;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.exceptions.ConfigurationReadException;
+import com.atlassian.migration.datacenter.core.exceptions.UnsupportedPasswordEncodingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +26,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.xml.xpath.XPathExpressionException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,18 +53,18 @@ class JiraConfigurationTest
 
     @Test
     void shouldRaiseFileNotFoundExceptionWhenDatabaseFileIsNotFound() {
-        Exception e = assertThrows(ApplicationConfiguration.ConfigurationReadException.class, () -> {
+        Exception e = assertThrows(ConfigurationReadException.class, () -> {
             jiraConfiguration.getDatabaseConfiguration();
         });
         assertEquals(FileNotFoundException.class, e.getCause().getClass());
     }
 
     @Test
-    void shouldRaiseFileNotFoundExceptionWhenDatabaseFileIsNotValid() throws IOException {
+    void shouldRaiseConfigurationExceptionWhenDatabaseFileIsNotValid() throws IOException {
         final Path file = tempDir.resolve("dbconfig.xml");
         Files.write(file, "not-xml".getBytes());
 
-        assertThrows(ApplicationConfiguration.ConfigurationReadException.class, () -> {
+        assertThrows(ConfigurationReadException.class, () -> {
             jiraConfiguration.getDatabaseConfiguration();
         });
     }
@@ -74,7 +75,7 @@ class JiraConfigurationTest
         final Path file = tempDir.resolve("dbconfig.xml");
         Files.write(file, xml.getBytes());
 
-        assertThrows(ApplicationConfiguration.ConfigurationReadException.class, () -> {
+        assertThrows(ConfigurationReadException.class, () -> {
             jiraConfiguration.getDatabaseConfiguration();
         });
     }
@@ -145,7 +146,7 @@ class JiraConfigurationTest
         final Path file = tempDir.resolve("dbconfig.xml");
         Files.write(file, xml.getBytes());
 
-        assertThrows(ApplicationConfiguration.UnsupportedPasswordEncoding.class, () -> {
+        assertThrows(UnsupportedPasswordEncodingException.class, () -> {
             jiraConfiguration.getDatabaseConfiguration();
         });
     }

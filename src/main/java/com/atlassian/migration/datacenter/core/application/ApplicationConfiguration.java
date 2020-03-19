@@ -16,25 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.application;
 
-public interface ApplicationConfiguration
-{
 
-    class ConfigurationReadException extends RuntimeException {
-        public ConfigurationReadException(String message) {
-            super(message);
-        }
+import com.atlassian.migration.datacenter.core.exceptions.ConfigurationReadException;
 
-        public ConfigurationReadException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
-    class UnsupportedPasswordEncoding extends RuntimeException {
-        public UnsupportedPasswordEncoding(String message)
-        {
-            super(message);
-        }
-    }
-
+public interface ApplicationConfiguration {
     DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException;
 }
