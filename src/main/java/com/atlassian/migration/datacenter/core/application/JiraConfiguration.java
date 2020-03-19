@@ -18,12 +18,14 @@ package com.atlassian.migration.datacenter.core.application;
 
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.xml.sax.InputSource;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,6 +36,7 @@ public class JiraConfiguration implements ApplicationConfiguration
 {
     private static final String DATASOURCE_XPATH = "/jira-database-config/jdbc-datasource/";
     private static final String BASE64_CLASS = "com.atlassian.db.config.password.ciphers.base64.Base64Cipher";
+    private final XmlMapper xmlMapper;
 
     private JiraHome jiraHome;
     private Optional<DatabaseConfiguration> databaseConfiguration = Optional.empty();
@@ -41,10 +44,11 @@ public class JiraConfiguration implements ApplicationConfiguration
     public JiraConfiguration(JiraHome jiraHome)
     {
         this.jiraHome = jiraHome;
+        this.xmlMapper = new XmlMapper();
     }
 
-    private String getXPath(String path, Path config) throws ConfigurationReadException
-    {
+    @Deprecated
+    private String getXPath(String path, Path config) throws ConfigurationReadException {
         // We need to recreate the input stream for each read; not the most efficient,
         // but it's only done once and it's simpler than generating a full DOM.
         FileReader reader;
@@ -63,8 +67,8 @@ public class JiraConfiguration implements ApplicationConfiguration
         }
     }
 
-    private String getParameter(String parameter, Path config) throws ConfigurationReadException
-    {
+    @Deprecated
+    private String getParameter(String parameter, Path config) throws ConfigurationReadException {
         String path = DATASOURCE_XPATH + parameter;
         String val = getXPath(path, config);
 
@@ -76,8 +80,8 @@ public class JiraConfiguration implements ApplicationConfiguration
         return val;
     }
 
-    private String decodePassword(Path config) throws ConfigurationReadException
-    {
+    @Deprecated
+    private String decodePassword(Path config) throws ConfigurationReadException {
         String password = getParameter("password", config);
         String decoder = getXPath(DATASOURCE_XPATH+"atlassian-password-cipher-provider", config);
 
@@ -93,8 +97,8 @@ public class JiraConfiguration implements ApplicationConfiguration
         return new String(Base64.getDecoder().decode(password));
     }
 
-    private DatabaseConfiguration parseDbConfig() throws ConfigurationReadException
-    {
+    @Deprecated
+    private DatabaseConfiguration parseDbConfig() throws ConfigurationReadException {
         Path dbconfig = Paths.get(jiraHome.getLocalHomePath()).resolve("dbconfig.xml");
 
         String password = decodePassword(dbconfig);
@@ -120,12 +124,23 @@ public class JiraConfiguration implements ApplicationConfiguration
     }
 
     @Override
-    public DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException
-    {
+    public DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException {
         if (!databaseConfiguration.isPresent()) {
-            databaseConfiguration = Optional.of(parseDbConfig());
+            databaseConfiguration = Optional.of(parseDatabaseConfigurationFromXmlFile());
         }
 
         return databaseConfiguration.get();
+    }
+
+    private DatabaseConfiguration parseDatabaseConfigurationFromXmlFile() throws ConfigurationReadException {
+        Path databaseConfig = Paths.get(jiraHome.getLocalHomePath()).resolve("dbconfig.xml");
+
+        try {
+            DatabaseConfigurationXmlElement xmlElement = this.xmlMapper.readValue(databaseConfig.toFile(), DatabaseConfigurationXmlElement.class);
+            return xmlElement.toDatabaseConfiguration();
+        } catch (IOException e) {
+            throw new ConfigurationReadException("Unable to parse database configuration XML file", e);
+        }
+
     }
 }
