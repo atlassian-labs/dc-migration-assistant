@@ -62,15 +62,9 @@ public enum MigrationStage {
         this.validFrom = Optional.of(validFrom);
     }
 
-    //TODO: Refactor away from static to an instance method.
-    public static boolean isValidTransition(MigrationStage from, MigrationStage to) {
-        return !to.validFrom.isPresent() || to.validFrom.get().equals(from);
+    public boolean isValidTransition(MigrationStage to) {
+        return !to.validFrom.isPresent() || to.validFrom.get().equals(this);
     }
-
-//    TODO: Review develop endpoint is see if migration stage will be (de)serialized
-//    If not, then create a JSON creator method to convert from string to enum type.
-//    @JsonProperty
-//    private String key;
 
     @Override
     public String toString() {

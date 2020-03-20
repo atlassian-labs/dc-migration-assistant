@@ -27,20 +27,20 @@ class MigrationStageTest
     @Test
     void testErrorFromAnywhere()
     {
-        assertTrue(MigrationStage.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.ERROR));
-        assertTrue(MigrationStage.isValidTransition(MigrationStage.NOT_STARTED, MigrationStage.ERROR));
+        assertTrue(MigrationStage.DB_MIGRATION_EXPORT.isValidTransition(MigrationStage.ERROR));
+        assertTrue(MigrationStage.NOT_STARTED.isValidTransition(MigrationStage.ERROR));
     }
 
     @Test
     void testValidTransition()
     {
-        assertTrue(MigrationStage.isValidTransition(MigrationStage.PROVISION_APPLICATION, MigrationStage.PROVISION_APPLICATION_WAIT));
-        assertTrue(MigrationStage.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT, MigrationStage.DB_MIGRATION_EXPORT_WAIT));
+        assertTrue(MigrationStage.PROVISION_APPLICATION.isValidTransition(MigrationStage.PROVISION_APPLICATION_WAIT));
+        assertTrue(MigrationStage.DB_MIGRATION_EXPORT.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT_WAIT));
     }
 
     @Test
     void testInvalidTransition()
     {
-        assertFalse(MigrationStage.isValidTransition(MigrationStage.DB_MIGRATION_UPLOAD, MigrationStage.DB_MIGRATION_EXPORT));
+        assertFalse(MigrationStage.DB_MIGRATION_UPLOAD.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT));
     }
 }
