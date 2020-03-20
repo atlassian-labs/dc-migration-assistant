@@ -23,7 +23,6 @@ import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
-import com.atlassian.migration.datacenter.core.aws.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.auth.EncryptedCredentialsStorage;
 import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth;
@@ -35,8 +34,10 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDepl
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.S3SyncFileSystemDownloader;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -55,7 +56,7 @@ import java.nio.file.Paths;
 @Configuration
 @ComponentScan
 public class MigrationAssistantBeanConfiguration {
-    
+
     @Bean
     public Supplier<S3AsyncClient> s3AsyncClientSupplier(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
         return () -> S3AsyncClient.builder()
@@ -119,6 +120,11 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
+    public S3SyncFileSystemDownloadManager s3SyncFileSystemDownloadManager(S3SyncFileSystemDownloader downloader) {
+        return new S3SyncFileSystemDownloadManager(downloader);
+    }
+
+    @Bean
     public AvailabilityZoneManager availabilityZoneManager(AwsCredentialsProvider awsCredentialsProvider, GlobalInfrastructure globalInfrastructure) {
         return new AvailabilityZoneManager(awsCredentialsProvider, globalInfrastructure);
     }
@@ -134,8 +140,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public FilesystemMigrationService filesystemMigrationService(Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome, S3SyncFileSystemDownloader downloader, MigrationService migrationService, SchedulerService schedulerService) {
-        return new S3FilesystemMigrationService(clientSupplier, jiraHome, downloader, migrationService, schedulerService);
+    public FilesystemMigrationService filesystemMigrationService(Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, SchedulerService schedulerService) {
+        return new S3FilesystemMigrationService(clientSupplier, jiraHome, downloadManager, migrationService, schedulerService);
     }
 
     @Bean

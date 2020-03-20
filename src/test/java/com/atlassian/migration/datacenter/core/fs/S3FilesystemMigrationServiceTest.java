@@ -17,10 +17,8 @@
 package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.jira.config.util.JiraHome;
-import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
-import com.atlassian.migration.datacenter.core.aws.region.RegionService;
-import com.atlassian.migration.datacenter.core.exceptions.FileUploadException;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -30,14 +28,13 @@ import com.atlassian.scheduler.SchedulerServiceException;
 import com.atlassian.scheduler.config.JobId;
 import com.atlassian.scheduler.config.JobRunnerKey;
 import com.atlassian.scheduler.config.RunMode;
+import com.atlassian.util.concurrent.Supplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.nio.file.Path;
@@ -45,10 +42,9 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +61,10 @@ class S3FilesystemMigrationServiceTest {
     SchedulerService schedulerService;
 
     @Mock
-    S3AsyncClient s3AsyncClient;
+    Supplier<S3AsyncClient> s3AsyncClientSupplier;
+
+    @Mock
+    S3SyncFileSystemDownloadManager downloadManager;
 
     @InjectMocks
     S3FilesystemMigrationService fsService;
@@ -78,20 +77,18 @@ class S3FilesystemMigrationServiceTest {
 
         fsService.startMigration();
 
-        assertEquals(FilesystemMigrationStatus.FAILED, fsService.getReport().getStatus());
         verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
+        verify(migrationService).error();
     }
 
     @Test
-    void shouldFailToStartMigrationWhenMigrationStageIsInvalid() throws InvalidMigrationStageError {
-        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
-        Mockito.doThrow(InvalidMigrationStageError.class).when(migrationService).transition(any(), any());
+    void shouldFailToStartMigrationWhenMigrationAlreadyInProgress() throws InvalidMigrationStageError {
+        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.WAIT_FS_MIGRATION_COPY);
+        when(this.jiraHome.getHome()).thenReturn(Paths.get("stub").toFile());
 
-        assertThrows(InvalidMigrationStageError.class, () -> {
-            fsService.startMigration();
-        });
+        fsService.startMigration();
 
-        assertEquals(FilesystemMigrationStatus.NOT_STARTED, fsService.getReport().getStatus());
+        assertNull(fsService.getReport());
     }
 
     @Test
@@ -117,7 +114,6 @@ class S3FilesystemMigrationServiceTest {
                 argThat(jobId -> jobId.compareTo(JobId.of(S3UploadJobRunner.KEY + 42)) == 0),
                 argThat(jobConfig -> jobConfig.getRunMode() == RunMode.RUN_ONCE_PER_CLUSTER)
         );
-        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
     }
 
     @Test
@@ -131,23 +127,6 @@ class S3FilesystemMigrationServiceTest {
         Boolean isScheduled = fsService.scheduleMigration();
         assertEquals(false, isScheduled);
 
-        verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY, MigrationStage.WAIT_FS_MIGRATION_COPY);
-        verify(schedulerService).unscheduleJob(argThat(jobId -> jobId.compareTo(JobId.of(S3UploadJobRunner.KEY + 42)) == 0));
-        verify(migrationService).error();
-    }
-
-    @Test
-    void shouldUnsetScheduledJobWhenInvalidMigrationStageExceptionIsRaised() throws Exception {
-        createStubMigration(MigrationStage.FS_MIGRATION_COPY);
-
-        Mockito.doThrow(InvalidMigrationStageError.class)
-                .when(migrationService)
-                .transition(any(), any());
-
-        Boolean isScheduled = fsService.scheduleMigration();
-        assertEquals(false, isScheduled);
-
-        verify(schedulerService, never()).scheduleJob(any(), any());
         verify(schedulerService).unscheduleJob(argThat(jobId -> jobId.compareTo(JobId.of(S3UploadJobRunner.KEY + 42)) == 0));
         verify(migrationService).error();
     }

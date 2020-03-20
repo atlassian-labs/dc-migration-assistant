@@ -19,7 +19,8 @@ package com.atlassian.migration.datacenter.core.fs;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
-import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
@@ -48,7 +49,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -63,7 +63,7 @@ class S3FilesystemMigrationServiceIT {
     @Mock MigrationService migrationService;
     @Mock JiraHome jiraHome;
     @Mock SchedulerService schedulerService;
-    @Mock S3SyncFileSystemDownloader fileSystemDownloader;
+    @Mock S3SyncFileSystemDownloadManager fileSystemDownloader;
 
     private S3AsyncClient s3AsyncClient;
     private String bucket = "trebuchet-testing";

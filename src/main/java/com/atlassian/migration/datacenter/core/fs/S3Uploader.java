@@ -75,10 +75,12 @@ public class S3Uploader implements Uploader {
     private void uploadFile(Path path)
     {
         if (responsesQueue.size() >= MAX_OPEN_CONNECTIONS) {
+            logger.trace("Response queue greater than connection threshold. Acknowledging response queue");
             responsesQueue.forEach(this::handlePutObjectResponse);
         }
 
         if (Files.exists(path)) {
+            logger.trace("Consuming {} from upload queue", path);
             String key = config.getSharedHome().relativize(path).toString();
             if (path.toFile().length() > MAXIMUM_FILE_SIZE_TO_UPLOAD) {
                 logger.debug("File {} is larger than {}, running multipart upload", path, FileUtils.byteCountToDisplaySize(MAXIMUM_FILE_SIZE_TO_UPLOAD));
@@ -90,6 +92,7 @@ public class S3Uploader implements Uploader {
                     logger.error("Error when running multi-part upload for file {} with exception {}", path, e.getMessage());
                 }
             } else {
+                logger.trace("uploading file {}", path);
                 final PutObjectRequest putRequest = PutObjectRequest.builder()
                     .bucket(config.getBucketName())
                     .key(key)
@@ -107,14 +110,17 @@ public class S3Uploader implements Uploader {
 
     private void handlePutObjectResponse(S3UploadOperation operation) {
         try {
+            logger.trace("acknowledging file upload for {}", operation.path);
             final PutObjectResponse evaluatedResponse = operation.response.get();
             if (!evaluatedResponse.sdkHttpResponse().isSuccessful()) {
                 final String errorMessage = String.format(
                         "Error when uploading %s to S3, %s",
                         operation.path,
                         evaluatedResponse.sdkHttpResponse().statusText());
+                logger.warn("error uploading {} to S3 - {}", operation.path, evaluatedResponse);
                 addFailedFile(operation.path, errorMessage);
             } else {
+                logger.trace("{} migrated successfully", operation.path);
                 report.reportFileMigrated();
             }
         } catch (InterruptedException | ExecutionException e) {

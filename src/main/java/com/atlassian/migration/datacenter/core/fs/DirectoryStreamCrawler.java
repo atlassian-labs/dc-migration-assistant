@@ -65,6 +65,7 @@ public class DirectoryStreamCrawler implements Crawler {
     private void listDirectories(UploadQueue<Path> queue, DirectoryStream<Path> paths) {
         paths.forEach(p -> {
             if (Files.isDirectory(p)) {
+                logger.trace("Found directory while crawling home: {}", p);
                 try (final DirectoryStream<Path> newPaths = Files.newDirectoryStream(p.toAbsolutePath())) {
                     listDirectories(queue, newPaths);
                 } catch (Exception e) {
@@ -73,6 +74,7 @@ public class DirectoryStreamCrawler implements Crawler {
                 }
             } else {
                 try {
+                    logger.trace("queueing file: {}", p);
                     queue.put(p);
                 } catch (InterruptedException e) {
                     logger.error("Error when queuing {}, with exception {}", p, e);

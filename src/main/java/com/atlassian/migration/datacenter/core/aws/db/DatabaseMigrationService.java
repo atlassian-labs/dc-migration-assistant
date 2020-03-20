@@ -42,7 +42,7 @@ public class DatabaseMigrationService {
     private Supplier<S3AsyncClient> s3AsyncClientSupplier;
 
     private Process extractorProcess;
-    private AtomicReference<MigrationStatus> status = new AtomicReference();
+    private AtomicReference<MigrationStatus> status = new AtomicReference<>();
 
 
     public DatabaseMigrationService(ApplicationConfiguration applicationConfiguration,

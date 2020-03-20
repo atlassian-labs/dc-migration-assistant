@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws;
+package com.atlassian.migration.datacenter.core.aws.ssm;
 
 import com.atlassian.util.concurrent.Supplier;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -23,22 +23,15 @@ import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 import software.amazon.awssdk.services.ssm.model.SendCommandRequest;
 import software.amazon.awssdk.services.ssm.model.SendCommandResponse;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 
 public class SSMApi {
 
     private Supplier<SsmClient> clientFactory;
-    private SsmClient client;
 
     public SSMApi(Supplier<SsmClient> clientFactory) {
         this.clientFactory = clientFactory;
-    }
-
-    @PostConstruct
-    public void postConstruct(){
-        this.client = this.clientFactory.get();
     }
 
     /**
@@ -51,6 +44,7 @@ public class SSMApi {
      * @return the command ID of the invoked command.
      */
     public String runSSMDocument(String documentName, String targetEc2InstanceId, Map<String, List<String>> commandParameters) {
+        SsmClient client = clientFactory.get();
         SendCommandRequest request = SendCommandRequest.builder()
                 .documentName(documentName)
                 .documentVersion("$LATEST")
@@ -84,6 +78,7 @@ public class SSMApi {
      * @see SsmClient#getCommandInvocation(GetCommandInvocationRequest) for other exception details
      */
     public GetCommandInvocationResponse getSSMCommand(String commandId, String targetEc2InstanceId) {
+        SsmClient client = clientFactory.get();
         GetCommandInvocationRequest request = GetCommandInvocationRequest.builder()
                 .commandId(commandId)
                 .instanceId(targetEc2InstanceId)
