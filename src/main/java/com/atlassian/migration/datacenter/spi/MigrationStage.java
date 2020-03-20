@@ -63,7 +63,9 @@ public enum MigrationStage {
     }
 
     public boolean isValidTransition(MigrationStage to) {
-        return !to.validFrom.isPresent() || to.validFrom.get().equals(this);
+        return to.validFrom
+                .map(source -> source.equals(this))
+                .orElse(true);
     }
 
     @Override
