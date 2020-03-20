@@ -40,7 +40,7 @@ Resources:
     Metadata:
         AWS::CloudFormation::Init:
           configSets:
-            full_efs_config: [create_efs_script,mount_efs,prepare_efs_sync_script]
+            install_prerequisites: [create_efs_script,mount_efs,prepare_efs_sync_script,install_psql_client]
           create_efs_script:
             files:
               /opt/atlassian/dc-migration-assistant/mount-efs.sh:
@@ -105,6 +105,10 @@ Resources:
             commands:
               01_mount:
                 command: /opt/atlassian/dc-migration-assistant/mount-efs.sh
+          install_psql_client:
+            commands:
+              01_install_psql:
+                command: amazon-linux-extras install -y postgresql9.6
           prepare_efs_sync_script:
             packages:
               yum:
@@ -148,7 +152,7 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
           yum install -y aws-cfn-bootstrap
-          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource HelperLaunchConfig --configsets full_efs_config --region ${AWS::Region}
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource HelperLaunchConfig --configsets install_prerequisites --region ${AWS::Region}
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelperServerGroup --region ${AWS::Region}
   HelperServerGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
