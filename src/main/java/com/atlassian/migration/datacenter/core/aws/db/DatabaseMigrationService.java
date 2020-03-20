@@ -30,8 +30,7 @@ public class DatabaseMigrationService
     private static final String TARGET_BUCKET_NAME = System.getProperty("S3_TARGET_BUCKET_NAME", "trebuchet-testing");
 
     private final Path tempDirectory;
-
-    private DatabaseArchivalService databaseArchivalService;
+    private final DatabaseArchivalService databaseArchivalService;
     private final DatabaseArchiveStageTransitionCallback stageTransitionCallback;
     private final DatabaseArtifactS3UploadService s3UploadService;
     private final DatabaseUploadStageTransitionCallback uploadStageTransitionCallback;
