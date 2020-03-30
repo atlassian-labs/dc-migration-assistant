@@ -20,7 +20,11 @@ Parameters:
   LatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
-
+  PSQLVersion:
+    Description: "The version of PSQL client installed on the Helper EC2 instance"
+    Default: '11'
+    AllowedValues: ['9.6', '10', '11']
+    Type: String
 Resources:
 
   #S3 Bucket for Database Transfer
@@ -108,7 +112,9 @@ Resources:
           install_psql_client:
             commands:
               01_install_psql:
-                command: amazon-linux-extras install -y postgresql9.6
+                command: !Sub
+                  - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
+                  - { PSQLClientVersion: !Ref PSQLVersion }
           prepare_efs_sync_script:
             packages:
               yum:
