@@ -62,13 +62,21 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
+    public void assertCurrentStage(MigrationStage expected) throws InvalidMigrationStageError {
+        MigrationStage currentStage = getCurrentStage();
+        if (currentStage != expected) {
+            throw new InvalidMigrationStageError(String.format("wanted to be in stage %s but was in stage %s", expected, currentStage));
+        }
+    }
+
+    @Override
     public Migration getCurrentMigration() {
         Migration migration = findFirstOrCreateMigration();
         return (Migration) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{Migration.class}, new ReadOnlyEntityInvocationHandler<>(migration));
     }
 
     @Override
-    public void transition(MigrationStage to) throws InvalidMigrationStageError
+    public synchronized void transition(MigrationStage to) throws InvalidMigrationStageError
     {
         Migration migration = findFirstOrCreateMigration();
         MigrationStage currentStage = migration.getStage();
@@ -86,18 +94,18 @@ public class AWSMigrationService implements MigrationService {
         setCurrentStage(migration, ERROR);
     }
 
-    protected void setCurrentStage(Migration migration, MigrationStage stage) {
+    protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {
         migration.setStage(stage);
         migration.save();
     }
 
-    protected Migration findFirstOrCreateMigration() {
+    protected synchronized Migration findFirstOrCreateMigration() {
         Migration[] migrations = ao.find(Migration.class);
         if (migrations.length == 1) {
             // In case we have interrupted migration (e.g. the node went down), we want to pick up where we've
             // left off.
             return migrations[0];
-        } else if (migrations.length == 0){
+        } else if (migrations.length == 0) {
             // We didn't start the migration, so we need to create record in the db and a migration context
             Migration migration = ao.create(Migration.class);
             migration.setStage(NOT_STARTED);

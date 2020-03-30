@@ -13,8 +13,7 @@
 package com.atlassian.migration.datacenter.core.exceptions;
 
 public class UnsupportedPasswordEncodingException extends RuntimeException {
-    public UnsupportedPasswordEncodingException(String message)
-    {
+    public UnsupportedPasswordEncodingException(String message) {
         super(message);
     }
 }

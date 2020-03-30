@@ -27,7 +27,8 @@ public class FailedFileMigration {
 
     private String reason;
 
-    public FailedFileMigration(){};
+    public FailedFileMigration() {
+    }
 
     public FailedFileMigration(Path filePath, String reason) {
         this.filePath = filePath;

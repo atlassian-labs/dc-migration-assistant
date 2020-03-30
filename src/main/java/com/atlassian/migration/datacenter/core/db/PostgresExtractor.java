@@ -26,19 +26,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-public class PostgresExtractor implements DatabaseExtractor
-{
+public class PostgresExtractor implements DatabaseExtractor {
     private ApplicationConfiguration applicationConfiguration;
 
-    private static String pddumpPaths[] = {"/usr/bin/pg_dump", "/usr/local/bin/pg_dump"};
+    private static String[] pddumpPaths = {"/usr/bin/pg_dump", "/usr/local/bin/pg_dump"};
 
-    public PostgresExtractor(ApplicationConfiguration applicationConfiguration)
-    {
+    public PostgresExtractor(ApplicationConfiguration applicationConfiguration) {
         this.applicationConfiguration = applicationConfiguration;
     }
 
-    private Optional<String> getPgdumpPath()
-    {
+    private Optional<String> getPgdumpPath() {
         for (String path : pddumpPaths) {
             Path p = Paths.get(path);
             if (Files.isReadable(p) && Files.isExecutable(p)) {
@@ -49,8 +46,7 @@ public class PostgresExtractor implements DatabaseExtractor
     }
 
     @Override
-    public Process startDatabaseDump(Path target) throws DatabaseMigrationFailure
-    {
+    public Process startDatabaseDump(Path target) throws DatabaseMigrationFailure {
         return startDatabaseDump(target, false);
     }
 
@@ -62,36 +58,35 @@ public class PostgresExtractor implements DatabaseExtractor
      * <li>stdio & stderr are redirected to the stderr of the calling process.</li>
      * </ul>
      *
-     * @param target - The directory to dump the compressed database export to.
+     * @param target   - The directory to dump the compressed database export to.
      * @param parallel - Whether to use parallel dump strategy.
      * @return The underlying process object.
      * @throws DatabaseMigrationFailure on failure.
      */
     @Override
-    public Process startDatabaseDump(Path target, Boolean parallel) throws DatabaseMigrationFailure
-    {
+    public Process startDatabaseDump(Path target, Boolean parallel) throws DatabaseMigrationFailure {
         String pgdump = getPgdumpPath()
-            .orElseThrow(() -> new DatabaseMigrationFailure("Failed to find appropriate pg_dump executable."));
+                .orElseThrow(() -> new DatabaseMigrationFailure("Failed to find appropriate pg_dump executable."));
         Integer numJobs = parallel ? 4 : 1;  // Common-case for now, could be tunable or num-CPUs.
 
         DatabaseConfiguration config = applicationConfiguration.getDatabaseConfiguration();
 
         ProcessBuilder builder = new ProcessBuilder(pgdump,
-                                                    "--no-owner",
-                                                    "--no-acl",
-                                                    "--compress=9",
-                                                    "--format=directory",
-                                                    "--jobs", numJobs.toString(),
-                                                    "--file", target.toString(),
-                                                    "--dbname", config.getName(),
-                                                    "--host", config.getHost(),
-                                                    "--port", config.getPort().toString(),
-                                                    "--username", config.getUsername())
-            .inheritIO();
+                "--no-owner",
+                "--no-acl",
+                "--compress=9",
+                "--format=directory",
+                "--jobs", numJobs.toString(),
+                "--file", target.toString(),
+                "--dbname", config.getName(),
+                "--host", config.getHost(),
+                "--port", config.getPort().toString(),
+                "--username", config.getUsername())
+                .inheritIO();
         builder.environment().put("PGPASSWORD", config.getPassword());
 
         try {
-            return  builder.start();
+            return builder.start();
         } catch (IOException e) {
             String command = String.join(" ", builder.command());
             throw new DatabaseMigrationFailure("Failed to start pg_dump process with commandline: " + command, e);
@@ -107,8 +102,7 @@ public class PostgresExtractor implements DatabaseExtractor
      * @throws DatabaseMigrationFailure on failure, including a non-zero exit code.
      */
     @Override
-    public void dumpDatabase(Path to) throws DatabaseMigrationFailure
-    {
+    public void dumpDatabase(Path to) throws DatabaseMigrationFailure {
         Process proc = startDatabaseDump(to);
 
         int exit;

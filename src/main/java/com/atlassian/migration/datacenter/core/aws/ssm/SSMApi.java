@@ -36,11 +36,12 @@ public class SSMApi {
 
     /**
      * Runs an SSM automatiom document against a specific EC2 instance with the specified parameters.
-     * @param documentName The name of the document to run. The latest version will be used.
+     *
+     * @param documentName        The name of the document to run. The latest version will be used.
      * @param targetEc2InstanceId The instance ID of the EC2 instance to run this command on
-     * @param commandParameters The parameters for the command. The key should be the parameter name and the value should
-     *                          be a list filled with the lines to be used as the parameter value. If the parameter-type
-     *                          is a plain string then the list only have one element in it.
+     * @param commandParameters   The parameters for the command. The key should be the parameter name and the value should
+     *                            be a list filled with the lines to be used as the parameter value. If the parameter-type
+     *                            is a plain string then the list only have one element in it.
      * @return the command ID of the invoked command.
      */
     public String runSSMDocument(String documentName, String targetEc2InstanceId, Map<String, List<String>> commandParameters) {
@@ -68,13 +69,11 @@ public class SSMApi {
      * to check the details of the command yourself. Noteworthy response fields include {@link GetCommandInvocationResponse#status()},
      * {@link GetCommandInvocationResponse#standardOutputContent()}
      *
-     * @param commandId The id of the command from calling {@link SSMApi#runSSMDocument(String, String, Map)}
+     * @param commandId           The id of the command from calling {@link SSMApi#runSSMDocument(String, String, Map)}
      * @param targetEc2InstanceId the EC2 instance the command is running on. Should be the same as the targetEc2InstanceId from calling {@link SSMApi#runSSMDocument(String, String, Map)}
      * @return The response from the AWS SDK v2
-     *
-     * @throws software.amazon.awssdk.services.ssm.model.InvalidCommandIdException (RuntimeException) - when the command ID is not a valid SSM Command ID
+     * @throws software.amazon.awssdk.services.ssm.model.InvalidCommandIdException       (RuntimeException) - when the command ID is not a valid SSM Command ID
      * @throws software.amazon.awssdk.services.ssm.model.InvocationDoesNotExistException (RuntimeException) - when the command invocation (combination of command ID and instance ID) does not exist
-     *
      * @see SsmClient#getCommandInvocation(GetCommandInvocationRequest) for other exception details
      */
     public GetCommandInvocationResponse getSSMCommand(String commandId, String targetEc2InstanceId) {

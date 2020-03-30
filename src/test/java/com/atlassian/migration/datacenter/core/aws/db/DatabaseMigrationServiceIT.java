@@ -18,9 +18,13 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
+import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
+import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -40,35 +44,43 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.ssm.model.CommandInvocationStatus;
+import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Tag("integration")
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
-class DatabaseMigrationServiceIT
-{
+class DatabaseMigrationServiceIT {
     @Container
     public static PostgreSQLContainer postgres = (PostgreSQLContainer) new PostgreSQLContainer("postgres:9.6")
-        .withDatabaseName("jira")
-        .withCopyFileToContainer(MountableFile.forClasspathResource("db/jira.sql"), "/docker-entrypoint-initdb.d/jira.sql");
+            .withDatabaseName("jira")
+            .withCopyFileToContainer(MountableFile.forClasspathResource("db/jira.sql"), "/docker-entrypoint-initdb.d/jira.sql");
 
     @Container
     public LocalStackContainer s3 = new LocalStackContainer()
-        .withServices(S3)
-        .withEnv("DEFAULT_REGION", Region.US_EAST_1.toString());
+            .withServices(S3)
+            .withEnv("DEFAULT_REGION", Region.US_EAST_1.toString());
 
     private S3AsyncClient s3client;
     private String bucket = "trebuchet-testing";
 
     @Mock(lenient = true)
     ApplicationConfiguration configuration;
+
+    @Mock
+    SSMApi ssmApi;
 
     @TempDir
     Path tempDir;
@@ -79,22 +91,22 @@ class DatabaseMigrationServiceIT
     @BeforeEach
     void setUp() throws Exception {
         when(configuration.getDatabaseConfiguration())
-            .thenReturn(new DatabaseConfiguration(DatabaseConfiguration.DBType.POSTGRESQL,
-                                                  postgres.getContainerIpAddress(),
-                                                  postgres.getMappedPort(5432),
-                                                  postgres.getDatabaseName(),
-                                                  postgres.getUsername(),
-                                                  postgres.getPassword()));
+                .thenReturn(new DatabaseConfiguration(DatabaseConfiguration.DBType.POSTGRESQL,
+                        postgres.getContainerIpAddress(),
+                        postgres.getMappedPort(5432),
+                        postgres.getDatabaseName(),
+                        postgres.getUsername(),
+                        postgres.getPassword()));
 
         s3client = S3AsyncClient.builder()
-            .endpointOverride(new URI(s3.getEndpointConfiguration(S3).getServiceEndpoint()))
-            .credentialsProvider(new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider()))
-            .region(Region.US_EAST_1)
-            .build();
+                .endpointOverride(new URI(s3.getEndpointConfiguration(S3).getServiceEndpoint()))
+                .credentialsProvider(new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider()))
+                .region(Region.US_EAST_1)
+                .build();
 
         CreateBucketRequest req = CreateBucketRequest.builder()
-            .bucket(bucket)
-            .build();
+                .bucket(bucket)
+                .build();
         CreateBucketResponse resp = s3client.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
     }
@@ -109,15 +121,22 @@ class DatabaseMigrationServiceIT
         s3UploadService.postConstruct();
         DatabaseUploadStageTransitionCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
 
-        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, databaseArchivalService, archiveStageTransitionCallback, s3UploadService, uploadStageTransitionCallback);
+        when(ssmApi.runSSMDocument(anyString(), anyString(), anyMap())).thenReturn("my-commnd");
+        when(ssmApi.getSSMCommand(anyString(), anyString())).thenReturn(GetCommandInvocationResponse.builder().status(CommandInvocationStatus.SUCCESS).build());
+        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi);
+        DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback  = new DatabaseRestoreStageTransitionCallback(this.migrationService);
 
-        service.performMigration();
+        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, databaseArchivalService, archiveStageTransitionCallback, s3UploadService, uploadStageTransitionCallback, restoreService, restoreStageTransitionCallback);
+
+        FileSystemMigrationErrorReport report = service.performMigration();
 
         HeadObjectRequest req = HeadObjectRequest.builder()
-            .bucket(bucket)
-            .key("db.dump/toc.dat")
-            .build();
+                .bucket(bucket)
+                .key("db.dump/toc.dat")
+                .build();
         HeadObjectResponse resp = s3client.headObject(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
+
+        assertEquals(0, report.getFailedFiles().size());
     }
 }

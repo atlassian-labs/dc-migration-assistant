@@ -45,6 +45,7 @@ public class S3UploadConfig {
 
     /**
      * Asynchronous S3 client to call AWS API
+     *
      * @return async S3 client
      */
     public S3AsyncClient getS3AsyncClient() {
@@ -53,6 +54,7 @@ public class S3UploadConfig {
 
     /**
      * Application shared home. In case of Server distribution, it should return the regular home.
+     *
      * @return application home (shared for DC, normal for Server distribution)
      */
     public Path getSharedHome() {

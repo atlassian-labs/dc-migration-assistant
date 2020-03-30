@@ -25,9 +25,10 @@ import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationRe
 public interface FilesystemMigrationService {
     /**
      * Schedules filesystem migration to run asynchronously using the {@link com.atlassian.scheduler.SchedulerService}
+     *
      * @return a <code>Boolean</code> value that represents if a migration task has been successfully scheduled.
      */
-    Boolean scheduleMigration();
+    Boolean scheduleMigration() throws InvalidMigrationStageError;
 
     /**
      * Start migration of the application home. This is a long running blocking operation and should be run in
@@ -45,7 +46,15 @@ public interface FilesystemMigrationService {
 
     /**
      * Return true if the filesystem migration is in non-terminal state
+     *
      * @return true if the filesystem migration is in progress
      */
     boolean isRunning();
+
+    /**
+     * Cancel filesystem migration that is currently in progress
+     *
+     * @throws InvalidMigrationStageError if the migration is not running
+     */
+    void abortMigration() throws InvalidMigrationStageError;
 }

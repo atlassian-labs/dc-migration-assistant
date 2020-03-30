@@ -16,17 +16,14 @@
 
 package com.atlassian.migration.datacenter.core.util;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class UploadQueue<T>
-{
+public class UploadQueue<T> {
     private BlockingQueue<Optional<T>> queue;
 
-    public UploadQueue(Integer max)
-    {
+    public UploadQueue(Integer max) {
         this.queue = new LinkedBlockingQueue<>(max);
     }
 
@@ -36,8 +33,7 @@ public class UploadQueue<T>
      * @param v
      * @throws InterruptedException
      */
-    public void put(T v) throws InterruptedException
-    {
+    public void put(T v) throws InterruptedException {
         queue.put(Optional.of(v));
     }
 
@@ -47,8 +43,7 @@ public class UploadQueue<T>
      * @return Optional of value, or Optional.empty() if the producer is finished.
      * @throws InterruptedException
      */
-    public Optional<T> take() throws InterruptedException
-    {
+    public Optional<T> take() throws InterruptedException {
         return queue.take();
     }
 
@@ -57,22 +52,19 @@ public class UploadQueue<T>
      *
      * @throws InterruptedException
      */
-    public void finish() throws InterruptedException{
+    public void finish() throws InterruptedException {
         queue.put(Optional.empty());
     }
 
-    public boolean contains(T o)
-    {
+    public boolean contains(T o) {
         return queue.contains(Optional.of(o));
     }
 
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return queue.isEmpty();
     }
 
-    public int size()
-    {
+    public int size() {
         return queue.size();
     }
 }

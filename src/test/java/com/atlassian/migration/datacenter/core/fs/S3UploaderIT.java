@@ -21,12 +21,8 @@ import cloud.localstack.docker.LocalstackDockerExtension;
 import cloud.localstack.docker.annotation.LocalstackDockerProperties;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFilesystemMigrationProgress;
 import com.atlassian.migration.datacenter.core.util.UploadQueue;
-import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
-import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationProgress;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -45,11 +41,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @Tag("integration")
@@ -123,7 +117,7 @@ class S3UploaderIT {
         assertEquals(1, report.getCountOfMigratedFiles());
     }
 
-    Path addFileToQueue(String fileName) throws IOException, InterruptedException{
+    Path addFileToQueue(String fileName) throws IOException, InterruptedException {
         final Path file = tempDir.resolve(fileName);
         Files.write(file, "".getBytes());
         queue.put(file);

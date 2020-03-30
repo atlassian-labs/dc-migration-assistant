@@ -48,7 +48,8 @@ public class AWSGlobalInfrastructureEndpointTest {
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), res.getStatus());
     }
 
-    @Test void itShouldReturnAllRegions() {
+    @Test
+    void itShouldReturnAllRegions() {
         final String regionOne = "atlassian-east-1";
         final String regionTwo = "atlassian-west-1";
 

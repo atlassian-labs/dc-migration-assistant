@@ -70,7 +70,7 @@ public class TemplateServletTest {
         try {
             sut.doGet(mockReq, mockResp);
             verify(mockResp).setContentType(TEXT_HTML);
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             fail();
         }
     }
@@ -83,7 +83,7 @@ public class TemplateServletTest {
         try {
             sut.doGet(mockReq, mockResp);
             verify(mockResp).sendError(HttpServletResponse.SC_FORBIDDEN);
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             fail();
         }
     }
@@ -100,7 +100,7 @@ public class TemplateServletTest {
         try {
             sut.doGet(mockReq, mockResp);
             verify(mockResp).sendRedirect(DUMMY_LOGIN_URL_STRING);
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             fail();
         }
     }

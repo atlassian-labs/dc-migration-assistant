@@ -12,7 +12,7 @@ public class SpringOsgiConfigurationUtil {
     /**
      * Works around the Spring Configuration problem when we try to import the class which is not available yet.
      */
-    public static <T> Supplier<T> lazyImportOsgiService(Class<T> clazz){
+    public static <T> Supplier<T> lazyImportOsgiService(Class<T> clazz) {
         return new LazyReference<T>() {
             @Override
             protected T create() throws Exception {

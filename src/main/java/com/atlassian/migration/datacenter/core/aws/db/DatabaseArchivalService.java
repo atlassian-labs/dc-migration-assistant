@@ -23,14 +23,14 @@ public class DatabaseArchivalService {
 
     private DatabaseExtractor databaseExtractor;
 
-    public DatabaseArchivalService(DatabaseExtractor databaseExtractor){
+    public DatabaseArchivalService(DatabaseExtractor databaseExtractor) {
         this.databaseExtractor = databaseExtractor;
     }
 
     public Path archiveDatabase(Path tempDirectory, MigrationStageCallback archiveStageCallback) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
 
-        archiveStageCallback.transitionToServiceStartStage();
+        archiveStageCallback.assertInStartingStage();
 
         Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
         archiveStageCallback.transitionToServiceWaitStage();

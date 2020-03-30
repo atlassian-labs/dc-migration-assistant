@@ -25,8 +25,8 @@ public class DatabaseArchiveStageTransitionCallback implements MigrationStageCal
     }
 
     @Override
-    public void transitionToServiceStartStage() throws InvalidMigrationStageError {
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
+    public void assertInStartingStage() throws InvalidMigrationStageError {
+        this.migrationService.assertCurrentStage(MigrationStage.DB_MIGRATION_EXPORT);
     }
 
     @Override

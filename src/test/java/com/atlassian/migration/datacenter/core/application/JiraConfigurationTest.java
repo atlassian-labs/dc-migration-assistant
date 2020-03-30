@@ -37,16 +37,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JiraConfigurationTest
-{
-    @Mock JiraHome jiraHome;
-    @TempDir Path tempDir;
+class JiraConfigurationTest {
+    @Mock
+    JiraHome jiraHome;
+    @TempDir
+    Path tempDir;
 
     JiraConfiguration jiraConfiguration;
 
     @BeforeEach
-    void setUp()
-    {
+    void setUp() {
         jiraConfiguration = new JiraConfiguration(jiraHome);
         when(jiraHome.getLocalHomePath()).thenReturn(tempDir.toString());
     }

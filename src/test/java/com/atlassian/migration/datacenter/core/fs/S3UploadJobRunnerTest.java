@@ -64,7 +64,7 @@ class S3UploadJobRunnerTest {
 
     @Test
     void shouldCompleteJobRunSuccessfully() throws Exception {
-        DefaultFileSystemMigrationReport report = new DefaultFileSystemMigrationReport(null,null);
+        DefaultFileSystemMigrationReport report = new DefaultFileSystemMigrationReport(null, null);
         report.setStatus(FilesystemMigrationStatus.DONE);
 
         when(filesystemMigrationService.isRunning()).thenReturn(false);

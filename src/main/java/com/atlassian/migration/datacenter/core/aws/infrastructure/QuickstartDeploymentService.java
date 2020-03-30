@@ -53,9 +53,10 @@ public class QuickstartDeploymentService implements ApplicationDeploymentService
      * Commences the deployment of the AWS Quick Start. It will transition the state machine upon completion of the
      * deployment. If the deployment finishes successfully we transition to the next stage, otherwise we transition
      * to an error. The migration will also transition to an error if the deployment takes longer than an hour.
+     *
      * @param deploymentId the stack name
-     * @param params the parameters for the cloudformation template. The key should be the parameter name and the value
-     *               should be the parameter value.
+     * @param params       the parameters for the cloudformation template. The key should be the parameter name and the value
+     *                     should be the parameter value.
      */
     @Override
     public void deployApplication(String deploymentId, Map<String, String> params) throws InvalidMigrationStageError {

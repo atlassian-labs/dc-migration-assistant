@@ -49,7 +49,7 @@ public class S3SyncFileSystemDownloadManager {
                 logger.debug("file system download is complete");
                 syncCompleteFuture.complete(null);
             }
-        }, 0 , 5, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
 
         syncCompleteFuture.whenComplete((_i, _j) -> scheduledFuture.cancel(true));
     }

@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.auth;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -85,25 +86,7 @@ public class EncryptedCredentialsStorageTest {
         when(jiraHome.getHome()).thenReturn(new File("."));
         when(this.pluginSettingsFactory.createGlobalSettings()).thenReturn(pluginSettings);
 
-        this.encryptedCredentialsStorage = new EncryptedCredentialsStorage(() -> this.pluginSettingsFactory, jiraHome);
-        this.encryptedCredentialsStorage.postConstruct();
-    }
-
-    @Test
-    void testEncryption() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final String testString = RandomStringUtils.randomAlphanumeric(new Random().nextInt(50));
-
-        Method encryptMethod = encryptedCredentialsStorage.getClass().getDeclaredMethod("encryptString", String.class);
-        encryptMethod.setAccessible(true);
-
-        Method decryptMethod = encryptedCredentialsStorage.getClass().getDeclaredMethod("decryptString", String.class);
-        decryptMethod.setAccessible(true);
-
-        String encrypted = (String) encryptMethod.invoke(encryptedCredentialsStorage, testString);
-        String decrypted = (String) decryptMethod.invoke(encryptedCredentialsStorage, encrypted);
-        assertNotNull(encrypted);
-        assertNotNull(decrypted);
-        assertEquals(decrypted, testString);
+        this.encryptedCredentialsStorage = new EncryptedCredentialsStorage(() -> this.pluginSettingsFactory, new EncryptionManager(jiraHome));
     }
 
     @Test

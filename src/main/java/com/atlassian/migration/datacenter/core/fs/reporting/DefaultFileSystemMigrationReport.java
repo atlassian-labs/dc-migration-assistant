@@ -43,8 +43,7 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     private Instant completeTime;
     private FilesystemMigrationStatus currentStatus;
 
-    public DefaultFileSystemMigrationReport()
-    {
+    public DefaultFileSystemMigrationReport() {
         this(new DefaultFileSystemMigrationErrorReport(), new DefaultFilesystemMigrationProgress());
     }
 

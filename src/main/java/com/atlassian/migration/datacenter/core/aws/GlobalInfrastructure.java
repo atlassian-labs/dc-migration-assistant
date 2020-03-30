@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws;
 
-import org.springframework.stereotype.Component;
 import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;

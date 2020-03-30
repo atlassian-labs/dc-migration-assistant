@@ -59,7 +59,7 @@ public class DatabaseConfigurationXmlElement {
         }
     }
 
-    public boolean isDataSourcePresent(){
+    public boolean isDataSourcePresent() {
         return dbConfigXmlElement != null;
     }
 }

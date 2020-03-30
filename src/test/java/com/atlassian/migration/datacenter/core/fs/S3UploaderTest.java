@@ -16,11 +16,8 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFilesystemMigrationProgress;
 import com.atlassian.migration.datacenter.core.util.UploadQueue;
-import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationProgress;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +33,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

@@ -25,7 +25,7 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Bean
     @Profile("allowAnyTransition")
     @Primary
-    public MigrationService allowAnyTransitionMigrationService(ActiveObjects ao){
+    public MigrationService allowAnyTransitionMigrationService(ActiveObjects ao) {
         return new AllowAnyTransitionMigrationServiceFacade(ao);
     }
 }

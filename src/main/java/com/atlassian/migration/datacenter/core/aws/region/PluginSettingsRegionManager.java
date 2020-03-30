@@ -49,7 +49,7 @@ public class PluginSettingsRegionManager implements RegionService {
 
     @PostConstruct
     // FIXME: I do not work
-    public void postConstruct(){
+    public void postConstruct() {
         logger.debug("setting up plugin settings");
         this.pluginSettings = this.pluginSettingsFactorySupplier.get().createGlobalSettings();
     }

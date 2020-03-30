@@ -150,7 +150,7 @@ public class FileSystemMigrationProgressEndpointTest {
     }
 
     @Test
-    void shouldNotRunFileMigrationWhenExistingMigrationIsInProgress(){
+    void shouldNotRunFileMigrationWhenExistingMigrationIsInProgress() {
         FileSystemMigrationReport reportMock = Mockito.mock(FileSystemMigrationReport.class);
         when(reportMock.getStatus()).thenReturn(RUNNING);
 
@@ -160,26 +160,26 @@ public class FileSystemMigrationProgressEndpointTest {
         Response response = endpoint.runFileMigration();
 
         assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
-        assertEquals(RUNNING, ((Map<String,String>) response.getEntity()).get("status"));
+        assertEquals(RUNNING, ((Map<String, String>) response.getEntity()).get("status"));
     }
 
     @Test
-    void shouldRunFileMigrationWhenNoOtherMigrationIsNotInProgress(){
+    void shouldRunFileMigrationWhenNoOtherMigrationIsNotInProgress() throws Exception {
         when(fsMigrationService.isRunning()).thenReturn(false);
         when(fsMigrationService.scheduleMigration()).thenReturn(true);
         Response response = endpoint.runFileMigration();
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), response.getStatus());
-        assertEquals(true, ((Map<String,String>) response.getEntity()).get("migrationScheduled"));
+        assertEquals(true, ((Map<String, String>) response.getEntity()).get("migrationScheduled"));
     }
 
     @Test
-    void shouldNotRunFileMigrationWhenWhenUnableToScheduleMigration(){
+    void shouldNotRunFileMigrationWhenWhenUnableToScheduleMigration() throws Exception {
         when(fsMigrationService.isRunning()).thenReturn(false);
         when(fsMigrationService.scheduleMigration()).thenReturn(false);
         Response response = endpoint.runFileMigration();
 
         assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
-        assertEquals(false, ((Map<String,String>) response.getEntity()).get("migrationScheduled"));
+        assertEquals(false, ((Map<String, String>) response.getEntity()).get("migrationScheduled"));
     }
 }

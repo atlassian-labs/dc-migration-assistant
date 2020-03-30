@@ -34,6 +34,8 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchiveStageTransi
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArtifactS3UploadService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseUploadStageTransitionCallback;
+import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
+import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
@@ -44,15 +46,15 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
+import com.atlassian.migration.datacenter.core.util.EncryptionManager;
+import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
-import com.atlassian.scheduler.SchedulerService;
 import com.atlassian.util.concurrent.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -87,8 +89,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public EncryptedCredentialsStorage encryptedCredentialsStorage(Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier, JiraHome jiraHome) {
-        return new EncryptedCredentialsStorage(pluginSettingsFactorySupplier, jiraHome);
+    public EncryptionManager encryptionManager(JiraHome jiraHome) {
+        return new EncryptionManager(jiraHome);
+    }
+
+    @Bean
+    public EncryptedCredentialsStorage encryptedCredentialsStorage(Supplier<PluginSettingsFactory> pluginSettingsFactorySupplier, EncryptionManager encryptionManager) {
+        return new EncryptedCredentialsStorage(pluginSettingsFactorySupplier, encryptionManager);
     }
 
     @Bean
@@ -122,17 +129,29 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback(MigrationService migrationService){
+    public DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback(MigrationService migrationService) {
         return new DatabaseUploadStageTransitionCallback(migrationService);
     }
 
     @Bean
-    public DatabaseMigrationService databaseMigrationService(DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback, DatabaseArtifactS3UploadService s3UploadService, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback) {
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm) {
+        return new SsmPsqlDatabaseRestoreService(ssm);
+    }
+
+    @Bean
+    public DatabaseRestoreStageTransitionCallback databaseRestoreStageTransitionCallback(MigrationService migrationService) {
+        return new DatabaseRestoreStageTransitionCallback(migrationService);
+    }
+
+    @Bean
+    public DatabaseMigrationService databaseMigrationService(DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback,
+                                                             DatabaseArtifactS3UploadService s3UploadService, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+                                                             SsmPsqlDatabaseRestoreService restoreService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
         return new DatabaseMigrationService(
                 Paths.get(tempDirectoryPath),
                 databaseArchivalService, archiveStageTransitionCallback,
-                s3UploadService, uploadStageTransitionCallback);
+                s3UploadService, uploadStageTransitionCallback, restoreService, restoreStageTransitionCallback);
     }
 
     @Bean
@@ -159,6 +178,7 @@ public class MigrationAssistantBeanConfiguration {
     public DatabaseArchivalService databaseArchivalService(DatabaseExtractor databaseExtractor) {
         return new DatabaseArchivalService(databaseExtractor);
     }
+
     @Bean
     public S3SyncFileSystemDownloadManager s3SyncFileSystemDownloadManager(S3SyncFileSystemDownloader downloader) {
         return new S3SyncFileSystemDownloadManager(downloader);
@@ -180,8 +200,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public FilesystemMigrationService filesystemMigrationService(Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, SchedulerService schedulerService) {
-        return new S3FilesystemMigrationService(clientSupplier, jiraHome, downloadManager, migrationService, schedulerService);
+    public FilesystemMigrationService filesystemMigrationService(Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner) {
+        return new S3FilesystemMigrationService(clientSupplier, jiraHome, downloadManager, migrationService, migrationRunner);
     }
 
     @Bean

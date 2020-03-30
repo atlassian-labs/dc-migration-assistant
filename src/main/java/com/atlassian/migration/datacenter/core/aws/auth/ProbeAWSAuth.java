@@ -19,7 +19,6 @@ package com.atlassian.migration.datacenter.core.aws.auth;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient;

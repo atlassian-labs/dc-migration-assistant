@@ -21,42 +21,35 @@ import com.atlassian.migration.datacenter.core.aws.auth.ReadCredentialsService;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
-public class AwsCredentialsProviderShim implements AwsCredentialsProvider, AwsCredentials, ReadCredentialsService
-{
+public class AwsCredentialsProviderShim implements AwsCredentialsProvider, AwsCredentials, ReadCredentialsService {
     private final AWSCredentialsProvider v1Creds;
 
-    public AwsCredentialsProviderShim(AWSCredentialsProvider v1Creds)
-    {
+    public AwsCredentialsProviderShim(AWSCredentialsProvider v1Creds) {
         this.v1Creds = v1Creds;
     }
 
     @Override
-    public AwsCredentials resolveCredentials()
-    {
+    public AwsCredentials resolveCredentials() {
         return this;
     }
 
     @Override
-    public String accessKeyId()
-    {
+    public String accessKeyId() {
         return v1Creds.getCredentials().getAWSAccessKeyId();
     }
 
     @Override
-    public String secretAccessKey()
-    {
+    public String secretAccessKey() {
         return v1Creds.getCredentials().getAWSSecretKey();
     }
 
     @Override
-    public String getAccessKeyId()
-    {
+    public String getAccessKeyId() {
         return v1Creds.getCredentials().getAWSAccessKeyId();
     }
 
     @Override
-    public String getSecretAccessKey()
-    {
+    public String getSecretAccessKey() {
         return v1Creds.getCredentials().getAWSSecretKey();
     }
 }

@@ -17,9 +17,9 @@
 package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.util.MigrationJobRunner;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
-import com.atlassian.scheduler.JobRunner;
 import com.atlassian.scheduler.JobRunnerRequest;
 import com.atlassian.scheduler.JobRunnerResponse;
 import org.slf4j.Logger;
@@ -35,8 +35,9 @@ import javax.annotation.Nullable;
  * <li>directory: directory to upload</li>
  * </ul>
  */
-public class S3UploadJobRunner implements JobRunner {
-    public static String KEY = "com.atlassian.migration.datacenter.fs.S3UploadJobRunner";
+public class S3UploadJobRunner implements MigrationJobRunner
+{
+    public static final String KEY = "com.atlassian.migration.datacenter.fs.S3UploadJobRunner";
     private static Logger log = LoggerFactory.getLogger(S3UploadJobRunner.class);
     private final FilesystemMigrationService fsMigrationService;
 
@@ -65,4 +66,9 @@ public class S3UploadJobRunner implements JobRunner {
         return JobRunnerResponse.success("S3 upload completed.");
     }
 
+    @Override
+    public String getKey()
+    {
+        return KEY;
+    }
 }

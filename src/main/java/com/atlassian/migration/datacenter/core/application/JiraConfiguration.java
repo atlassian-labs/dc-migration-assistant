@@ -26,14 +26,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-public class JiraConfiguration implements ApplicationConfiguration
-{
+public class JiraConfiguration implements ApplicationConfiguration {
     private final XmlMapper xmlMapper;
     private final JiraHome jiraHome;
     private Optional<DatabaseConfiguration> databaseConfiguration = Optional.empty();
 
-    public JiraConfiguration(JiraHome jiraHome)
-    {
+    public JiraConfiguration(JiraHome jiraHome) {
         this.jiraHome = jiraHome;
         this.xmlMapper = new XmlMapper();
         this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -52,7 +50,7 @@ public class JiraConfiguration implements ApplicationConfiguration
 
         try {
             DatabaseConfigurationXmlElement xmlElement = this.xmlMapper.readValue(databaseConfig.toFile(), DatabaseConfigurationXmlElement.class);
-            if(!xmlElement.isDataSourcePresent()){
+            if (!xmlElement.isDataSourcePresent()) {
                 return DatabaseConfiguration.h2();
             }
             return xmlElement.toDatabaseConfiguration();

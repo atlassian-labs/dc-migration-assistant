@@ -69,9 +69,9 @@ public class CfnApi {
         }
 
         CloudFormationAsyncClient client = CloudFormationAsyncClient.builder()
-            .credentialsProvider(credentialsProvider)
-            .region(Region.of(regionManager.getRegion()))
-            .build();
+                .credentialsProvider(credentialsProvider)
+                .region(Region.of(regionManager.getRegion()))
+                .build();
 
         this.client = Optional.of(client);
         return client;
@@ -108,9 +108,9 @@ public class CfnApi {
 
         try {
             String stackId = this.getClient()
-                .createStack(createStackRequest)
-                .thenApply(CreateStackResponse::stackId)
-                .get();
+                    .createStack(createStackRequest)
+                    .thenApply(CreateStackResponse::stackId)
+                    .get();
             return Optional.ofNullable(stackId);
         } catch (InterruptedException | ExecutionException e) {
             return Optional.empty();
@@ -123,7 +123,7 @@ public class CfnApi {
                 .build();
 
         CompletableFuture<DescribeStacksResponse> asyncResponse = getClient()
-            .describeStacks(request);
+                .describeStacks(request);
 
         try {
             DescribeStacksResponse response = asyncResponse.join();

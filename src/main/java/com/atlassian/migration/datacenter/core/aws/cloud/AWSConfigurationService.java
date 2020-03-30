@@ -25,7 +25,6 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.cloud.CloudProviderConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 public class AWSConfigurationService implements CloudProviderConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(AWSConfigurationService.class);
@@ -42,8 +41,9 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
 
     /**
      * Configures the app to be able to authenticate with AWS.
-     * @param entity the AWS access key ID
-     * @param secret the AWS secret access key
+     *
+     * @param entity    the AWS access key ID
+     * @param secret    the AWS secret access key
      * @param geography the AWS region
      * @throws InvalidMigrationStageError when not in {@link MigrationStage#AUTHENTICATION}
      */

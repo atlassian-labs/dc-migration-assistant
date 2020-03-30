@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.api.fs;
 
+import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -59,13 +61,21 @@ public class FileSystemMigrationEndpoint {
                     .entity(ImmutableMap.of("status", fsMigrationService.getReport().getStatus()))
                     .build();
         }
-        boolean started = fsMigrationService.scheduleMigration();
-        Response.ResponseBuilder builder = started ? Response.status(Response.Status.ACCEPTED) : Response.status(Response.Status.CONFLICT);
+        try {
+            boolean started = fsMigrationService.scheduleMigration();
+            Response.ResponseBuilder builder = started ? Response.status(Response.Status.ACCEPTED) : Response.status(Response.Status.CONFLICT);
 
-        return builder
-                .entity(ImmutableMap.of("migrationScheduled", started))
-                .build();
+            return builder
+                    .entity(ImmutableMap.of("migrationScheduled", started))
+                    .build();
+        } catch (InvalidMigrationStageError invalidMigrationStageError) {
+            return Response
+                    .status(Response.Status.CONFLICT)
+                    .entity(ImmutableMap.of("error", invalidMigrationStageError.getMessage()))
+                    .build();
+        }
     }
+
 
     @GET
     @Produces(APPLICATION_JSON)
@@ -87,6 +97,22 @@ public class FileSystemMigrationEndpoint {
             return Response
                     .serverError()
                     .entity(String.format("Unable to get file system status. Please contact support and show them this error: %s", e.getMessage()))
+                    .build();
+        }
+    }
+
+    @DELETE
+    @Produces(APPLICATION_JSON)
+    @Path("/abort")
+    public Response abortFilesystemMigration() {
+        try {
+            fsMigrationService.abortMigration();
+            return Response
+                    .ok(ImmutableMap.of("cancelled", true))
+                    .build();
+        } catch (InvalidMigrationStageError e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(ImmutableMap.of("error", "filesystem migration is not in progress"))
                     .build();
         }
     }

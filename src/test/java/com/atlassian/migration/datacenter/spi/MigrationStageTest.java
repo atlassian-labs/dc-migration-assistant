@@ -21,26 +21,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MigrationStageTest
-{
+class MigrationStageTest {
 
     @Test
-    void testErrorFromAnywhere()
-    {
+    void testErrorFromAnywhere() {
         assertTrue(MigrationStage.DB_MIGRATION_EXPORT.isValidTransition(MigrationStage.ERROR));
         assertTrue(MigrationStage.NOT_STARTED.isValidTransition(MigrationStage.ERROR));
     }
 
     @Test
-    void testValidTransition()
-    {
+    void testValidTransition() {
         assertTrue(MigrationStage.PROVISION_APPLICATION.isValidTransition(MigrationStage.PROVISION_APPLICATION_WAIT));
         assertTrue(MigrationStage.DB_MIGRATION_EXPORT.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT_WAIT));
     }
 
     @Test
-    void testInvalidTransition()
-    {
+    void testInvalidTransition() {
         assertFalse(MigrationStage.DB_MIGRATION_UPLOAD.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT));
     }
 }

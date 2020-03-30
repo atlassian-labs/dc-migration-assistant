@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.api.develop;
 
-import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,12 +27,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
 import javax.ws.rs.core.Response;
-
 import java.util.Map;
 
 import static com.atlassian.migration.datacenter.api.develop.DevelopEndpoint.ALLOW_ANY_TRANSITION_PROFILE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -64,7 +61,7 @@ class DevelopEndpointTest {
 
         Response response = endpoint.setMigrationStage(migrationStage);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        Map<String,String> entity = (Map<String,String>)response.getEntity();
+        Map<String, String> entity = (Map<String, String>) response.getEntity();
         assertEquals(migrationStage.toString(), entity.get("targetStage"));
 
         verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY);

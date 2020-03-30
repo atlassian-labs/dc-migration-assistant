@@ -34,7 +34,6 @@ import org.testcontainers.utility.MountableFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -51,12 +50,11 @@ import static org.mockito.Mockito.when;
 
 @Testcontainers
 @ExtendWith(MockitoExtension.class)
-class PostgresExtractorIT
-{
+class PostgresExtractorIT {
     @Container
     public static PostgreSQLContainer postgres = (PostgreSQLContainer) new PostgreSQLContainer("postgres:9.6")
-        .withDatabaseName("jira")
-        .withCopyFileToContainer(MountableFile.forClasspathResource("db/jira.sql"), "/docker-entrypoint-initdb.d/jira.sql");
+            .withDatabaseName("jira")
+            .withCopyFileToContainer(MountableFile.forClasspathResource("db/jira.sql"), "/docker-entrypoint-initdb.d/jira.sql");
 
     @Mock(lenient = true)
     ApplicationConfiguration configuration;
@@ -65,25 +63,22 @@ class PostgresExtractorIT
     Path tempDir;
 
     @BeforeEach
-    void setUp()
-    {
+    void setUp() {
         when(configuration.getDatabaseConfiguration())
-            .thenReturn(new DatabaseConfiguration(DatabaseConfiguration.DBType.POSTGRESQL,
-                                                  postgres.getContainerIpAddress(),
-                                                  postgres.getMappedPort(5432),
-                                                  postgres.getDatabaseName(),
-                                                  postgres.getUsername(),
-                                                  postgres.getPassword()));
+                .thenReturn(new DatabaseConfiguration(DatabaseConfiguration.DBType.POSTGRESQL,
+                        postgres.getContainerIpAddress(),
+                        postgres.getMappedPort(5432),
+                        postgres.getDatabaseName(),
+                        postgres.getUsername(),
+                        postgres.getPassword()));
     }
 
     @AfterEach
-    void tearDown()
-    {
+    void tearDown() {
     }
 
     @Test
-    void testPsqlDataImported() throws SQLException
-    {
+    void testPsqlDataImported() throws SQLException {
         Properties props = new Properties();
         props.put("user", postgres.getUsername());
         props.put("password", postgres.getPassword());
@@ -101,8 +96,7 @@ class PostgresExtractorIT
     }
 
     @Test
-    void testDatabaseDump() throws IOException
-    {
+    void testDatabaseDump() throws IOException {
         PostgresExtractor migration = new PostgresExtractor(configuration);
         Path target = tempDir.resolve("database.dump");
 
@@ -111,7 +105,7 @@ class PostgresExtractorIT
         assertTrue(target.toFile().isDirectory());
 
         boolean found = false;
-        for (Path p: Files.newDirectoryStream(target, "*.gz")) {
+        for (Path p : Files.newDirectoryStream(target, "*.gz")) {
             InputStream stream = new GZIPInputStream(new FileInputStream(p.toFile()));
             for (String line : IOUtils.readLines(stream, "UTF-8")) {
                 if (line.contains("As an Agile team, I'd like to learn about Scrum")) {

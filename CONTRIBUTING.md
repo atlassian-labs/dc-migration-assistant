@@ -26,9 +26,24 @@ Prior to accepting your contributions we ask that you please follow the appropri
 
 ## Copyright
 This project is distributed under the Apache v2 license. Intellij provides a tool to automatically add copyright headers to all files. To enable this:
-1. Go to Settting->Editor->Copyright->Copyright Profiles.
+1. Go to Settings -> Editor -> Copyright -> Copyright Profiles.
 1. Add a new profile with the name `Atlassian Apache 2`
-1. Add the copyright text (available in most code files); the year setting should be `$today.year`.
+1. Add the copyright text (see below); the year setting should be `$today.year`.
 1. Go up one setting level to Copyright and add a scope of `All` with this new profile.
 
 The menu option `Update copyright` can be used from the file-tree context menu.
+
+###  Copyright text
+
+```
+Copyright $today.year Atlassian
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```

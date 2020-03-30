@@ -56,14 +56,14 @@ class DatabaseArchivalServiceTest {
         Path target = service.archiveDatabase(tempDir, migrationStageCallback);
         assertTrue(target.endsWith("db.dump"));
 
-        verify(this.migrationStageCallback).transitionToServiceStartStage();
+        verify(this.migrationStageCallback).assertInStartingStage();
         verify(this.migrationStageCallback).transitionToServiceWaitStage();
         verify(this.migrationStageCallback).transitionToServiceNextStage();
     }
 
     @Test
     void shouldThrowExceptionWhenStateTransitionToStartStageIsNotSuccessful() throws Exception {
-        doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).transitionToServiceStartStage();
+        doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).assertInStartingStage();
 
         assertThrows(InvalidMigrationStageError.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);
@@ -77,7 +77,7 @@ class DatabaseArchivalServiceTest {
         assertThrows(InvalidMigrationStageError.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);
         });
-        verify(migrationStageCallback).transitionToServiceStartStage();
+        verify(migrationStageCallback).assertInStartingStage();
     }
 
 
@@ -91,7 +91,7 @@ class DatabaseArchivalServiceTest {
             service.archiveDatabase(tempDir, migrationStageCallback);
         });
 
-        verify(migrationStageCallback).transitionToServiceStartStage();
+        verify(migrationStageCallback).assertInStartingStage();
         verify(migrationStageCallback).transitionToServiceWaitStage();
     }
 
@@ -104,7 +104,7 @@ class DatabaseArchivalServiceTest {
             service.archiveDatabase(tempDir, migrationStageCallback);
         });
 
-        verify(migrationStageCallback).transitionToServiceStartStage();
+        verify(migrationStageCallback).assertInStartingStage();
         verify(migrationStageCallback).transitionToServiceWaitStage();
         verify(migrationStageCallback).transitionToServiceErrorStage();
     }

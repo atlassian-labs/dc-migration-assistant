@@ -48,14 +48,12 @@ public class S3Uploader implements Uploader {
     }
 
     @Override
-    public Integer maxConcurrent()
-    {
+    public Integer maxConcurrent() {
         return MAX_OPEN_CONNECTIONS;
     }
 
     @Override
-    public void upload(UploadQueue<Path> queue) throws FilesystemUploader.FileUploadException
-    {
+    public void upload(UploadQueue<Path> queue) throws FilesystemUploader.FileUploadException {
         try {
             for (Optional<Path> opt = queue.take(); opt.isPresent(); opt = queue.take()) {
                 uploadFile(opt.get());
@@ -63,14 +61,13 @@ public class S3Uploader implements Uploader {
         } catch (InterruptedException e) {
             String msg = "InterruptedException while fetching file from queue";
             logger.error(msg, e);
-            throw new FilesystemUploader.FileUploadException(msg,e);
+            throw new FilesystemUploader.FileUploadException(msg, e);
         }
         responsesQueue.forEach(this::handlePutObjectResponse);
         logger.info("Finished uploading files to S3");
     }
 
-    private void uploadFile(Path path)
-    {
+    private void uploadFile(Path path) {
         if (responsesQueue.size() >= MAX_OPEN_CONNECTIONS) {
             logger.trace("Response queue greater than connection threshold. Acknowledging response queue");
             responsesQueue.forEach(this::handlePutObjectResponse);
@@ -91,9 +88,9 @@ public class S3Uploader implements Uploader {
             } else {
                 logger.trace("uploading file {}", path);
                 final PutObjectRequest putRequest = PutObjectRequest.builder()
-                    .bucket(config.getBucketName())
-                    .key(key)
-                    .build();
+                        .bucket(config.getBucketName())
+                        .key(key)
+                        .build();
                 final CompletableFuture<PutObjectResponse> response = config.getS3AsyncClient().putObject(putRequest, path);
                 final S3UploadOperation uploadOperation = new S3UploadOperation(path, response);
                 responsesQueue.add(uploadOperation);
