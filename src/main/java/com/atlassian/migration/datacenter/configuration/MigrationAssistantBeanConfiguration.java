@@ -60,6 +60,7 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 import java.nio.file.Paths;
@@ -86,6 +87,14 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
+    public Supplier<SecretsManagerClient> secretsManagerClient(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
+        return () -> SecretsManagerClient.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+
+    @Bean
     public AwsCredentialsProvider awsCredentialsProvider(ReadCredentialsService readCredentialsService) {
         return new AtlassianPluginAWSCredentialsProvider(readCredentialsService);
     }
@@ -101,8 +110,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public TargetDbCredentialsStorageService targetDbCredentialsStorageService(MigrationService migrationService, ActiveObjects ao, EncryptionManager encryptionManager) {
-        return new TargetDbCredentialsStorageService(migrationService, ao, encryptionManager);
+    public TargetDbCredentialsStorageService targetDbCredentialsStorageService(Supplier<SecretsManagerClient> clientSupplier, MigrationService migrationService) {
+        return new TargetDbCredentialsStorageService(clientSupplier, migrationService);
     }
 
     @Bean
@@ -217,7 +226,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public QuickstartDeploymentService quickstartDeploymentService(ActiveObjects ao, CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService) {
-        return new QuickstartDeploymentService(ao, cfnApi, migrationService, dbCredentialsStorageService);
+    public QuickstartDeploymentService quickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService) {
+        return new QuickstartDeploymentService(cfnApi, migrationService, dbCredentialsStorageService);
     }
 }

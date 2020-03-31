@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.spi;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.core.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.dto.Migration;
+import com.atlassian.migration.datacenter.dto.MigrationContext;
 
 /**
  * Manages the lifecycle of the migration
@@ -51,6 +52,12 @@ public interface MigrationService {
      */
     Migration getCurrentMigration();
 
+    /**
+     * Gets the current migration context. The migration context can be used to store or query specific data
+     * about this migration.
+     * @return The migration context Entity for this migration.
+     */
+    MigrationContext getCurrentContext();
 
     /**
      * Tries to transition the migration state from one to another

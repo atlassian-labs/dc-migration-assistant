@@ -76,6 +76,11 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
+    public MigrationContext getCurrentContext() {
+        return getCurrentMigration().getContext();
+    }
+
+    @Override
     public synchronized void transition(MigrationStage to) throws InvalidMigrationStageError
     {
         Migration migration = findFirstOrCreateMigration();

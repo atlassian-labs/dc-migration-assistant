@@ -67,11 +67,11 @@ public class AWSMigrationServiceTest {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
         sut = new AWSMigrationService(ao);
+        setupEntities();
     }
 
     @Test
     public void shouldBeInNotStartedStageWhenNoMigrationsExist() {
-        setupEntities();
         MigrationStage initialStage = sut.getCurrentStage();
         assertEquals(NOT_STARTED, initialStage);
     }
@@ -104,7 +104,6 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldCreateMigrationInNotStarted() throws MigrationAlreadyExistsException {
-        ao.migrate(Migration.class);
         Migration migration = sut.createMigration();
 
         assertEquals(NOT_STARTED, migration.getStage());
@@ -114,6 +113,22 @@ public class AWSMigrationServiceTest {
     public void shouldThrowExceptionWhenMigrationExistsAlready() {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
         assertThrows(MigrationAlreadyExistsException.class, () -> sut.createMigration());
+    }
+
+    @Test
+    public void shouldHaveBidirectionalRelationshipBetweenMigrationContextAndMigration() {
+        initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
+
+        Migration migration = sut.getCurrentMigration();
+        MigrationContext context = migration.getContext();
+
+        final String testDeploymentId = "test-id";
+        context.setApplicationDeploymentId(testDeploymentId);
+        context.save();
+
+        Migration updatedMigration = sut.getCurrentMigration();
+
+        assertEquals(testDeploymentId, updatedMigration.getContext().getApplicationDeploymentId());
     }
 
     @Test
@@ -128,7 +143,9 @@ public class AWSMigrationServiceTest {
     @Test
     public void shouldRaiseErrorOnGetCurrentMigrationWhenMoreThanOneExists() {
         initializeAndCreateSingleMigrationWithStage(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        initializeAndCreateSingleMigrationWithStage(ERROR);
+        Migration migration = ao.create(Migration.class);
+        migration.setStage(ERROR);
+        migration.save();
         assertNumberOfMigrations(2);
 
         assertThrows(Exception.class, () -> sut.getCurrentMigration(), "Invalid State - should only be 1 migration");
@@ -145,10 +162,29 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldCreateMigrationWhenNoneExists() {
-        setupEntities();
         Migration migration = sut.getCurrentMigration();
         assertNumberOfMigrations(1);
         assertEquals(NOT_STARTED, migration.getStage());
+    }
+
+    @Test
+    public void shouldGetLatestMigrationContext() throws MigrationAlreadyExistsException {
+        Migration migration = sut.createMigration();
+        MigrationContext context = migration.getContext();
+        final String testDeploymentId = "test-id";
+        context.setApplicationDeploymentId(testDeploymentId);
+        context.save();
+
+        MigrationContext newContext = sut.getCurrentContext();
+        assertEquals(testDeploymentId, newContext.getApplicationDeploymentId());
+
+        final String newDeploymentId = "next-id";
+        newContext.setApplicationDeploymentId(newDeploymentId);
+        newContext.save();
+
+        MigrationContext nextContext = sut.getCurrentContext();
+        assertEquals(newDeploymentId, nextContext.getApplicationDeploymentId());
+        assertEquals(newDeploymentId, sut.getCurrentMigration().getContext().getApplicationDeploymentId());
     }
 
     private void assertNumberOfMigrations(int i) {
@@ -156,9 +192,12 @@ public class AWSMigrationServiceTest {
     }
 
     private Migration initializeAndCreateSingleMigrationWithStage(MigrationStage stage) {
-        setupEntities();
-
-        Migration migration = ao.create(Migration.class);
+        Migration migration;
+        try {
+            migration = sut.createMigration();
+        } catch (MigrationAlreadyExistsException e) {
+            throw new RuntimeException("Tried to initialize migration when one exists already", e);
+        }
         migration.setStage(stage);
         migration.save();
 
