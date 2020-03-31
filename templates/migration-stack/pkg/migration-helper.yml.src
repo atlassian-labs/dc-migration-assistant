@@ -28,6 +28,7 @@ Parameters:
 Resources:
 
   #S3 Bucket for Database Transfer
+  #TODO: Stack deletion fails when the bucket is non-empty. Fix this - https://stackoverflow.com/questions/40383470/can-i-force-cloudformation-to-delete-non-empty-s3-bucket
   MigrationBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -395,7 +396,7 @@ Resources:
           inputs:
             runCommand:
             - "#!/bin/bash"
-            - runuser -l jira -c 'at -f /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh now'
+            - runuser -l jira -c '/opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh'
             timeoutSeconds: "60" #TODO: What is the correct value for timeout seconds here?
             workingDirectory: "/opt/atlassian/dc-migration-assistant/"
       DocumentType: "Command"
