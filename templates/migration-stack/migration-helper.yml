@@ -11,6 +11,9 @@ Parameters:
   EFSSecurityGroup:
     Description: "The Security Group attached to EFS, access to NFS port will be open from Migration Helper Security Group"
     Type: String
+  RDSSecurityGroup:
+    Description: "The Security Group attached to RDS, access to PostgreSQL port will be open from Migration Helper Security Group"
+    Type: String
   HelperInstanceType:
     Description: "The Instance Type of Helper EC2 Instance"
     Type: String
@@ -352,43 +355,20 @@ Resources:
       GroupDescription: Allow SSH Port from Trusted
       VpcId: !Ref HelperVpcId
 
-  # OpenEFS to Helper security group
-  ExecutionRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service:
-                - "lambda.amazonaws.com"
-                - Fn::Join:
-                    - ""
-                    - - "states."
-                      - Ref: "AWS::Region"
-                      - ".amazonaws.com"
-            Action:
-              - "sts:AssumeRole"
-      Path: "/"
-      Policies:
-        - PolicyName: "Policies"
-          PolicyDocument:
-            Statement:
-              - Effect: "Allow"
-                Action: "*"
-                Resource: "*"
-  OpenEFSAccessCustom:
-    Type: Custom::OpenEFSAccessCustom
+  # Open EFS and RDS to Helper security group
+  MigrationStackResourceAccessCustom:
+    Type: Custom::MigrationStackResourceAccessCustom
     Version: 1.0
     Properties:
-      ServiceToken: !GetAtt OpenEFSAccess.Arn
+      ServiceToken: !GetAtt MigrationStackResourceAccess.Arn
       HelperSG: !Ref HelperSecurityGroup
       EFSSG: !Ref EFSSecurityGroup
-  OpenEFSAccess:
+      RDSSG: !Ref RDSSecurityGroup
+  MigrationStackResourceAccess:
     Type: "AWS::Lambda::Function"
     Properties:
       Handler: index.lambda_handler
-      Role: !GetAtt ExecutionRole.Arn
+      Role: !GetAtt MigrationStackResourceAccessExecutionRole.Arn
       Runtime: python3.7
       Timeout: 120
       Code:
@@ -400,6 +380,7 @@ Resources:
           def lambda_handler(event, context):
             try:
                   efssg =  event['ResourceProperties']['EFSSG']
+                  rdssg =  event['ResourceProperties']['RDSSG']
                   evsg = event['ResourceProperties']['HelperSG']
                   if event['RequestType'] == 'Delete':
                       response = ec2client.revoke_security_group_ingress(
@@ -408,6 +389,16 @@ Resources:
                               {'IpProtocol': 'tcp',
                               'FromPort': 2049,
                               'ToPort': 2049,
+                              'UserIdGroupPairs': [{'GroupId': evsg}]}
+                          ]
+                      )
+                      print(response)
+                      response = ec2client.revoke_security_group_ingress(
+                          GroupId=rdssg,
+                          IpPermissions=[
+                              {'IpProtocol': 'tcp',
+                              'FromPort': 5432,
+                              'ToPort': 5432,
                               'UserIdGroupPairs': [{'GroupId': evsg}]}
                           ]
                       )
@@ -424,6 +415,15 @@ Resources:
                               'UserIdGroupPairs': [{'GroupId': evsg}]}
                           ]
                       )
+                      response = ec2client.authorize_security_group_ingress(
+                          GroupId=rdssg,
+                          IpPermissions=[
+                              {'IpProtocol': 'tcp',
+                              'FromPort': 5432,
+                              'ToPort': 5432,
+                              'UserIdGroupPairs': [{'GroupId': evsg}]}
+                          ]
+                      )
                       responseData = {'Create': 'SUCCESS'}
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
                   if event['RequestType'] == 'Update':
@@ -432,8 +432,7 @@ Resources:
             except Exception as e:
                 responseData = {'Error': str(e)}
                 cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
-# TODO: Verify is this is needed as the lambda to create/delete SG b/w EC2 and EFS is using the other ExecutionRole. Run the template without this and see we are able to communicate with the EfS from EC2.
-  OpenEFSAccessExecutionRole:
+  MigrationStackResourceAccessExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
