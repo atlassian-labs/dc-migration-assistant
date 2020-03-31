@@ -44,7 +44,7 @@ Resources:
     Metadata:
         AWS::CloudFormation::Init:
           configSets:
-            install_prerequisites: [create_efs_script,mount_efs,prepare_efs_sync_script,install_psql_client]
+            install_prerequisites: [create_efs_script,mount_efs,prepare_efs_sync_script,install_psql_client, create_rds_restore_script]
           create_efs_script:
             files:
               /opt/atlassian/dc-migration-assistant/mount-efs.sh:
@@ -115,6 +115,17 @@ Resources:
                 command: !Sub
                   - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
                   - { PSQLClientVersion: !Ref PSQLVersion }
+          create_rds_restore_script:
+            files:
+              /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh:
+                content: !Sub
+                  - |
+                    #!/bin/bash
+                    echo "this script will pull the secret from secrets manager"
+                    echo "A RDS endpoint needs to be passed into the template"
+                    aws secretsmanager list-secrets
+                    aws secretsmanager  get-secret-value --secret-id atl-qs-rds-password
+                    aws s3 ls s3://${MigrationBucket}/db.dump/
           prepare_efs_sync_script:
             packages:
               yum:
@@ -315,6 +326,7 @@ Resources:
             except Exception as e:
                 responseData = {'Error': str(e)}
                 cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+# TODO: Verify is this is needed as the lambda to create/delete SG b/w EC2 and EFS is using the other ExecutionRole. Run the template without this and see we are able to communicate with the EfS from EC2.
   OpenEFSAccessExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -358,6 +370,23 @@ Resources:
             workingDirectory: "/opt/atlassian/dc-migration-assistant/"
       DocumentType: "Command"
 
+  RdsRestoreDocument:
+    Type: "AWS::SSM::Document"
+    Properties:
+      Content:
+        schemaVersion: "2.2"
+        description: "This document is used by the Atlassian DC Migration Assistant to restore the database backup in S3 to a provisioned RDS instance"
+        mainSteps:
+        - action: "aws:runShellScript"
+          name: "restoreDatabaseBackupToRDS"
+          inputs:
+            runCommand:
+            - "#!/bin/bash"
+            - runuser -l jira -c 'at -f /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh now'
+            timeoutSeconds: "60" #TODO: What is the correct value for timeout seconds here?
+            workingDirectory: "/opt/atlassian/dc-migration-assistant/"
+      DocumentType: "Command"
+
   DownloadProgressDocument:
     Type: "AWS::SSM::Document"
     Properties:
@@ -382,6 +411,9 @@ Outputs:
   DownloadStatusSSMDocument:
     Description: "The name of the SSM document to be invoked to get the status of the bulk copy s3 sync"
     Value: !Ref DownloadProgressDocument
+  RdsRestoreSSMDocument:
+    Description: "The name of the SSM document to be invoked to restore database backup into the provisioned RDS instance"
+    Value: !Ref RdsRestoreDocument
   ServerGroup:
     Description: "The autoscaling group containing the Migration host"
     Value: !Ref HelperServerGroup
