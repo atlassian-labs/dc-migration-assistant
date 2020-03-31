@@ -123,9 +123,11 @@ Resources:
                     #!/bin/bash
                     echo "this script will pull the secret from secrets manager"
                     echo "A RDS endpoint needs to be passed into the template"
-                    aws secretsmanager list-secrets
-                    aws secretsmanager  get-secret-value --secret-id atl-qs-rds-password
-                    aws s3 ls s3://${MigrationBucket}/db.dump/
+                    aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region}
+                    aws s3 ls s3://${MigrationBucket}/db.dump/ --region ${AWS::Region}
+                    echo "${RDSEndPoint}"
+                  - { RDSEndPoint: "rds-dns-address", SecretIdentifier: "atl-qs-rds-password"}
+                mode: "000755"
           prepare_efs_sync_script:
             packages:
               yum:
@@ -312,13 +314,22 @@ Resources:
               - Action: 's3:*'
                 Effect: Allow
                 Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket
-           }]
+                }]
               - Action:
                   - 's3:ListBucket'
                   - 's3:HeadBucket'
                 Effect: Allow
                 Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket
-           }]
+                }]
+        - PolicyName: MigrationInstanceSecretReadAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - 'secretsmanager:GetSecretValue'
+                Effect: Allow
+                Resource: !Sub ['arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretIdentifier}-??????', { SecretIdentifier: "atl-qs-rds-password"
+                }]
 
       # TODO: Reduce this to minimum required perms
       #   - PolicyName: Administrator
