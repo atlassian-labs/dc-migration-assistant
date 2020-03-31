@@ -123,7 +123,7 @@ Resources:
                     #!/bin/bash
                     echo "this script will pull the secret from secrets manager"
                     echo "A RDS endpoint needs to be passed into the template"
-                    aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region}
+                    aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"
                     aws s3 ls s3://${MigrationBucket}/db.dump/ --region ${AWS::Region}
                     echo "${RDSEndPoint}"
                   - { RDSEndPoint: "rds-dns-address", SecretIdentifier: "atl-qs-rds-password"}
