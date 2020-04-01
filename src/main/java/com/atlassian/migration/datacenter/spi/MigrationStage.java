@@ -68,6 +68,11 @@ public enum MigrationStage {
                 .orElse(true);
     }
 
+    public boolean isDBPhase() {
+        // Hacky, but OK for now.
+        return this.toString().startsWith("DB_");
+    }
+
     @Override
     public String toString() {
         return super.toString().toLowerCase();

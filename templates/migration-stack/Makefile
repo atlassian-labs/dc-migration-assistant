@@ -7,7 +7,14 @@ INSTANCE_TYPE ?= c5.large
 # EFS_ID: the file system ID of the EFS to sync the files to. Should be the EFS of the freshly deployed product stack
 # SG_ID: The ID of the security group attached to the EFS, required to allow the beanstalk instance to communicate with the EFS for the duration of the migration
 
-PARAMS := ParameterKey=HelperVpcId,ParameterValue=$(VPC_ID) ParameterKey=NetworkPrivateSubnet,ParameterValue=$(SUBNET_ID) ParameterKey=EFSFileSystemId,ParameterValue=$(EFS_ID) ParameterKey=EFSSecurityGroup,ParameterValue=$(SG_ID) ParameterKey=HelperInstanceType,ParameterValue=$(INSTANCE_TYPE)
+PARAM_VPC := ParameterKey=HelperVpcId,ParameterValue=$(VPC_ID)
+PARAM_SUBNET := ParameterKey=NetworkPrivateSubnet,ParameterValue=$(SUBNET_ID)
+PARAM_EFS := ParameterKey=EFSFileSystemId,ParameterValue=$(EFS_ID)
+PARAM_EFS_SG := ParameterKey=EFSSecurityGroup,ParameterValue=$(SG_ID)
+PARAM_INSTANCE_TYPE := ParameterKey=HelperInstanceType,ParameterValue=$(INSTANCE_TYPE)
+PARAM_RDS_SG := ParameterKey=RDSSecurityGroup,ParameterValue=$(SG_ID)
+
+PARAMS := $(PARAM_VPC) $(PARAM_SUBNET) $(PARAM_EFS) $(PARAM_EFS_SG) $(PARAM_INSTANCE_TYPE) $(PARAM_RDS_SG)
 
 rendertemplate:
 	mkdir render;

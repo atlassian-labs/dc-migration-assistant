@@ -52,6 +52,11 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 4
+            Status: "Enabled"
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
 

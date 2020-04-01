@@ -160,14 +160,25 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseMigrationService databaseMigrationService(DatabaseArchivalService databaseArchivalService, DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback,
-                                                             DatabaseArtifactS3UploadService s3UploadService, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
-                                                             SsmPsqlDatabaseRestoreService restoreService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
+    public DatabaseMigrationService databaseMigrationService(MigrationService databaseMigrationService,
+                                                             MigrationRunner migrationRunner,
+                                                             DatabaseArchivalService databaseArchivalService,
+                                                             DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback,
+                                                             DatabaseArtifactS3UploadService s3UploadService,
+                                                             DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+                                                             SsmPsqlDatabaseRestoreService restoreService,
+                                                             DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
         return new DatabaseMigrationService(
                 Paths.get(tempDirectoryPath),
-                databaseArchivalService, archiveStageTransitionCallback,
-                s3UploadService, uploadStageTransitionCallback, restoreService, restoreStageTransitionCallback);
+                databaseMigrationService,
+                migrationRunner,
+                databaseArchivalService,
+                archiveStageTransitionCallback,
+                s3UploadService,
+                uploadStageTransitionCallback,
+                restoreService,
+                restoreStageTransitionCallback);
     }
 
     @Bean

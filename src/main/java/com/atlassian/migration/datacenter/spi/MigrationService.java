@@ -74,4 +74,11 @@ public interface MigrationService {
      */
     void error();
 
+    /**
+     * Moves the migration into an error stage, storing the cause.
+     *
+     * @see MigrationStage#ERROR
+     */
+    void error(Throwable e);
+
 }

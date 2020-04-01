@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.util.Optional;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -97,6 +98,13 @@ public class AWSMigrationService implements MigrationService {
     public void error() {
         Migration migration = findFirstOrCreateMigration();
         setCurrentStage(migration, ERROR);
+    }
+
+    @Override
+    public void error(Throwable e)
+    {
+        error();
+        findFirstOrCreateMigration().getStage().setException(Optional.of(e));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {

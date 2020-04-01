@@ -23,6 +23,7 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRes
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
@@ -87,6 +88,8 @@ class DatabaseMigrationServiceIT {
 
     @Mock(lenient = true)
     private MigrationService migrationService;
+    @Mock
+    private MigrationRunner migrationRunner;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -126,7 +129,15 @@ class DatabaseMigrationServiceIT {
         SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi);
         DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback  = new DatabaseRestoreStageTransitionCallback(this.migrationService);
 
-        DatabaseMigrationService service = new DatabaseMigrationService(tempDir, databaseArchivalService, archiveStageTransitionCallback, s3UploadService, uploadStageTransitionCallback, restoreService, restoreStageTransitionCallback);
+        DatabaseMigrationService service = new DatabaseMigrationService(tempDir,
+                                                                        migrationService,
+                                                                        migrationRunner,
+                                                                        databaseArchivalService,
+                                                                        archiveStageTransitionCallback,
+                                                                        s3UploadService,
+                                                                        uploadStageTransitionCallback,
+                                                                        restoreService,
+                                                                        restoreStageTransitionCallback);
 
         FileSystemMigrationErrorReport report = service.performMigration();
 
