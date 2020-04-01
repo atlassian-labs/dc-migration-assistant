@@ -145,7 +145,10 @@ Resources:
                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
                     PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d -j 6 --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
-                    echo "Monitor the logfile at $DB_DUMP_LOG_FILE for the term 'pg_restore: finished main parallel loop' to appear to signal end of restore process"
+                    PG_RESTORE_EXIT_CODE=$?
+                    ERRORS_EXIST=`grep -qiE 'error|warning' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
+                    RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
+                    echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
                   - {
                     SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
                     MigrationBucket: !Ref MigrationBucket,
@@ -496,25 +499,6 @@ Resources:
             workingDirectory: "/opt/atlassian/dc-migration-assistant/"
       DocumentType: "Command"
 
-  RdsRestoreStatusDocument:
-    Type: "AWS::SSM::Document"
-    Properties:
-      Content:
-        schemaVersion: "2.2"
-        description: "This document is used by the Atlassian DC Migration Assistant to check status of database restore into RDS"
-        mainSteps:
-        - action: "aws:runShellScript"
-          name: "restoreDatabaseBackupToRDS"
-          inputs:
-            runCommand:
-            - "#!/bin/bash"
-            - ERRORS_EXIST=`grep -qiE 'error|warning' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
-            - RESTORE_COMPLETE=`grep -qiE 'pg_restore:\sfinished main parallel loop' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'
-            - echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\"}"
-            timeoutSeconds: "60" #TODO: What is the correct value for timeout seconds here?
-            workingDirectory: "/opt/atlassian/dc-migration-assistant/"
-      DocumentType: "Command"
-
   DownloadProgressDocument:
     Type: "AWS::SSM::Document"
     Properties:
@@ -542,9 +526,6 @@ Outputs:
   RdsRestoreSSMDocument:
     Description: "The name of the SSM document to be invoked to restore database backup into the provisioned RDS instance"
     Value: !Ref RdsRestoreDocument
-  RdsRestoreStatusSSMDocument:
-    Description: "The name of the SSM document to be invoked to check status of restore database backup into the provisioned RDS instance"
-    Value: !Ref RdsRestoreStatusDocument
   ServerGroup:
     Description: "The autoscaling group containing the Migration host"
     Value: !Ref HelperServerGroup
