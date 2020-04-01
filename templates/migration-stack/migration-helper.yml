@@ -403,7 +403,7 @@ Resources:
                   rdssg =  event['ResourceProperties']['RDSSG']
                   helper_sg = event['ResourceProperties']['HelperSG']
                   if event['RequestType'] == 'Delete':
-                      for security_group_id in [efssg, rdssg]:
+                      for security_group_id in list(filter(None, [efssg, rdssg])):
                         response = ec2client.revoke_security_group_ingress(
                             GroupId=security_group_id,
                             IpPermissions=[
@@ -417,7 +417,7 @@ Resources:
                       responseData = {'Delete': 'SUCCESS'}
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
                   if event['RequestType'] == 'Create':
-                      for security_group_id in [efssg, rdssg]:
+                      for security_group_id in list(filter(None, [efssg, rdssg])):
                         response = ec2client.authorize_security_group_ingress(
                             GroupId=security_group_id,
                             IpPermissions=[
