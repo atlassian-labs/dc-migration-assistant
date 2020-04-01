@@ -42,7 +42,8 @@ Parameters:
 Resources:
 
   #S3 Bucket for Database Transfer
-  #TODO: Stack deletion fails when the bucket is non-empty. Fix this - https://stackoverflow.com/questions/40383470/can-i-force-cloudformation-to-delete-non-empty-s3-bucket
+  #Stack deletion fails when the bucket is non-empty. To fix this, we need a lambda that cleans the bucket - https://stackoverflow.com/questions/40383470/can-i-force-cloudformation-to-delete-non-empty-s3-bucket
+  # Until then, set the Deletion policy to retain
   MigrationBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -51,7 +52,8 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
 
   #EC2 Migration Helper
   HelperLaunchConfig:
@@ -144,8 +146,13 @@ Resources:
                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
                     PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d -j 6 --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
                     echo "Monitor the logfile at $DB_DUMP_LOG_FILE for the term 'pg_restore: finished main parallel loop' to appear to signal end of restore process"
-                  - { SecretIdentifier: !Sub "atl-${AWS::StackId}-app-rds-password", MigrationBucket: !Ref MigrationBucket, DBHost: !Ref RDSEndpoint, DBPort: !Ref RDSPort,
-                    DBName: !Ref RDSDbName, DBUser: "atljira"
+                  - {
+                    SecretIdentifier: !Sub "atl-${AWS::StackId}-app-rds-password",
+                    MigrationBucket: !Ref MigrationBucket,
+                    DBHost: !Ref RDSEndpoint,
+                    DBPort: !Ref RDSPort,
+                    DBName: !Ref RDSDbName,
+                    DBUser: "atljira"
                   }
                 mode: "000755"
           prepare_efs_sync_script:
@@ -395,49 +402,33 @@ Resources:
             try:
                   efssg =  event['ResourceProperties']['EFSSG']
                   rdssg =  event['ResourceProperties']['RDSSG']
-                  evsg = event['ResourceProperties']['HelperSG']
+                  helper_sg = event['ResourceProperties']['HelperSG']
                   if event['RequestType'] == 'Delete':
-                      response = ec2client.revoke_security_group_ingress(
-                          GroupId=efssg,
-                          IpPermissions=[
-                              {'IpProtocol': 'tcp',
-                              'FromPort': 2049,
-                              'ToPort': 2049,
-                              'UserIdGroupPairs': [{'GroupId': evsg}]}
-                          ]
-                      )
-                      print(response)
-                      response = ec2client.revoke_security_group_ingress(
-                          GroupId=rdssg,
-                          IpPermissions=[
-                              {'IpProtocol': 'tcp',
-                              'FromPort': 5432,
-                              'ToPort': 5432,
-                              'UserIdGroupPairs': [{'GroupId': evsg}]}
-                          ]
-                      )
-                      print(response)
+                      for security_group_id in [efssg, rdssg]:
+                        response = ec2client.revoke_security_group_ingress(
+                            GroupId=security_group_id,
+                            IpPermissions=[
+                                {'IpProtocol': 'tcp',
+                                'FromPort': 2049,
+                                'ToPort': 2049,
+                                'UserIdGroupPairs': [{'GroupId': helper_sg}]}
+                            ]
+                        )
+                        print(response)
                       responseData = {'Delete': 'SUCCESS'}
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
                   if event['RequestType'] == 'Create':
-                      response = ec2client.authorize_security_group_ingress(
-                          GroupId=efssg,
-                          IpPermissions=[
-                              {'IpProtocol': 'tcp',
-                              'FromPort': 2049,
-                              'ToPort': 2049,
-                              'UserIdGroupPairs': [{'GroupId': evsg}]}
-                          ]
-                      )
-                      response = ec2client.authorize_security_group_ingress(
-                          GroupId=rdssg,
-                          IpPermissions=[
-                              {'IpProtocol': 'tcp',
-                              'FromPort': 5432,
-                              'ToPort': 5432,
-                              'UserIdGroupPairs': [{'GroupId': evsg}]}
-                          ]
-                      )
+                      for security_group_id in [efssg, rdssg]:
+                        response = ec2client.authorize_security_group_ingress(
+                            GroupId=security_group_id,
+                            IpPermissions=[
+                                {'IpProtocol': 'tcp',
+                                'FromPort': 2049,
+                                'ToPort': 2049,
+                                'UserIdGroupPairs': [{'GroupId': helper_sg}]}
+                            ]
+                        )
+                        print(response)
                       responseData = {'Create': 'SUCCESS'}
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
                   if event['RequestType'] == 'Update':
