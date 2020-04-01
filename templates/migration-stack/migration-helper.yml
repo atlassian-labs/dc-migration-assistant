@@ -21,6 +21,10 @@ Parameters:
     Description: "The port on the RDS Server to connect to to restore the database backup"
     Type: String
     Default: "5432"
+  RDSDbName:
+    Description: "The name of the database  on the RDS Server"
+    Type: String
+    Default: "jira"
   HelperInstanceType:
     Description: "The Instance Type of Helper EC2 Instance"
     Type: String
@@ -132,16 +136,16 @@ Resources:
                 content: !Sub
                   - |
                     #!/bin/bash
-                    echo "this script will pull the secret from secrets manager"
-                    echo "A RDS endpoint needs to be passed into the template"
                     DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
                     mkdir -p $DATABASE_DOWNLOAD_DIR
+                    DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
                     SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
-                    aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region}
-                    echo "${DBHost}:${DBPort}"
-                    PGPASSWORD=$SECRET_PASSWORD psql -U ${DBUser} -d ${DBName} -h ${DBHost} -p ${DBPort} -c "SELECT 1"
-                  - { SecretIdentifier: "atl-qs-rds-password", MigrationBucket: !Ref MigrationBucket, DBHost: !Ref RDSEndpoint, DBPort: !Ref RDSPort,
-                    DBName: "atldb", DBUser: "atljira"
+                    aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
+                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
+                    PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d -j 6 --verbose ${DATABASE_DOWNLOAD_DIR} 2>&1 | tee $DB_DUMP_LOG_FILE
+                    echo "Monitor the logfile at $DB_DUMP_LOG_FILE for the term 'pg_restore: finished main parallel loop' to appear to signal end of restore process"
+                  - { SecretIdentifier: "atl-${AWS::StackId}-app-rds-password", MigrationBucket: !Ref MigrationBucket, DBHost: !Ref RDSEndpoint, DBPort: !Ref RDSPort,
+                    DBName: !Ref RDSDbName, DBUser: "atljira"
                   }
                 mode: "000755"
           prepare_efs_sync_script:
