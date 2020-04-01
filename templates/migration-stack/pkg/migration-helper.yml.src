@@ -149,7 +149,7 @@ Resources:
                     SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
-                    PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d -j 6 --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
+                    PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
                     PG_RESTORE_EXIT_CODE=$?
                     ERRORS_EXIST=`grep -qiE 'error|warning' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
                     RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
@@ -333,7 +333,7 @@ Resources:
                 responseData = {'Delete': 'SUCCESS'}
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
               if event['RequestType'] == 'Create':
-                for security_group_id in [efssg, rdssg]:
+                for security_group_props in [efssg, rdssg]:
                   response = ec2client.authorize_security_group_ingress(
                       GroupId=security_group_props['sg'],
                       IpPermissions=[
@@ -408,7 +408,7 @@ Resources:
             runCommand:
             - "#!/bin/bash"
             - runuser -l jira -c '/opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh'
-            timeoutSeconds: "60" #TODO: What is the correct value for timeout seconds here?
+            timeoutSeconds: "43200" #12 hours
             workingDirectory: "/opt/atlassian/dc-migration-assistant/"
       DocumentType: "Command"
 
