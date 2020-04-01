@@ -144,7 +144,7 @@ Resources:
                     echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
                     PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d -j 6 --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
                     echo "Monitor the logfile at $DB_DUMP_LOG_FILE for the term 'pg_restore: finished main parallel loop' to appear to signal end of restore process"
-                  - { SecretIdentifier: "atl-${AWS::StackId}-app-rds-password", MigrationBucket: !Ref MigrationBucket, DBHost: !Ref RDSEndpoint, DBPort: !Ref RDSPort,
+                  - { SecretIdentifier: !Sub "atl-${AWS::StackId}-app-rds-password", MigrationBucket: !Ref MigrationBucket, DBHost: !Ref RDSEndpoint, DBPort: !Ref RDSPort,
                     DBName: !Ref RDSDbName, DBUser: "atljira"
                   }
                 mode: "000755"
