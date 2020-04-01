@@ -263,8 +263,7 @@ Resources:
               - Action:
                   - 'secretsmanager:GetSecretValue'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretIdentifier}-??????', { SecretIdentifier: "atl-qs-rds-password"
-                }]
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:atl-${AWS::StackId}-app-rds-password-??????"
 
       # TODO: Reduce this to minimum required perms
       #   - PolicyName: Administrator
