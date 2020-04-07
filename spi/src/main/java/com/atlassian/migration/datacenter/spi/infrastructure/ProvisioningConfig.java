@@ -17,18 +17,22 @@
 package com.atlassian.migration.datacenter.spi.infrastructure;
 
 
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ProvisioningConfig {
 
     private String templateUrl;
     private String stackName;
-    private Map<String, String> params;
+    private Map<String, Object> params;
 
     public ProvisioningConfig() {
     }
 
-    public ProvisioningConfig(String templateUrl, String stackName, Map<String, String> params) {
+    public ProvisioningConfig(String templateUrl, String stackName, Map<String, Object> params) {
         this.templateUrl = templateUrl;
         this.stackName = stackName;
         this.params = params;
@@ -43,6 +47,14 @@ public class ProvisioningConfig {
     }
 
     public Map<String, String> getParams() {
-        return params;
+        return params.keySet().stream()
+                .map(x -> {
+                    Object value = params.get(x);
+                    if (value instanceof List) {
+                        value = ((List) value).stream().collect(Collectors.joining(","));
+                    }
+                    return Pair.of(x, value.toString());
+                })
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 }
