@@ -2,6 +2,9 @@ name: Tests
 
 on: [push]
 
+env:
+  DOGFOODING_REF: ${{ secrets.DOGFOODING_REF }}
+
 jobs:
   run_tests:
     name: Java${{ matrix.java }} ${{ matrix.profile }} test
@@ -43,3 +46,39 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Test with maven
         run: mvn -B clean verify -P ${{ matrix.profile}}
+      - name: Upload
+        if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11
+        uses: actions/upload-artifact@v1
+        with:
+          name: plugin-jar
+          path: jira-plugin/target/jira-plugin-1.0.0.jar
+
+
+  deploy:
+    name: Deploy to dogfooding instance
+    runs-on: ubuntu-latest
+    needs: run_tests
+
+    steps:
+      - name: Download plugin jar file from the previous job
+        if: github.ref == env.DOGFOODING_REF
+        uses: actions/download-artifact@v1
+        with:
+          name: plugin-jar
+      - name: Deploy to dogfooding
+        if: github.ref == env.DOGFOODING_REF
+        env:
+          DOGFOODING_URL: ${{ secrets.DOGFOODING_URL }}
+          DOGFOODING_USER: ${{ secrets.DOGFOODING_USER }}
+          DOGFOODING_PASSWORD: ${{ secrets.DOGFOODING_PASSWORD }}
+        run: |
+          url="$DOGFOODING_URL/rest/plugins/1.0/"
+          token=$(curl -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -Is ${url}?os_authType=basic | grep upm-token | cut -d: -f2- | tr -d '[[:space:]]')
+          if [[ -z "$token" ]]; then
+            echo "Token is not set"
+            exit 1
+          else
+            curl -vvv -u "$DOGFOODING_USER:$DOGFOODING_PASSWORD" -POST "${url}?token=${token}" -F plugin=@plugin-jar/jira-plugin-1.0.0.jar | tee install.log
+            grep -E '"type":"INSTALL".*"statusCode":200' install.log
+            exit $?
+          fi
