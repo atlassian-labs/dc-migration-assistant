@@ -19,12 +19,14 @@ package com.atlassian.migration.datacenter.core.aws;
 import cloud.localstack.TestUtils;
 import cloud.localstack.docker.LocalstackDockerExtension;
 import cloud.localstack.docker.annotation.LocalstackDockerProperties;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -50,9 +52,12 @@ public class SSMApiIT {
 
     private SSMApi sut;
 
+    @Mock
+    private AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+
     @BeforeEach
     void setUp() {
-        sut = new SSMApi(() -> SsmClient.builder().build());
+        sut = new SSMApi(() -> SsmClient.builder().build(), migrationHelperDeploymentService);
     }
 
     @Test

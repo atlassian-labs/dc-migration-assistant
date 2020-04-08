@@ -93,6 +93,7 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
+        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_IN_PROGRESS);
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 

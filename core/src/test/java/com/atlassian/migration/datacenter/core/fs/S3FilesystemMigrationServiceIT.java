@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
@@ -25,7 +26,6 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim;
-import com.atlassian.scheduler.SchedulerService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -67,6 +67,8 @@ class S3FilesystemMigrationServiceIT {
     @Mock
     MigrationService migrationService;
     @Mock
+    AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    @Mock
     JiraHome jiraHome;
     @Mock
     MigrationRunner migrationRunner;
@@ -86,7 +88,7 @@ class S3FilesystemMigrationServiceIT {
     @BeforeEach
     void setup() throws Exception {
         credentialsProvider = new AtlassianPluginAWSCredentialsProvider(new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider()));
-
+        when(migrationHelperDeploymentService.getMigrationS3BucketName()).thenReturn(bucket);
         s3AsyncClient = S3AsyncClient.builder()
                 .endpointOverride(new URI(s3.getEndpointConfiguration(S3).getServiceEndpoint()))
                 .credentialsProvider(new AwsCredentialsProviderShim(s3.getDefaultCredentialsProvider()))
@@ -113,7 +115,7 @@ class S3FilesystemMigrationServiceIT {
 
         Path file = genRandFile();
 
-        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(() -> s3AsyncClient, jiraHome, fileSystemDownloader, migrationService, migrationRunner);
+        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(() -> s3AsyncClient, jiraHome, fileSystemDownloader, migrationService, migrationRunner, migrationHelperDeploymentService);
         fsService.postConstruct();
 
         fsService.startMigration();

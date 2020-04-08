@@ -441,6 +441,7 @@
                     <plugin>
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${maven-frontend-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>install-node-and-yarn</id>
@@ -483,6 +484,7 @@
         <frontend.working.directory>src/main/dc-migration-assistant-fe</frontend.working.directory>
 
         <ao.version>3.2.2</ao.version>
+        <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
         <sal.version>4.0.0</sal.version>
         <spring.version>5.0.10.RELEASE</spring.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>

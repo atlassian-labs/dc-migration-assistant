@@ -159,8 +159,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm) {
-        return new SsmPsqlDatabaseRestoreService(ssm);
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService);
     }
 
     @Bean
@@ -176,7 +176,7 @@ public class MigrationAssistantBeanConfiguration {
                                                              DatabaseArtifactS3UploadService s3UploadService,
                                                              DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
                                                              SsmPsqlDatabaseRestoreService restoreService,
-                                                             DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
+                                                             DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
         return new DatabaseMigrationService(
                 Paths.get(tempDirectoryPath),
@@ -187,7 +187,8 @@ public class MigrationAssistantBeanConfiguration {
                 s3UploadService,
                 uploadStageTransitionCallback,
                 restoreService,
-                restoreStageTransitionCallback);
+                restoreStageTransitionCallback,
+                migrationHelperDeploymentService);
     }
 
     @Bean
@@ -196,13 +197,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SSMApi ssmApi(Supplier<SsmClient> client) {
-        return new SSMApi(client);
+    public SSMApi ssmApi(Supplier<SsmClient> client, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+        return new SSMApi(client, migrationHelperDeploymentService);
     }
 
     @Bean
-    public S3SyncFileSystemDownloader s3SyncFileSystemDownloader(SSMApi ssmApi) {
-        return new S3SyncFileSystemDownloader(ssmApi);
+    public S3SyncFileSystemDownloader s3SyncFileSystemDownloader(SSMApi ssmApi, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+        return new S3SyncFileSystemDownloader(ssmApi, migrationHelperDeploymentService);
     }
 
     @Bean
@@ -241,8 +242,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public FilesystemMigrationService filesystemMigrationService(Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner) {
-        return new S3FilesystemMigrationService(clientSupplier, jiraHome, downloadManager, migrationService, migrationRunner);
+    public FilesystemMigrationService filesystemMigrationService(Supplier<S3AsyncClient> clientSupplier, JiraHome jiraHome, S3SyncFileSystemDownloadManager downloadManager, MigrationService migrationService, MigrationRunner migrationRunner, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+        return new S3FilesystemMigrationService(clientSupplier, jiraHome, downloadManager, migrationService, migrationRunner, migrationHelperDeploymentService);
     }
 
     @Bean

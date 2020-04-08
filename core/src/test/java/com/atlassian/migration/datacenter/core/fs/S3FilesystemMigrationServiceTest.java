@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -64,6 +65,9 @@ class S3FilesystemMigrationServiceTest {
 
     @Mock
     S3SyncFileSystemDownloadManager downloadManager;
+
+    @Mock
+    AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
     @InjectMocks
     S3FilesystemMigrationService fsService;

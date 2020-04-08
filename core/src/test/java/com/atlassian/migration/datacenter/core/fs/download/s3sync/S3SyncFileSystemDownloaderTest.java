@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.fs.download.s3sync;
 
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader.IndeterminateS3SyncStatusException;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,11 +53,18 @@ class S3SyncFileSystemDownloaderTest {
     @Mock
     SSMApi mockSsmApi;
 
+    @Mock
+    AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+
     S3SyncFileSystemDownloader sut;
 
     @BeforeEach
     void setUp() {
-        sut = new S3SyncFileSystemDownloader(mockSsmApi, 1);
+        lenient().when(migrationHelperDeploymentService.getFsRestoreDocument()).thenReturn("fs-restore-doc");
+        lenient().when(migrationHelperDeploymentService.getFsRestoreStatusDocument()).thenReturn("fs-restore-status-do");
+        lenient().when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn("i-0123456789");
+
+        sut = new S3SyncFileSystemDownloader(mockSsmApi, migrationHelperDeploymentService, 1);
     }
 
     @Test

@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.aws.ssm;
 
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.util.concurrent.Supplier;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationRequest;
@@ -29,9 +30,11 @@ import java.util.Map;
 public class SSMApi {
 
     private Supplier<SsmClient> clientFactory;
+    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
-    public SSMApi(Supplier<SsmClient> clientFactory) {
+    public SSMApi(Supplier<SsmClient> clientFactory, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.clientFactory = clientFactory;
+        this.migrationHelperDeploymentService = migrationHelperDeploymentService;
     }
 
     /**
@@ -53,10 +56,8 @@ public class SSMApi {
                 .parameters(commandParameters)
                 .timeoutSeconds(600)
                 .comment("command run by Jira DC Migration Assistant")
-                // FIXME: Pending migration stack
-                .outputS3BucketName(System.getProperty("ssmDocumentLoggingBucket", "migration-bucket"))
+                .outputS3BucketName(migrationHelperDeploymentService.getMigrationS3BucketName())
                 .outputS3KeyPrefix("trebuchet-ssm-document-logs")
-                // END FIXME
                 .build();
 
         SendCommandResponse response = client.sendCommand(request);

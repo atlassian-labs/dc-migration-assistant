@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.aws.db.restore;
 
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
@@ -42,11 +43,14 @@ class SsmPsqlDatabaseRestoreServiceTest {
     @Mock
     DatabaseRestoreStageTransitionCallback callback;
 
+    @Mock
+    AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+
     SsmPsqlDatabaseRestoreService sut;
 
     @BeforeEach
     void setUp() {
-        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1);
+        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1, migrationHelperDeploymentService);
     }
 
     @Test
@@ -66,10 +70,14 @@ class SsmPsqlDatabaseRestoreServiceTest {
 
     private void givenCommandCompletesWithStatus(CommandInvocationStatus status) {
         final String mockCommandId = "fake-command";
-        final String defaultEc2Instance = "i-0353cc9a8ad7dafc2";
-        when(ssmApi.runSSMDocument("pending implementation", defaultEc2Instance, Collections.emptyMap())).thenReturn(mockCommandId);
+        final String mockInstance = "i-0353cc9a8ad7dafc2";
+        final String mocument = "ssm-document";
+        when(migrationHelperDeploymentService.getDbRestoreDocument()).thenReturn(mocument);
+        when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn(mockInstance);
 
-        when(ssmApi.getSSMCommand(mockCommandId, defaultEc2Instance)).thenReturn(
+        when(ssmApi.runSSMDocument(mocument, mockInstance, Collections.emptyMap())).thenReturn(mockCommandId);
+
+        when(ssmApi.getSSMCommand(mockCommandId, mockInstance)).thenReturn(
                 (GetCommandInvocationResponse) GetCommandInvocationResponse.builder()
                         .status(status)
                         .sdkHttpResponse(SdkHttpResponse.builder().statusText("it failed").build())

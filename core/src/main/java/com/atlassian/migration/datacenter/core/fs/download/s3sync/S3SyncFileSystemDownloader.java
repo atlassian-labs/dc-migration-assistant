@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.fs.download.s3sync;
 
+import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.ssm.SuccessfulSSMCommandConsumer;
 import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure;
@@ -28,31 +29,28 @@ public class S3SyncFileSystemDownloader {
 
     private static final Logger logger = LoggerFactory.getLogger(S3SyncFileSystemDownloader.class);
 
-    // FIXME: Should be loaded from migration stack. Defaults to a document created by a migration stack in us-east-1
-    private static final String SSM_PLAYBOOK = System.getProperty("com.atlassian.migration.s3sync.documentName", "bpartridge-12-03t15-42-39-migration-helper-SharedHomeDownloadDocument-1C56C88F671YL");
-    // FIXME: Should be loaded from migration stack.
-    private static final String STATUS_SSM_PLAYBOOK = System.getProperty("com.atlassian.migration.s3sync.statusDocmentName", "fake-document");
-    // FIXME: Should be loaded from migration stack. Defaults to an instance deployed by a migration stack in us-east-1
-    private static final String MIGRATION_STACK_INSTANCE = System.getProperty("com.atlassian.migration.instanceId", "i-0353cc9a8ad7dafc2");
-
     private int maxCommandStatusRetries;
 
     private final SSMApi ssmApi;
+    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
-    public S3SyncFileSystemDownloader(SSMApi ssmApi) {
-        this(ssmApi, 10);
+    public S3SyncFileSystemDownloader(SSMApi ssmApi, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+        this(ssmApi, migrationHelperDeploymentService, 10);
     }
 
-    S3SyncFileSystemDownloader(SSMApi ssmApi, int maxCommandStatusRetries) {
+    S3SyncFileSystemDownloader(SSMApi ssmApi, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, int maxCommandStatusRetries) {
         this.ssmApi = ssmApi;
         this.maxCommandStatusRetries = maxCommandStatusRetries;
+        this.migrationHelperDeploymentService = migrationHelperDeploymentService;
     }
 
     public void initiateFileSystemDownload() throws CannotLaunchCommandException {
-        // FIXME: Reload the migration stack instance ID in case instance has gone down during migration
-        String commandID = ssmApi.runSSMDocument(SSM_PLAYBOOK, MIGRATION_STACK_INSTANCE, Collections.emptyMap());
+        String fsRestoreDocument = migrationHelperDeploymentService.getFsRestoreDocument();
+        String migrationHost = getMigrationHostId();
 
-        SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssmApi, commandID, MIGRATION_STACK_INSTANCE);
+        String commandID = ssmApi.runSSMDocument(fsRestoreDocument, migrationHost, Collections.emptyMap());
+
+        SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssmApi, commandID, migrationHost);
 
         try {
             consumer.handleCommandOutput(maxCommandStatusRetries);
@@ -69,9 +67,12 @@ public class S3SyncFileSystemDownloader {
      * @return the status of the S3 sync or null if the status was not able to be retrieved.
      */
     public S3SyncCommandStatus getFileSystemDownloadStatus() {
-        String statusCommandId = ssmApi.runSSMDocument(STATUS_SSM_PLAYBOOK, MIGRATION_STACK_INSTANCE, Collections.emptyMap());
+        String fsRestoreStatusDocument = migrationHelperDeploymentService.getFsRestoreStatusDocument();
+        String migrationHostId = getMigrationHostId();
 
-        SuccessfulSSMCommandConsumer<S3SyncCommandStatus> consumer = new UnmarshalS3SyncStatusSSMCommandConsumer(ssmApi, statusCommandId, MIGRATION_STACK_INSTANCE);
+        String statusCommandId = ssmApi.runSSMDocument(fsRestoreStatusDocument, migrationHostId, Collections.emptyMap());
+
+        SuccessfulSSMCommandConsumer<S3SyncCommandStatus> consumer = new UnmarshalS3SyncStatusSSMCommandConsumer(ssmApi, statusCommandId, migrationHostId);
 
         try {
             return consumer.handleCommandOutput(maxCommandStatusRetries);
@@ -84,8 +85,12 @@ public class S3SyncFileSystemDownloader {
         }
     }
 
-    public static class IndeterminateS3SyncStatusException extends FileSystemMigrationFailure
-    {
+    private String getMigrationHostId() {
+        return migrationHelperDeploymentService.getMigrationHostInstanceId();
+    }
+
+    public static class IndeterminateS3SyncStatusException extends FileSystemMigrationFailure {
+
         IndeterminateS3SyncStatusException(String message) {
             super(message);
         }
