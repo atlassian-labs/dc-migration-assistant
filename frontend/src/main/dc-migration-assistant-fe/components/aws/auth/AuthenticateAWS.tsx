@@ -16,7 +16,7 @@
 
 import React, { FunctionComponent, ReactElement } from 'react';
 import Form, { ErrorMessage, Field, HelperMessage, FormFooter } from '@atlaskit/form';
-import Button, {ButtonGroup} from '@atlaskit/button';
+import Button, { ButtonGroup } from '@atlaskit/button';
 import styled from 'styled-components';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';
@@ -94,9 +94,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             secretAccessKey,
             region: region.value as string,
         };
-        onSubmitCreds(creds)
-            .then(value => console.log(value))
-            .catch();
+        onSubmitCreds(creds);
     };
 
     return (
@@ -164,7 +162,11 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                         'atlassian.migration.datacenter.authenticate.aws.submit'
                                     )}
                                 </CredsSubmitButton>
-                                <CancelMigrationButton appearance="default">Cancel</CancelMigrationButton>
+                                <CancelMigrationButton appearance="default">
+                                    {I18n.getText(
+                                        'atlassian.migration.datacenter.authenticate.aws.cancel'
+                                    )}
+                                </CancelMigrationButton>
                             </ButtonGroup>
                         </FormFooter>
                     </form>
