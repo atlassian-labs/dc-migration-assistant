@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 
 import { AuthenticateAWS, AuthenticateAWSProps } from './AuthenticateAWS';
 
@@ -28,6 +28,7 @@ describe('AWS Authentication page', () => {
     it('should render', () => {
         const { getByText } = render(<AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} />);
 
+        expect(getByText('atlassian.migration.datacenter.step.phrase')).toBeTruthy();
         expect(
             getByText('atlassian.migration.datacenter.authenticate.aws.accessKeyId.label')
         ).toBeTruthy();
@@ -51,5 +52,25 @@ describe('AWS Authentication page', () => {
         );
 
         expect(regionFunCalled).toBeTruthy();
+    });
+
+    it('should not submit credentials when form is empty', () => {
+        let credentialsSubmitted = false;
+        const submitCredentialsCallback = (): Promise<string> => {
+            credentialsSubmitted = true;
+            return Promise.resolve('credentials stored');
+        };
+
+        const { getByTestId } = render(
+            <AuthenticateAWS
+                {...NO_OP_AUTHENTICATION_PAGE_PROPS}
+                onSubmitCreds={submitCredentialsCallback}
+            />
+        );
+
+        const submitButton = getByTestId('awsSecretKeySubmitFormButton');
+        fireEvent.submit(submitButton)
+
+        expect(credentialsSubmitted).toBeFalsy();
     });
 });

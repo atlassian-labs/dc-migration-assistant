@@ -157,7 +157,11 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         </Field>
                         <FormFooter align="start">
                             <ButtonGroup>
-                                <CredsSubmitButton type="submit" appearance="primary">
+                                <CredsSubmitButton
+                                    type="submit"
+                                    appearance="primary"
+                                    testId="awsSecretKeySubmitFormButton"
+                                >
                                     {I18n.getText(
                                         'atlassian.migration.datacenter.authenticate.aws.submit'
                                     )}
