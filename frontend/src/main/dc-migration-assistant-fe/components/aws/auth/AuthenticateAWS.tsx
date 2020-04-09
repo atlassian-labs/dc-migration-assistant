@@ -15,8 +15,8 @@
  */
 
 import React, { FunctionComponent, ReactElement } from 'react';
-import Form, { ErrorMessage, Field, HelperMessage } from '@atlaskit/form';
-import Button from '@atlaskit/button';
+import Form, { ErrorMessage, Field, HelperMessage, FormFooter } from '@atlaskit/form';
+import Button, {ButtonGroup} from '@atlaskit/button';
 import styled from 'styled-components';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';
@@ -47,6 +47,11 @@ export type AuthenticateAWSProps = {
 
 const CredsSubmitButton = styled(Button)`
     margin-top: 10px;
+`;
+
+const CancelMigrationButton = styled(Button)`
+    margin-top: 10px;
+    margin-left: 5px;
 `;
 
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
@@ -89,11 +94,14 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             secretAccessKey,
             region: region.value as string,
         };
-        onSubmitCreds(creds);
+        onSubmitCreds(creds)
+            .then(value => console.log(value))
+            .catch();
     };
 
     return (
         <>
+            <h1>{I18n.getText('atlassian.migration.datacenter.step.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
             <Form onSubmit={submitCreds}>
                 {({ formProps }: any): ReactElement => (
@@ -149,9 +157,16 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                 </>
                             )}
                         </Field>
-                        <CredsSubmitButton type="submit" appearance="primary">
-                            {I18n.getText('atlassian.migration.datacenter.generic.submit')}
-                        </CredsSubmitButton>
+                        <FormFooter align="start">
+                            <ButtonGroup>
+                                <CredsSubmitButton type="submit" appearance="primary">
+                                    {I18n.getText(
+                                        'atlassian.migration.datacenter.authenticate.aws.submit'
+                                    )}
+                                </CredsSubmitButton>
+                                <CancelMigrationButton appearance="default">Cancel</CancelMigrationButton>
+                            </ButtonGroup>
+                        </FormFooter>
                     </form>
                 )}
             </Form>
