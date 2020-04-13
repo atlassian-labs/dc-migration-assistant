@@ -75,7 +75,9 @@ describe('AWS Authentication page', () => {
             await fireEvent.submit(submitButton);
 
             expect(credentialsSubmitted).toBeFalsy();
-            expect(getByText('atlassian.migration.datacenter.authenticate.aws.region.error')).toBeTruthy();
+            expect(
+                getByText('atlassian.migration.datacenter.authenticate.aws.region.error')
+            ).toBeTruthy();
         });
     });
 

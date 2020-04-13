@@ -56,9 +56,7 @@ const CancelMigrationButton = styled(Button)`
 
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
     const { getRegions } = props;
-
-    // This will be replaced by an API call
-    const promiseOptions = (): Promise<Array<OptionType>> => {
+    const regionListPromiseOptions = (): Promise<Array<OptionType>> => {
         return getRegions().then(regions => {
             return regions.map(region => ({ label: region, value: region, key: region }));
         });
@@ -73,7 +71,7 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
             cacheOptions
             defaultOptions
             isSearchable
-            loadOptions={promiseOptions}
+            loadOptions={regionListPromiseOptions}
         />
     );
 };
@@ -93,7 +91,12 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             secretAccessKey,
             region: region.value as string,
         };
-        onSubmitCreds(creds);
+
+        onSubmitCreds(creds)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            .then(value => console.log('route to qs page'))
+            // eslint-disable-next-line no-console
+            .catch(() => console.log('update state to'));
     };
 
     return (

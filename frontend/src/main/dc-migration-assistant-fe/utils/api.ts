@@ -63,4 +63,6 @@ export const callAppRest = (
 export enum RestApiPathConstants {
     awsStackCreateRestPath = `aws/stack/create`,
     awsStackStatusRestPath = `aws/stack/:stackId:/status`,
+    awsCredentialsStorePath = `aws/configure`,
+    awsRegionListPath = `aws/global-infrastructure/regions`,
 }

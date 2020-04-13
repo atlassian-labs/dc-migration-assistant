@@ -17,8 +17,8 @@
 import React, { FunctionComponent } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
-import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 import moment from 'moment';
+import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 
 const dummyStarted = moment();
 
