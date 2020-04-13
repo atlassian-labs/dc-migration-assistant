@@ -15,6 +15,8 @@
  */
 
 const phrases = new Map();
+const AWS_REGION_SELECT_LABEL = 'AWS_REGION_SELECT_LABEL';
+phrases.set('atlassian.migration.datacenter.authenticate.aws.region.label', AWS_REGION_SELECT_LABEL);
 
 export const getPhrase = (phraseId: string) => {
     return phrases.has(phraseId) ? phrases.get(phraseId) : phraseId;

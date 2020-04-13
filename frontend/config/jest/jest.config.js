@@ -23,7 +23,7 @@ const paths = {
 
 module.exports = {
     clearMocks: true,
-    verbose: true,
+    verbose: false,
     roots: [paths.testsRoot],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
     transformIgnorePatterns: ['node_modules/(?!(@atlaskit)/)'],
@@ -36,5 +36,6 @@ module.exports = {
     testMatch: ['**/__tests__/**/*.+(ts|tsx|js)', '**/?(*.)+(spec|test).+(ts|tsx|js)'],
     transform: {
         '^.+\\.(ts|tsx)$': 'ts-jest',
-    }
+    },
+    testEnvironment: 'jest-environment-jsdom-sixteen',
 };

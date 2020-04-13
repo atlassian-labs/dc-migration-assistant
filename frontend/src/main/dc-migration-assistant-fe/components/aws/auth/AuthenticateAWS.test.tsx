@@ -15,14 +15,19 @@
  */
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
+import selectEvent from 'react-select-event';
 
-import { AuthenticateAWS, AuthenticateAWSProps } from './AuthenticateAWS';
+import { act } from 'react-dom/test-utils';
+
+import { AuthenticateAWS, AuthenticateAWSProps, AWSCreds } from './AuthenticateAWS';
 
 const NO_OP_AUTHENTICATION_PAGE_PROPS: AuthenticateAWSProps = {
     onSubmitCreds: () => Promise.resolve('submitted'),
     getRegions: () => Promise.resolve(['my-fake-region-1', 'my-fake-region-2']),
 };
+
+const AWS_REGION_SELECT_LABEL = 'AWS_REGION_SELECT_LABEL';
 
 describe('AWS Authentication page', () => {
     it('should render', () => {
@@ -35,9 +40,7 @@ describe('AWS Authentication page', () => {
         expect(
             getByText('atlassian.migration.datacenter.authenticate.aws.secretAccessKey.label')
         ).toBeTruthy();
-        expect(
-            getByText('atlassian.migration.datacenter.authenticate.aws.region.label')
-        ).toBeTruthy();
+        expect(getByText(AWS_REGION_SELECT_LABEL)).toBeTruthy();
     });
 
     it('should use the getRegions function to query AWS regions', () => {
@@ -54,23 +57,59 @@ describe('AWS Authentication page', () => {
         expect(regionFunCalled).toBeTruthy();
     });
 
-    it('should not submit credentials when form is empty', () => {
+    it('should not submit credentials when form is empty', async () => {
         let credentialsSubmitted = false;
         const submitCredentialsCallback = (): Promise<string> => {
             credentialsSubmitted = true;
             return Promise.resolve('credentials stored');
         };
+        await act(async () => {
+            const { getByTestId } = render(
+                <AuthenticateAWS
+                    {...NO_OP_AUTHENTICATION_PAGE_PROPS}
+                    onSubmitCreds={submitCredentialsCallback}
+                />
+            );
 
-        const { getByTestId } = render(
-            <AuthenticateAWS
-                {...NO_OP_AUTHENTICATION_PAGE_PROPS}
-                onSubmitCreds={submitCredentialsCallback}
-            />
-        );
+            const submitButton = getByTestId('awsSecretKeySubmitFormButton');
+            await fireEvent.submit(submitButton);
 
-        const submitButton = getByTestId('awsSecretKeySubmitFormButton');
-        fireEvent.submit(submitButton)
+            expect(credentialsSubmitted).toBeFalsy();
+        });
+    });
 
-        expect(credentialsSubmitted).toBeFalsy();
+    it('should submit credentials when form is complete', async () => {
+        let credentialsSubmitted = false;
+        const submitCredentialsCallback = (awsCreds: AWSCreds): Promise<string> => {
+            expect(awsCreds.accessKeyID).toBe('akia');
+            expect(awsCreds.secretAccessKey).toBe('asak');
+            expect(awsCreds.region).toBe('my-fake-region-1');
+            credentialsSubmitted = true;
+            return Promise.resolve('credentials stored');
+        };
+
+        await act(async () => {
+            const { getByTestId, container, getByLabelText } = render(
+                <AuthenticateAWS
+                    {...NO_OP_AUTHENTICATION_PAGE_PROPS}
+                    onSubmitCreds={submitCredentialsCallback}
+                />
+            );
+
+            const secretKeyInput = container.querySelector('[name="secretAccessKey"]');
+            // TODO: Unsure why this is required; but not adding this will only register the change event for the last fireevent invocation only.
+            await fireEvent.reset(secretKeyInput);
+            await fireEvent.change(secretKeyInput, { target: { value: 'asak' } });
+
+            const regionInput = getByLabelText(AWS_REGION_SELECT_LABEL, { selector: 'input' });
+            await selectEvent.select(regionInput, 'my-fake-region-1');
+
+            const accessKeyInput = container.querySelector('[name="accessKeyID"]');
+            await fireEvent.change(accessKeyInput, { target: { value: 'akia' } });
+
+            const submitButton = getByTestId('awsSecretKeySubmitFormButton');
+            await fireEvent.submit(submitButton);
+            expect(credentialsSubmitted).toBeTruthy();
+        });
     });
 });

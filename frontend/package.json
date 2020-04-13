@@ -61,7 +61,7 @@
     },
     "devDependencies": {
         "@atlassian/i18n-properties-loader": "^0.7.3",
-        "@testing-library/jest-dom": "^4.2.3",
+        "@testing-library/jest-dom": "^5.4.0",
         "@typescript-eslint/eslint-plugin": "^2.9.0",
         "@typescript-eslint/parser": "^2.9.0",
         "babel-eslint": "^10.0.3",
@@ -80,8 +80,10 @@
         "eslint-plugin-react": "^7.16.0",
         "eslint-plugin-react-hooks": "^2.2.0",
         "jest": "^24.9.0",
+        "jest-environment-jsdom-sixteen": "^1.0.3",
         "prettier": "^1.18.2",
         "react-hot-loader": "^4.12.11",
+        "react-select-event": "^4.1.4",
         "typescript": "^3.6.3"
     },
     "scripts": {
