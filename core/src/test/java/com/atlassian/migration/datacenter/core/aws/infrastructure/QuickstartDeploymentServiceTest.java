@@ -29,14 +29,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackResource;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +58,32 @@ class QuickstartDeploymentServiceTest {
         put("DBPassword", TEST_DB_PASSWORD);
     }};
 
+    static final String TEST_SG = "test-sg";
+    static final String TEST_DB_ENDPOINT = "my-db.com";
+    static final List<Output> MOCK_OUTPUTS = new LinkedList<Output>() {{
+        add(Output.builder().outputKey("SGname").outputValue(TEST_SG).build());
+        add(Output.builder().outputKey("DBEndpointAddress").outputValue(TEST_DB_ENDPOINT).build());
+    }};
+
+    static final String TEST_SUBNET_1 = "subnet-123";
+    static final String TEST_SUBNET_2 = "subnet-456";
+    static final String TEST_VPC = "vpc-01234";
+    static final HashMap<String, String> MOCK_EXPORTS = new HashMap<String, String>() {{
+        put("ATL-PriNets", TEST_SUBNET_1 + "," + TEST_SUBNET_2);
+        put("ATL-VPCID", TEST_VPC);
+    }};
+
+    static final String TEST_JIRA = "my-jira-stack";
+    static final HashMap<String, StackResource> MOCK_ROOT_RESOURCES = new HashMap<String, StackResource>() {{
+        put("JiraDCStack", StackResource.builder().physicalResourceId(TEST_JIRA).build());
+    }};
+
+    static final String TEST_EFS = "fs-1234";
+    static final HashMap<String, StackResource> MOCK_JIRA_RESOURCES = new HashMap<String, StackResource>() {{
+        put("ElasticFileSystem", StackResource.builder().physicalResourceId(TEST_EFS).build());
+
+    }};
+
     @Mock
     CfnApi mockCfnApi;
 
@@ -58,6 +92,9 @@ class QuickstartDeploymentServiceTest {
 
     @Mock
     TargetDbCredentialsStorageService dbCredentialsStorageService;
+
+    @Mock
+    AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
     @InjectMocks
     QuickstartDeploymentService deploymentService;
@@ -74,6 +111,11 @@ class QuickstartDeploymentServiceTest {
             return null;
         }).when(dbCredentialsStorageService).storeCredentials(anyString());
         when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
+
+        lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().outputs(MOCK_OUTPUTS).build()));
+        lenient().when(mockCfnApi.getExports()).thenReturn(MOCK_EXPORTS);
+        lenient().when(mockCfnApi.getStackResources(STACK_NAME)).thenReturn(MOCK_ROOT_RESOURCES);
+        lenient().when(mockCfnApi.getStackResources(TEST_JIRA)).thenReturn(MOCK_JIRA_RESOURCES);
     }
 
     @Test
@@ -133,6 +175,28 @@ class QuickstartDeploymentServiceTest {
         Thread.sleep(100);
 
         verify(mockMigrationService).error();
+    }
+
+    @Test
+    void shouldDeployMigrationStackWithApplicationStackOutputsAndResources() throws InvalidMigrationStageError, InterruptedException {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_COMPLETE);
+        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
+
+        deploySimpleStack();
+
+        Thread.sleep(100);
+
+        Map<String, String> expectedMigrationStackParams = new HashMap<String, String>() {{
+            put("NetworkPrivateSubnet", TEST_SUBNET_1);
+            put("EFSFileSystemId", TEST_EFS);
+            put("EFSSecurityGroup", TEST_SG);
+            put("RDSSecurityGroup", TEST_SG);
+            put("RDSEndpoint", TEST_DB_ENDPOINT);
+            put("HelperInstanceType", "c5.large");
+            put("HelperVpcId", TEST_VPC);
+        }};
+
+        verify(migrationHelperDeploymentService).deployMigrationInfrastructure(expectedMigrationStackParams);
     }
 
     private void deploySimpleStack() throws InvalidMigrationStageError {

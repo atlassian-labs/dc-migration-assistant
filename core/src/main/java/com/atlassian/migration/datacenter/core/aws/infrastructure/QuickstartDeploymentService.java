@@ -23,11 +23,17 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackResource;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class QuickstartDeploymentService extends CloudformationDeploymentService implements ApplicationDeploymentService {
 
@@ -36,12 +42,16 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
     private final MigrationService migrationService;
     private final TargetDbCredentialsStorageService dbCredentialsStorageService;
+    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    private final CfnApi cfnApi;
 
-    public QuickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService) {
+    public QuickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         super(cfnApi);
 
+        this.cfnApi = cfnApi;
         this.migrationService = migrationService;
         this.dbCredentialsStorageService = dbCredentialsStorageService;
+        this.migrationHelperDeploymentService = migrationHelperDeploymentService;
     }
 
     /**
@@ -78,8 +88,49 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         try {
             logger.debug("application stack deployment succeeded");
             migrationService.transition(MigrationStage.PROVISION_MIGRATION_STACK);
+
+            final String applicationStackName = migrationService.getCurrentContext().getApplicationDeploymentId();
+            Optional<Stack> maybeStack = cfnApi.getStack(applicationStackName);
+            if (!maybeStack.isPresent()) {
+                throw new InfrastructureDeploymentError("could not get details of application stack after deploying it");
+            }
+
+            Stack applicationStack = maybeStack.get();
+            Map<String, String> applicationStackOutputsMap = new HashMap<>();
+            applicationStack.outputs().forEach(output -> applicationStackOutputsMap.put(output.outputKey(), output.outputValue()));
+
+            String exportPrefix = applicationStack.parameters().stream()
+                    .filter(parameter -> parameter.parameterKey().equals("ExportPrefix"))
+                    .findFirst()
+                    .map(Parameter::parameterValue)
+                    .orElse("ATL-");
+
+            Map<String, String> cfnExports = cfnApi.getExports();
+
+            Map<String, StackResource> applicationResources = cfnApi.getStackResources(applicationStackName);
+
+            StackResource jiraStack = applicationResources.get("JiraDCStack");
+            String jiraStackName = jiraStack.physicalResourceId();
+
+            Map<String, StackResource> jiraResources = cfnApi.getStackResources(jiraStackName);
+            String efsId = jiraResources.get("ElasticFileSystem").physicalResourceId();
+
+
+            HashMap<String, String> migrationStackParams = new HashMap<String, String>() {{
+               put("NetworkPrivateSubnet", cfnExports.get(exportPrefix + "PriNets").split(",")[0]);
+               put("EFSFileSystemId", efsId);
+               put("EFSSecurityGroup", applicationStackOutputsMap.get("SGname"));
+               put("RDSSecurityGroup", applicationStackOutputsMap.get("SGname"));
+               put("RDSEndpoint", applicationStackOutputsMap.get("DBEndpointAddress"));
+               put("HelperInstanceType", "c5.large");
+               put("HelperVpcId", cfnExports.get(exportPrefix + "VPCID"));
+            }};
+
+            migrationHelperDeploymentService.deployMigrationInfrastructure(migrationStackParams);
+
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
+            migrationService.error();
         }
     }
 

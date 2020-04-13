@@ -68,6 +68,7 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
                 <>
                     <HelperMessage>{Description}</HelperMessage>
                     <AsyncSelect
+                        className="az-select"
                         cacheOptions
                         defaultOptions
                         isMulti

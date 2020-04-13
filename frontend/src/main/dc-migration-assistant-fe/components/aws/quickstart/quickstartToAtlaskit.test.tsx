@@ -21,7 +21,7 @@ import { QuickstartParameter } from './QuickStartTypes';
 import { createQuickstartFormField } from './quickstartToAtlaskit';
 
 const TEST_PARAM_KEY = 'TestParam';
-const TEST_PARAM_LABEL = 'Test Param';
+const TEST_PARAM_LABEL = 'RANDOM_TEST_PARAMETER';
 const TEST_PARAM_DESCRIPTION = 'a test parameter';
 const TEST_STRING_DEFAULT = 'test default';
 const TEST_NUMBER_DEFAULT = 12;
@@ -126,9 +126,9 @@ describe('Quick Start to Atlaskit Input Converter', () => {
     });
 
     it('Should create multi select input for AZ parameter', () => {
-        const { getByLabelText } = render(createQuickstartFormField(AZ_INPUT));
+        const { container } = render(createQuickstartFormField(AZ_INPUT));
 
-        expect(getByLabelText(TEST_PARAM_LABEL)).toMatchSnapshot();
+        expect(container.querySelector('az-select')).toMatchSnapshot();
     });
 
     it('Should create a password input for NoEcho parameters', () => {

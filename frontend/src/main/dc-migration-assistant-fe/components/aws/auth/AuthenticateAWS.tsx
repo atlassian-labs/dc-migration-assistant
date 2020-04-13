@@ -64,13 +64,12 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
         });
     };
 
-    const LargeAsyncSelect = styled(AsyncSelect)`
-        width: 480.4px;
-    `;
-
     return (
-        <LargeAsyncSelect
+        <AsyncSelect
             {...props}
+            styles={{
+                control: base => ({ ...base, width: '480.4px' }),
+            }}
             cacheOptions
             defaultOptions
             isSearchable

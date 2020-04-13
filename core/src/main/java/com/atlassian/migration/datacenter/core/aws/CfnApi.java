@@ -17,20 +17,29 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesRequest;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse;
+import software.amazon.awssdk.services.cloudformation.model.ListExportsRequest;
+import software.amazon.awssdk.services.cloudformation.model.ListExportsResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
+import software.amazon.awssdk.services.cloudformation.model.StackResource;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +50,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class CfnApi {
+    private static final Logger logger = LoggerFactory.getLogger(CfnApi.class);
+
     private AwsCredentialsProvider credentialsProvider;
     private RegionService regionManager;
 
@@ -90,6 +101,7 @@ public class CfnApi {
     }
 
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) {
+        logger.trace("received request to create stack {} from template {}", stackName, templateUrl);
         Set<Parameter> parameters = params.entrySet()
                 .stream()
                 .map(e -> Parameter.builder().parameterKey(e.getKey()).parameterValue(e.getValue()).build())
@@ -99,7 +111,6 @@ public class CfnApi {
                 .key("created_by")
                 .value("atlassian-dcmigration")
                 .build();
-
         CreateStackRequest createStackRequest = CreateStackRequest.builder()
                 .templateURL(templateUrl)
                 .capabilities(Capability.CAPABILITY_AUTO_EXPAND, Capability.CAPABILITY_IAM)
@@ -109,13 +120,61 @@ public class CfnApi {
                 .build();
 
         try {
-            String stackId = this.getClient()
+            CreateStackResponse response = this.getClient()
                     .createStack(createStackRequest)
-                    .thenApply(CreateStackResponse::stackId)
                     .get();
-            return Optional.ofNullable(stackId);
+
+            if (!response.sdkHttpResponse().isSuccessful()) {
+                logger.error("create stack {} http response failed with reason: {}", stackName, response.sdkHttpResponse().statusText());
+                return Optional.empty();
+            }
+            logger.info("stack {} creation succeeded", stackName);
+            return Optional.ofNullable(response.stackId());
         } catch (InterruptedException | ExecutionException e) {
+            logger.error("Error deploying cloudformation stack {}", stackName, e);
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Gets all Cloudformation exports. If there is an error retrieving the exports, an empty map will be returned
+     * @return A map (of export name to export value) containing all cloudformation exports for the current region in the current account.
+     */
+    public Map<String, String> getExports() {
+        CompletableFuture<ListExportsResponse> asyncResponse = getClient().listExports();
+
+        try {
+            ListExportsResponse response = asyncResponse.get();
+            HashMap<String, String> exportsMap = new HashMap<>();
+            response.exports().forEach(export -> exportsMap.put(export.name(), export.value()));
+            return exportsMap;
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Unable to get cloudformation exports", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * Gets all resources for the given stack. If there is an error retrieving the resources, an empty map will be returned
+     * @param stackName the name of the stack to get the resources of
+     * @return a map of the logical resource ID to the resource for all resources in the given stack
+     */
+    public Map<String, StackResource> getStackResources(String stackName) {
+        DescribeStackResourcesRequest request = DescribeStackResourcesRequest.builder()
+                .stackName(stackName)
+                .build();
+
+        CompletableFuture<DescribeStackResourcesResponse> asyncResponse = getClient().describeStackResources(request);
+
+        try {
+            DescribeStackResourcesResponse response = asyncResponse.get();
+            Map<String, StackResource> resources = new HashMap<>();
+
+            response.stackResources().forEach(resource -> resources.put(resource.logicalResourceId(), resource));
+            return resources;
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Error getting stack {} resources", stackName, e);
+            return Collections.emptyMap();
         }
     }
 
@@ -132,6 +191,7 @@ public class CfnApi {
             Stack stack = response.stacks().get(0);
             return Optional.ofNullable(stack);
         } catch (CompletionException | CancellationException e) {
+            logger.error("Error getting stack {}", stackName, e);
             return Optional.empty();
         }
     }

@@ -43,7 +43,7 @@ exports[`Quick Start to Atlaskit Input Converter Should create a select input wh
 exports[`Quick Start to Atlaskit Input Converter Should create a toggle input when there are two allowed values that are boolean 1`] = `
 <input
   checked=""
-  class="sc-fzoLsD gRKRqN"
+  class="sc-iwsKbI bCvnPm"
   id="uid5"
   name="TestParam"
   type="checkbox"
@@ -51,96 +51,7 @@ exports[`Quick Start to Atlaskit Input Converter Should create a toggle input wh
 />
 `;
 
-exports[`Quick Start to Atlaskit Input Converter Should create multi select input for AZ parameter 1`] = `
-<div
-  class=" css-1sptkt-container"
-  id="TestParam-uid7"
->
-  <div
-    class=" css-5zed9i-control"
-  >
-    <div
-      class=" css-1b6odlt"
-    >
-      <div
-        class=" css-ypi1dq-placeholder"
-        style="opacity: 1; transition: opacity 260ms;"
-      >
-        Select...
-      </div>
-      <input
-        class="css-62g3xt-dummyInput"
-        id="react-select-3-input"
-        readonly=""
-        tabindex="0"
-        value=""
-      />
-    </div>
-    <div
-      class=" css-xji0fq-IndicatorsContainer"
-    >
-      <div
-        aria-hidden="true"
-        class="css-1r2gs9k-loadingIndicator"
-      >
-        <span
-          class="sc-AxgMl cKcSCL"
-        >
-          <span
-            class="sc-AxhCb hGmQpe"
-            size="16"
-          >
-            <svg
-              class="sc-AxhUy cAxFuU"
-              focusable="false"
-              height="16"
-              size="16"
-              viewBox="0 0 16 16"
-              width="16"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="8"
-                cy="8"
-                r="7"
-              />
-            </svg>
-          </span>
-        </span>
-      </div>
-      <div
-        aria-hidden="true"
-        class=" css-gg6ksl-indicatorContainer"
-      >
-        <span
-          aria-label="open"
-          class="sc-AxjAm jaeKPl"
-          role="img"
-        >
-          <svg
-            focusable="false"
-            height="24"
-            role="presentation"
-            viewBox="0 0 24 24"
-            width="24"
-          >
-            <path
-              d="M6.744 8.744a1.053 1.053 0 0 0 0 1.49l4.547 4.557a1 1 0 0 0 1.416 0l4.55-4.558a1.051 1.051 0 1 0-1.488-1.488l-3.77 3.776-3.768-3.776a1.051 1.051 0 0 0-1.487 0z"
-              fill="currentColor"
-            />
-          </svg>
-        </span>
-      </div>
-    </div>
-  </div>
-  <div>
-    <input
-      name="TestParam"
-      type="hidden"
-    />
-  </div>
-</div>
-`;
+exports[`Quick Start to Atlaskit Input Converter Should create multi select input for AZ parameter 1`] = `null`;
 
 exports[`Quick Start to Atlaskit Input Converter Should render String inputs 1`] = `
 <input
