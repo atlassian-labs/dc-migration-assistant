@@ -64,7 +64,7 @@ describe('AWS Authentication page', () => {
             return Promise.resolve('credentials stored');
         };
         await act(async () => {
-            const { getByTestId } = render(
+            const { getByTestId, getByText } = render(
                 <AuthenticateAWS
                     {...NO_OP_AUTHENTICATION_PAGE_PROPS}
                     onSubmitCreds={submitCredentialsCallback}
@@ -75,6 +75,7 @@ describe('AWS Authentication page', () => {
             await fireEvent.submit(submitButton);
 
             expect(credentialsSubmitted).toBeFalsy();
+            expect(getByText('atlassian.migration.datacenter.authenticate.aws.region.error')).toBeTruthy();
         });
     });
 
