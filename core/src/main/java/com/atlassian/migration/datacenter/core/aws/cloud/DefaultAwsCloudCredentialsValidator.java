@@ -41,7 +41,7 @@ public class DefaultAwsCloudCredentialsValidator implements CloudCredentialsVali
         try {
             String userId = callerIdentity.userId();
             String userIdBase64 = Md5Utils.md5AsBase64(userId.getBytes());
-            logger.debug("Credentials validation completed successfully for user - {}", userIdBase64);
+            logger.debug("Credentials validation completed successfully for user (MD5, base64 encoded) - {}", userIdBase64);
         } catch (Exception e) {
             logger.debug("Error while computing md5 of user ID. Ignoring this error", e);
         }
