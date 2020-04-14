@@ -66,6 +66,7 @@ const AwsAuthErrorContainer = styled.div`
     position: fixed;
     top: 70px;
     left: 75%;
+    right: 1%;
     overflow: inherit;
 `;
 
