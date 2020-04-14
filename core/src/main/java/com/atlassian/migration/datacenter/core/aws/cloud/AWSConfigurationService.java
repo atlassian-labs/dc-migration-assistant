@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.cloud.CloudProviderConfigurationService;
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +33,13 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
     private final WriteCredentialsService writeCredentialsService;
     private final RegionService regionService;
     private final MigrationService migrationService;
+    private CloudCredentialsValidator cloudCredentialsValidator;
 
-    public AWSConfigurationService(WriteCredentialsService writeCredentialsService, RegionService regionService, MigrationService migrationService) {
+    public AWSConfigurationService(WriteCredentialsService writeCredentialsService, RegionService regionService, MigrationService migrationService, CloudCredentialsValidator cloudCredentialsValidator) {
         this.writeCredentialsService = writeCredentialsService;
         this.regionService = regionService;
         this.migrationService = migrationService;
+        this.cloudCredentialsValidator = cloudCredentialsValidator;
     }
 
     /**
@@ -48,12 +51,15 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
      * @throws InvalidMigrationStageError when not in {@link MigrationStage#AUTHENTICATION}
      */
     @Override
-    public void configureCloudProvider(String entity, String secret, String geography) throws InvalidMigrationStageError
-    {
+    public void configureCloudProvider(String entity, String secret, String geography) throws InvalidMigrationStageError, InvalidCredentialsException {
         final MigrationStage currentStage = migrationService.getCurrentStage();
         if (!currentStage.equals(MigrationStage.AUTHENTICATION)) {
             logger.error("tried to configure AWS when in invalid stage {}", currentStage);
             throw new InvalidMigrationStageError("expected to be in stage " + MigrationStage.AUTHENTICATION + " but was in " + currentStage);
+        }
+
+        if (!this.cloudCredentialsValidator.validate(entity, secret)) {
+            throw new InvalidCredentialsException("At least one of supplied access key and secret key are invalid");
         }
 
         try {

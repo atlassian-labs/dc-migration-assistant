@@ -21,10 +21,11 @@ import com.atlassian.migration.datacenter.core.aws.region.InvalidAWSRegionExcept
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -49,12 +50,15 @@ class AWSConfigurationServiceTest {
     @Mock
     MigrationService mockMigrationService;
 
-    @InjectMocks
     AWSConfigurationService sut;
 
+    @BeforeEach
+    void setUp() {
+        sut = new AWSConfigurationService(mockCredentialsWriter, mockRegionService, mockMigrationService, (accessKeyId, secretAccessKey) -> true);
+    }
+
     @Test
-    void shouldStoreCredentials() throws InvalidMigrationStageError
-    {
+    void shouldStoreCredentials() throws InvalidMigrationStageError, InvalidCredentialsException {
         mockValidMigration();
 
         final String username = "username";
@@ -66,7 +70,7 @@ class AWSConfigurationServiceTest {
     }
 
     @Test
-    void shouldStoreRegion() throws InvalidAWSRegionException, InvalidMigrationStageError {
+    void shouldStoreRegion() throws InvalidAWSRegionException, InvalidMigrationStageError, InvalidCredentialsException {
         mockValidMigration();
 
         final String region = "region";
@@ -81,12 +85,19 @@ class AWSConfigurationServiceTest {
         assertThrows(InvalidMigrationStageError.class, () -> sut.configureCloudProvider("garbage", "garbage", "garbage"));
     }
 
+    @Test
+    void shouldRaiseAnErrorWhenCredentialsAreInvalid() {
+        mockValidMigration();
+        sut = new AWSConfigurationService(mockCredentialsWriter, mockRegionService, mockMigrationService, (accessKeyId, secretAccessKey) -> false);
+        assertThrows(InvalidCredentialsException.class, () -> sut.configureCloudProvider("garbage", "garbage", "garbage"));
+    }
+
     private void mockValidMigration() {
         when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.AUTHENTICATION);
     }
 
     @Test
-    void shouldTransitionToProvisionApplicationStageWhenSuccessful() throws InvalidMigrationStageError {
+    void shouldTransitionToProvisionApplicationStageWhenSuccessful() throws InvalidMigrationStageError, InvalidCredentialsException {
         mockValidMigration();
 
         sut.configureCloudProvider("garbage", "garbage", "garbage");
@@ -104,10 +115,9 @@ class AWSConfigurationServiceTest {
         try {
             sut.configureCloudProvider("garbage", "garbage", testRegion);
             fail();
-        } catch (RuntimeException rte) {
-            assertEquals(InvalidAWSRegionException.class, rte.getCause().getClass());
+        } catch (Exception ex) {
+            assertEquals(InvalidAWSRegionException.class, ex.getCause().getClass());
             verify(mockMigrationService, never()).transition(any());
         }
     }
-
 }

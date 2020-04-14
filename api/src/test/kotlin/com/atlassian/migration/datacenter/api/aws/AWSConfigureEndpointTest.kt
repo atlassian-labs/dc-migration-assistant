@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.api.aws.AWSConfigureEndpoint.AWSConfigureWebObject
 import com.atlassian.migration.datacenter.core.aws.cloud.AWSConfigurationService
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import io.mockk.MockKAnnotations
 import io.mockk.confirmVerified
@@ -73,5 +74,20 @@ internal class AWSConfigureEndpointTest {
 
         assertEquals(Response.Status.CONFLICT.statusCode, response.status)
 
+    }
+
+    @Test
+    fun shouldReturnFailedWhenInvalidCredentialsAreSupplied() {
+        val payload = AWSConfigureWebObject()
+        payload.accessKeyId = "accessKeyId"
+        payload.secretAccessKey = "secretKey"
+        payload.region = "us-east-1"
+        val errorMessage = "suppliedCredentialsAreInvalid"
+        every { configurationService.configureCloudProvider(any(), any(), any()) } throws InvalidCredentialsException(errorMessage)
+
+        val response = sut.storeAWSCredentials(payload)
+
+        assertEquals(Response.Status.CONFLICT.statusCode, response.status)
+        assertEquals(errorMessage, response.entity)
     }
 }
