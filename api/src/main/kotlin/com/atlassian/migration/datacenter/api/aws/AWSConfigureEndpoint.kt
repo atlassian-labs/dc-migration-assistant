@@ -16,6 +16,7 @@
 package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.core.aws.cloud.AWSConfigurationService
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsException
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import javax.ws.rs.Consumes
@@ -31,21 +32,26 @@ class AWSConfigureEndpoint(private val awsConfigurationService: AWSConfiguration
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun storeAWSCredentials(configure: AWSConfigureWebObject?): Response {
-        try {
+        return try {
             configure?.let {
                 awsConfigurationService.configureCloudProvider(
-                    configure.accessKeyId,
-                    configure.secretAccessKey,
-                    configure.region
+                        configure.accessKeyId,
+                        configure.secretAccessKey,
+                        configure.region
                 )
             }
-        } catch (invalidMigrationStageError: InvalidMigrationStageError) {
-            return Response
-                .status(Response.Status.CONFLICT)
-                .entity(invalidMigrationStageError.message)
-                .build()
+            Response.noContent().build()
+        } catch (e: InvalidMigrationStageError) {
+            Response
+                    .status(Response.Status.CONFLICT)
+                    .entity(e.message)
+                    .build()
+        } catch (e: InvalidCredentialsException) {
+            Response
+                    .status(Response.Status.CONFLICT)
+                    .entity(e.message)
+                    .build()
         }
-        return Response.noContent().build()
     }
 
     @JsonAutoDetect

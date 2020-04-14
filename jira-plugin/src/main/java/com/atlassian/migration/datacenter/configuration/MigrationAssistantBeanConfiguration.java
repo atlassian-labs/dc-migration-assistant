@@ -29,6 +29,7 @@ import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth;
 import com.atlassian.migration.datacenter.core.aws.auth.ReadCredentialsService;
 import com.atlassian.migration.datacenter.core.aws.auth.WriteCredentialsService;
 import com.atlassian.migration.datacenter.core.aws.cloud.AWSConfigurationService;
+import com.atlassian.migration.datacenter.core.aws.cloud.DefaultAwsCloudCredentialsValidator;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchivalService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArchiveStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseArtifactS3UploadService;
@@ -228,7 +229,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public AWSConfigurationService awsConfigurationService(WriteCredentialsService writeCredentialsService, RegionService regionService, MigrationService migrationService) {
-        return new AWSConfigurationService(writeCredentialsService, regionService, migrationService);
+        return new AWSConfigurationService(writeCredentialsService, regionService, migrationService, new DefaultAwsCloudCredentialsValidator());
     }
 
     @Bean
