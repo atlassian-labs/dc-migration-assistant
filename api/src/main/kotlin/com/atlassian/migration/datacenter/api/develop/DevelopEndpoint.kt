@@ -20,6 +20,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import javax.ws.rs.Consumes
+import javax.ws.rs.DELETE
 import javax.ws.rs.PUT
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
@@ -39,10 +40,7 @@ class DevelopEndpoint(private val migrationService: MigrationService, private va
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun setMigrationStage(targetStage: MigrationStage): Response {
-        val isProfileEnabled =
-            environment.activeProfiles.any { it.equals(ALLOW_ANY_TRANSITION_PROFILE, ignoreCase = true) }
-
-        return if (!isProfileEnabled) {
+        return if (!isProfileEnabled()) {
             Response.status(Response.Status.NOT_FOUND).build()
         } else {
             try {
@@ -58,5 +56,21 @@ class DevelopEndpoint(private val migrationService: MigrationService, private va
                     .build()
             }
         }
+    }
+
+    @DELETE
+    @Path("/migration/reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun resetMigrations(): Response {
+        return if (!isProfileEnabled()) {
+            Response.status(Response.Status.NOT_FOUND).build()
+        } else {
+            migrationService.deleteMigrations()
+            return Response.ok("Reset migration status").build()
+        }
+    }
+
+    private fun isProfileEnabled(): Boolean {
+        return environment.activeProfiles.any { it.equals(ALLOW_ANY_TRANSITION_PROFILE, ignoreCase = true) }
     }
 }

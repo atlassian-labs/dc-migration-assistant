@@ -29,7 +29,7 @@ The frontend is built on a stack of:
 * [styled components](https://styled-components.com/)
 * Built with [Webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/)
 
-In the project directory, you can run:
+In the `frontend` directory, you can run:
 
 ##### `yarn start`
 
@@ -37,7 +37,7 @@ It builds the frontend and puts it in the watch mode with hot reload.
 In other words, if you have the whole plugin and an instance already working, 
 this will enable you to make quick changes with instant preview.
 
-Go to `http://localhost:3333` to run the frontend without Jira
+Go to `http://localhost:3333/plugins/servlet/dc-migration-assistant` to run the frontend without Jira.
 
 If you want to test in-app, run `mvn amps:run --product [jira|refapp|confluence]` while the dev server is running
 

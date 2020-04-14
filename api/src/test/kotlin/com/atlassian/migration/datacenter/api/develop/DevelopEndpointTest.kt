@@ -83,4 +83,18 @@ internal class DevelopEndpointTest {
         )
         verify(exactly = 0) { migrationService.transition(any()) }
     }
+
+    @Test
+    fun shouldResetMigrations() {
+        every { environment.activeProfiles } returns arrayOf(DevelopEndpoint.ALLOW_ANY_TRANSITION_PROFILE)
+        every { migrationService.deleteMigrations() } just Runs
+
+        val response = endpoint.resetMigrations()
+
+        assertEquals(
+            Response.Status.OK.statusCode,
+            response.status
+        )
+        verify { migrationService.deleteMigrations() }
+    }
 }

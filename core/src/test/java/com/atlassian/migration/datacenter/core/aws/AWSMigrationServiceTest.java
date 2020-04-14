@@ -84,8 +84,7 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void shouldTransitionWhenSourceStageIsCurrentStage() throws InvalidMigrationStageError
-    {
+    public void shouldTransitionWhenSourceStageIsCurrentStage() throws InvalidMigrationStageError {
         initializeAndCreateSingleMigrationWithStage(AUTHENTICATION);
         assertEquals(AUTHENTICATION, sut.getCurrentStage());
 
@@ -104,8 +103,7 @@ public class AWSMigrationServiceTest {
     }
 
     @Test
-    public void shouldCreateMigrationInNotStarted() throws MigrationAlreadyExistsException
-    {
+    public void shouldCreateMigrationInNotStarted() throws MigrationAlreadyExistsException {
         Migration migration = sut.createMigration();
 
         assertEquals(NOT_STARTED, migration.getStage());
@@ -189,8 +187,24 @@ public class AWSMigrationServiceTest {
         assertEquals(newDeploymentId, sut.getCurrentMigration().getContext().getApplicationDeploymentId());
     }
 
+    @Test
+    public void shouldDeleteAllMigrationsAndAssociatedContexts() throws Exception {
+        sut.createMigration();
+        assertNumberOfMigrations(1);
+        assertNumberOfMigrationContexts(1);
+
+        sut.deleteMigrations();
+
+        assertNumberOfMigrations(0);
+        assertNumberOfMigrationContexts(0);
+    }
+
     private void assertNumberOfMigrations(int i) {
         assertEquals(i, ao.find(Migration.class).length);
+    }
+
+    private void assertNumberOfMigrationContexts(int i) {
+        assertEquals(i, ao.find(MigrationContext.class).length);
     }
 
     private Migration initializeAndCreateSingleMigrationWithStage(MigrationStage stage) {

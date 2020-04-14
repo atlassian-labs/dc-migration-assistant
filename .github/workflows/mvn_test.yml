@@ -82,3 +82,30 @@ jobs:
             grep -E '"type":"INSTALL".*"statusCode":200' install.log
             exit $?
           fi
+      - name: Checkout code
+        if: github.ref == env.DOGFOODING_REF
+        uses: actions/checkout@v2
+      - name: Cache maven repository
+        if: github.ref == env.DOGFOODING_REF
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-m2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Setup Java ${{ matrix.java }}
+        if: github.ref == env.DOGFOODING_REF
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Test dogfooding REST endoints
+        if: github.ref == env.DOGFOODING_REF
+        env:
+          JIRA_BASE_URL: ${{ secrets.DOGFOODING_URL }}
+          JIRA_USERNAME: ${{ secrets.DOGFOODING_USER }}
+          JIRA_PASSWORD: ${{ secrets.DOGFOODING_PASSWORD }}
+        run: mvn verify -pl func-tests -Prest -DJIRA_BASE_URL=$JIRA_BASE_URL -DJIRA_USERNAME=$JIRA_USERNAME -DJIRA_PASSWORD=$JIRA_PASSWORD

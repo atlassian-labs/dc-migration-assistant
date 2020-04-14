@@ -49,6 +49,7 @@
         <module>core</module>
         <module>jira-plugin</module>
         <module>spi</module>
+        <module>func-tests</module>
     </modules>
 
     <repositories>
@@ -343,7 +344,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M4</version>
+                <version>${surefire.version}</version>
                 <configuration>
                     <includes>
                         <include>**/*Test*</include>
@@ -424,7 +425,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>3.0.0-M4</version>
+                        <version>${surefire.version}</version>
                         <configuration>
                             <includes>
                                 <include>**/*IT*</include>
@@ -502,6 +503,7 @@
         <kotlin.version>1.3.70</kotlin.version>
         <jackson.version>2.10.3</jackson.version>
         <mockk.version>1.9.3</mockk.version>
+        <surefire.version>3.0.0-M4</surefire.version>
         <amps.jvm.args/>
 
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>

@@ -55,9 +55,15 @@ public interface MigrationService {
     /**
      * Gets the current migration context. The migration context can be used to store or query specific data
      * about this migration.
+     *
      * @return The migration context Entity for this migration.
      */
     MigrationContext getCurrentContext();
+
+    /**
+     * Deletes all migrations and associated contexts. It should be used only in developer testing.
+     */
+    void deleteMigrations();
 
     /**
      * Tries to transition the migration state from one to another
