@@ -62,6 +62,13 @@ const CancelMigrationButton = styled(Button)`
     margin-left: 5px;
 `;
 
+const AwsAuthErrorContainer = styled.div`
+    position: fixed;
+    top: 70px;
+    left: 75%;
+    overflow: inherit;
+`;
+
 const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props): ReactElement => {
     const { getRegions } = props;
     const regionListPromiseOptions = (): Promise<Array<OptionType>> => {
@@ -91,19 +98,21 @@ const AuthenticationErrorFlag: FunctionComponent<AuthenticationErrorProps> = (
 
     if (showError) {
         return (
-            <Flag
-                actions={[
-                    {
-                        content: 'Dismiss',
-                        onClick: dismissErrorFunc,
-                    },
-                ]}
-                icon={<ErrorIcon primaryColor={colors.G300} label="Info" />}
-                description="We got fun and games. We got everything you want honey, we know the names."
-                id="1"
-                key="1"
-                title="AWS Credentials Error"
-            />
+            <AwsAuthErrorContainer>
+                <Flag
+                    actions={[
+                        {
+                            content: 'Dismiss',
+                            onClick: dismissErrorFunc,
+                        },
+                    ]}
+                    icon={<ErrorIcon primaryColor={colors.G300} label="Info" />}
+                    description="You may not have permissions to connect to the AWS account with the supplied credentials. Please try again with a different set of credentials to continue with the migration."
+                    id="aws-auth-connect-error-flag"
+                    key="connect-error"
+                    title="AWS Credentials Error"
+                />
+            </AwsAuthErrorContainer>
         );
     }
     return null;
