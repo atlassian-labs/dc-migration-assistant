@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactElement } from 'react';
-import Form, { ErrorMessage, Field, HelperMessage, FormFooter } from '@atlaskit/form';
+import React, { FunctionComponent, ReactElement, useState } from 'react';
+import Form, { ErrorMessage, Field, FormFooter, HelperMessage } from '@atlaskit/form';
 import Button, { ButtonGroup } from '@atlaskit/button';
 import styled from 'styled-components';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { AsyncSelect, OptionType } from '@atlaskit/select';
+import Flag from '@atlaskit/flag';
+import ErrorIcon from '@atlaskit/icon/glyph/error';
+import { colors } from '@atlaskit/theme';
 
 export type AWSCreds = {
-    accessKeyID: string;
+    accessKeyId: string;
     secretAccessKey: string;
     region: string;
 };
@@ -43,6 +46,11 @@ export type QueryRegionFun = () => Promise<Array<string>>;
 export type AuthenticateAWSProps = {
     onSubmitCreds: CredSubmitFun;
     getRegions: QueryRegionFun;
+};
+
+type AuthenticationErrorProps = {
+    showError: boolean;
+    dismissErrorFunc: () => void;
 };
 
 const CredsSubmitButton = styled(Button)`
@@ -76,33 +84,63 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
     );
 };
 
+const AuthenticationErrorFlag: FunctionComponent<AuthenticationErrorProps> = (
+    props
+): ReactElement => {
+    const { showError, dismissErrorFunc } = props;
+
+    if (showError) {
+        return (
+            <Flag
+                actions={[
+                    {
+                        content: 'Dismiss',
+                        onClick: dismissErrorFunc,
+                    },
+                ]}
+                icon={<ErrorIcon primaryColor={colors.G300} label="Info" />}
+                description="We got fun and games. We got everything you want honey, we know the names."
+                id="1"
+                key="1"
+                title="AWS Credentials Error"
+            />
+        );
+    }
+    return null;
+};
+
 export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     onSubmitCreds,
     getRegions,
 }): ReactElement => {
+    const [credentialPersistError, setCredentialPersistError] = useState(false);
     const submitCreds = (formCreds: {
-        accessKeyID: string;
+        accessKeyId: string;
         secretAccessKey: string;
         region: OptionType;
     }): void => {
-        const { accessKeyID, secretAccessKey, region } = formCreds;
+        const { accessKeyId, secretAccessKey, region } = formCreds;
         const creds: AWSCreds = {
-            accessKeyID,
+            accessKeyId,
             secretAccessKey,
             region: region.value as string,
         };
 
         onSubmitCreds(creds)
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .then(value => console.log('route to qs page'))
-            // eslint-disable-next-line no-console
-            .catch(() => console.log('update state to'));
+            .then(value => setCredentialPersistError(false))
+            .catch(() => setCredentialPersistError(true));
     };
 
     return (
         <>
             <h1>{I18n.getText('atlassian.migration.datacenter.step.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
+            <AuthenticationErrorFlag
+                showError={credentialPersistError}
+                dismissErrorFunc={(): void => {
+                    setCredentialPersistError(false);
+                }}
+            />
             <Form onSubmit={submitCreds}>
                 {({ formProps }: any): ReactElement => (
                     <form {...formProps}>
@@ -111,7 +149,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             label={I18n.getText(
                                 'atlassian.migration.datacenter.authenticate.aws.accessKeyId.label'
                             )}
-                            name="accessKeyID"
+                            name="accessKeyId"
                             defaultValue=""
                         >
                             {({ fieldProps }: any): ReactElement => (

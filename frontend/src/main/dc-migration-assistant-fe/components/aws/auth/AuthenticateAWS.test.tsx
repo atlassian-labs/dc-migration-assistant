@@ -84,7 +84,7 @@ describe('AWS Authentication page', () => {
     it('should submit credentials when form is complete', async () => {
         let credentialsSubmitted = false;
         const submitCredentialsCallback = (awsCreds: AWSCreds): Promise<string> => {
-            expect(awsCreds.accessKeyID).toBe('akia');
+            expect(awsCreds.accessKeyId).toBe('akia');
             expect(awsCreds.secretAccessKey).toBe('asak');
             expect(awsCreds.region).toBe('my-fake-region-1');
             credentialsSubmitted = true;
@@ -107,7 +107,7 @@ describe('AWS Authentication page', () => {
             const regionInput = getByLabelText(AWS_REGION_SELECT_LABEL, { selector: 'input' });
             await selectEvent.select(regionInput, 'my-fake-region-1');
 
-            const accessKeyInput = container.querySelector('[name="accessKeyID"]');
+            const accessKeyInput = container.querySelector('[name="accessKeyId"]');
             await fireEvent.change(accessKeyInput, { target: { value: 'akia' } });
 
             const submitButton = getByTestId('awsSecretKeySubmitFormButton');
