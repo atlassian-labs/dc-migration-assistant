@@ -134,6 +134,16 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     }
 
     @Override
+    public boolean isCrawlingFinished() {
+        return progress.isCrawlingFinished();
+    }
+
+    @Override
+    public void reportCrawlingFinished() {
+        progress.reportCrawlingFinished();
+    }
+
+    @Override
     public Long getNumberOfCommencedFileUploads() {
         return progress.getNumberOfCommencedFileUploads();
     }

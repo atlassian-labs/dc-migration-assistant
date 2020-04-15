@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DefaultFileSystemMigrationProgressTest {
 
@@ -64,5 +65,11 @@ public class DefaultFileSystemMigrationProgressTest {
         IntStream.range(0, numFilesToMigrate).forEach(i -> sut.reportFileUploaded());
 
         assertEquals(numFilesToMigrate, sut.getCountOfUploadedFiles());
+    }
+
+    @Test
+    void shouldNoteWhenAllFilesAreFound() {
+        sut.reportCrawlingFinished();
+        assertTrue(sut.isCrawlingFinished());
     }
 }

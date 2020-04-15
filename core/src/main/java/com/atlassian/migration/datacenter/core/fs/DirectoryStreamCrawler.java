@@ -44,8 +44,6 @@ public class DirectoryStreamCrawler implements Crawler {
             final DirectoryStream<Path> paths;
             paths = Files.newDirectoryStream(start);
             listDirectories(queue, paths);
-            logger.info("Crawled and added {} files for upload.", report.getNumberOfFilesFound());
-
         } catch (NoSuchFileException e) {
             logger.error("Failed to find path " + start, e);
             report.reportFileNotMigrated(new FailedFileMigration(start, e.getMessage()));
@@ -54,6 +52,8 @@ public class DirectoryStreamCrawler implements Crawler {
 
         } finally {
             try {
+                logger.info("Crawled and added {} files for upload.", report.getNumberOfFilesFound());
+                report.reportCrawlingFinished();
                 queue.finish();
             } catch (InterruptedException e) {
                 logger.error("Failed to finalise upload queue.", e);

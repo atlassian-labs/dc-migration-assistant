@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.fs.reporting;
 
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationProgress;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DefaultFilesystemMigrationProgress implements FileSystemMigrationProgress {
@@ -25,6 +26,8 @@ public class DefaultFilesystemMigrationProgress implements FileSystemMigrationPr
     private AtomicLong numFilesUploaded = new AtomicLong(0);
 
     private AtomicLong filesFound = new AtomicLong(0);
+
+    private AtomicBoolean allFilesFound = new AtomicBoolean(false);
 
     private AtomicLong fileUploadsCommenced = new AtomicLong(0);
 
@@ -38,6 +41,16 @@ public class DefaultFilesystemMigrationProgress implements FileSystemMigrationPr
     @Override
     public void reportFileFound() {
         filesFound.incrementAndGet();
+    }
+
+    @Override
+    public boolean isCrawlingFinished() {
+        return allFilesFound.get();
+    }
+
+    @Override
+    public void reportCrawlingFinished() {
+        allFilesFound.set(true);
     }
 
     @Override

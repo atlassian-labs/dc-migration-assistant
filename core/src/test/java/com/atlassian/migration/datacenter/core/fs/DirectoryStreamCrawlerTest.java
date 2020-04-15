@@ -79,6 +79,14 @@ class DirectoryStreamCrawlerTest {
     }
 
     @Test
+    void shouldReportAllFilesFoundWhenComplete() throws IOException {
+        directoryStreamCrawler = new DirectoryStreamCrawler(report);
+        directoryStreamCrawler.crawlDirectory(tempDir, queue);
+
+        assertTrue(report.isCrawlingFinished());
+    }
+
+    @Test
     @Disabled("Simulating AccessDenied permission proved complicated in an unit test")
     void inaccessibleSubdirectoryIsReportedAsFailed() throws IOException {
         final Path directory = Files.createDirectory(tempDir.resolve("non-readable-subdir"),

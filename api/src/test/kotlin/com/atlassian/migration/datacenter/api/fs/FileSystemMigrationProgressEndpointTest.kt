@@ -38,6 +38,7 @@ import java.nio.file.Paths
 import java.time.Duration
 import java.util.HashSet
 import javax.ws.rs.core.Response
+import kotlin.test.assertTrue
 
 @ExtendWith(MockKExtension::class)
 class FileSystemMigrationProgressEndpointTest {
@@ -68,6 +69,7 @@ class FileSystemMigrationProgressEndpointTest {
             every { countOfUploadedFiles } returns 1L
             every { elapsedTime } returns Duration.ofMinutes(1)
             every { countOfDownloadFiles } returns 1L
+            every { isCrawlingFinished } returns true
         }
 
         val response = endpoint.getFilesystemMigrationStatus()
@@ -82,12 +84,14 @@ class FileSystemMigrationProgressEndpointTest {
         val responseFailedFile = tree.at("/failedFiles/0/filePath").asText()
         val responseSuccessFileCount = tree.at("/uploadedFiles").asLong()
         val responseDownloadFileCount = tree.at("/downloadedFiles").asLong()
+        val responseAllFilesFound = tree.at("/crawlingFinished").asBoolean()
 
         assertEquals(FilesystemMigrationStatus.UPLOADING.name, responseStatus)
         assertEquals(testReason, responseReason)
         assertEquals(testFile.toUri().toString(), responseFailedFile)
         assertEquals(1, responseSuccessFileCount)
         assertEquals(1, responseDownloadFileCount)
+        assertTrue(responseAllFilesFound)
     }
 
     @Test
@@ -98,6 +102,7 @@ class FileSystemMigrationProgressEndpointTest {
         every { report.numberOfFilesFound } returns 1000000L
         every { report.numberOfCommencedFileUploads } returns 1000000L
         every { report.countOfDownloadFiles } returns 1000000L
+        every { report.isCrawlingFinished } returns true
         val failedFiles: MutableSet<FailedFileMigration?> = HashSet()
         val testReason = "test reason"
         val testFile = Paths.get("file")
@@ -120,12 +125,14 @@ class FileSystemMigrationProgressEndpointTest {
         val responseFailedFile = tree.at("/failedFiles/99/filePath").asText()
         val responseSuccessFileCount = tree.at("/uploadedFiles").asLong()
         val responseDownloadFileCount = tree.at("/downloadedFiles").asLong()
+        val responseAllFilesFound = tree.at("/crawlingFinished").asBoolean()
 
         assertEquals(FilesystemMigrationStatus.UPLOADING.name, responseStatus)
         assertEquals(testReason, responseReason)
         assertEquals(testFile.toUri().toString(), responseFailedFile)
         assertEquals(1000000, responseSuccessFileCount)
         assertEquals(1000000, responseDownloadFileCount)
+        assertTrue(responseAllFilesFound)
     }
 
     @Test
