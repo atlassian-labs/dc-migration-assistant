@@ -14,23 +14,37 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactElement } from 'react';
 import ProgressBar, { SuccessProgressBar } from '@atlaskit/progress-bar';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Link } from 'react-router-dom';
-import moment from 'moment';
-import { overviewPath } from '../../utils/RoutePaths';
-import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import moment, { Moment } from 'moment';
+import Spinner from '@atlaskit/spinner';
 
-type Action = {
+import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { overviewPath } from '../../utils/RoutePaths';
+
+const POLL_INTERVAL_MILLIS = 60000;
+
+export type Progress = {
+    phase: string;
+    completeness: 0.0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1.0;
+    progress: string;
+};
+
+export interface ProgressCallback {
+    (): Promise<Progress>;
+}
+
+interface Action {
     text: React.ReactNode;
     onClick?: () => void;
     href?: string;
     key: string;
     testId?: string;
-};
+}
 
 export type MigrationTransferProps = {
     heading: string;
@@ -40,6 +54,7 @@ export type MigrationTransferProps = {
     infoActions?: Action[];
     nextText: string;
     started: moment.Moment;
+    getProgress: ProgressCallback;
 };
 
 const TransferPageContainer = styled.div`
@@ -67,6 +82,46 @@ const TransferActionsContainer = styled.div`
     margin-top: 20px;
 `;
 
+const renderContentIfLoading = (
+    loading: boolean,
+    progress: Progress,
+    started: Moment
+): ReactElement => {
+    if (loading) {
+        return (
+            <>
+                <Spinner />
+                <ProgressBar isIndeterminate />
+                <Spinner />
+            </>
+        );
+    }
+    const elapsedTime = moment.duration(moment.now() - started.valueOf());
+    const elapsedDays = elapsedTime.days();
+    const elapsedHours = elapsedTime.hours();
+    const elapsedMins = elapsedTime.minutes();
+    return (
+        <>
+            <h4>{progress.phase}</h4>
+            <SuccessProgressBar value={progress.completeness} />
+            <p>
+                {I18n.getText(
+                    'atlassian.migration.datacenter.common.progress.started',
+                    started.format('D/MMM/YY h:m A')
+                )}
+            </p>
+            <p>
+                {I18n.getText(
+                    'atlassian.migration.datacenter.common.progress.mins_elapsed',
+                    `${elapsedDays * 24 + elapsedHours}`,
+                    `${elapsedMins}`
+                )}
+            </p>
+            <p>{progress.progress}</p>
+        </>
+    );
+};
+
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     heading,
@@ -75,11 +130,30 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     infoActions,
     nextText,
     started,
+    getProgress,
 }) => {
-    const elapsedTime = moment.duration(moment.now() - started.valueOf());
-    const elapsedDays = elapsedTime.days();
-    const elapsedHours = elapsedTime.hours();
-    const elapsedMins = elapsedTime.minutes();
+    const [progress, setProgress] = useState<Progress>();
+    const [loading, setLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        const updateProgress = (): Promise<void> => {
+            setLoading(true);
+            return getProgress()
+                .then(result => {
+                    setProgress(result);
+                    setLoading(false);
+                })
+                .catch(console.error);
+        };
+
+        const id = setInterval(async () => {
+            await updateProgress();
+        }, POLL_INTERVAL_MILLIS);
+
+        updateProgress();
+
+        return (): void => clearInterval(id);
+    }, []);
 
     return (
         <TransferPageContainer>
@@ -89,28 +163,15 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 <SectionMessage title={infoTitle} actions={infoActions || []}>
                     {infoContent}
                 </SectionMessage>
-                <h4>Phase of copying</h4>
-                <ProgressBar isIndeterminate />
-                <p>
-                    {I18n.getText(
-                        'atlassian.migration.datacenter.common.progress.started',
-                        started.format('D/MMM/YY h:m A')
-                    )}
-                </p>
-                <p>
-                    {I18n.getText(
-                        'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                        `${elapsedDays * 24 + elapsedHours}`,
-                        `${elapsedMins}`
-                    )}
-                </p>
-                <p>45 000 files copied</p>
+                {renderContentIfLoading(loading, progress, started)}
             </TransferContentContainer>
             <TransferActionsContainer>
                 <Link to={overviewPath}>
                     <Button>{I18n.getText('atlassian.migration.datacenter.generic.cancel')}</Button>
                 </Link>
-                <Button appearance="primary">{nextText}</Button>
+                <Button appearance="primary" isDisabled={progress?.completeness !== 1}>
+                    {nextText}
+                </Button>
             </TransferActionsContainer>
         </TransferPageContainer>
     );

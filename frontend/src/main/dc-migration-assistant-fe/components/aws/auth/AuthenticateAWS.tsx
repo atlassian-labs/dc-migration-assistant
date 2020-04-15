@@ -82,7 +82,7 @@ const RegionSelect: FunctionComponent<{ getRegions: QueryRegionFun }> = (props):
         <AsyncSelect
             {...props}
             styles={{
-                control: base => ({ ...base, width: '480.4px' }),
+                control: (base): React.CSSProperties => ({ ...base, width: '480.4px' }),
             }}
             cacheOptions
             defaultOptions

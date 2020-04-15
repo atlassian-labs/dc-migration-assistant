@@ -28,7 +28,7 @@ const QuickStartStatusContainer = styled.div`
 `;
 
 const stageStatusFlag = (currentProvisioningStatus: string): ReactElement => {
-    const renderProvisioningStatus = (status: string) => {
+    const renderProvisioningStatus = (status: string): ReactElement => {
         if (status === 'CREATE_COMPLETE') {
             return <SuccessIcon primaryColor="#36B37E" label="Success" />;
         }
@@ -91,7 +91,7 @@ export const QuickStartStatus: FunctionComponent = (): ReactElement => {
             getStackStatusFromApi(stackId).finally(() => clearInterval(intervalId));
         }, 5000);
 
-        return () => {
+        return (): void => {
             clearInterval(intervalId);
         };
     }, []);
