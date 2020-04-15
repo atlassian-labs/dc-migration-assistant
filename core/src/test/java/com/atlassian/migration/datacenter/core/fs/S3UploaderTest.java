@@ -126,7 +126,7 @@ class S3UploaderTest {
         });
 
         submit.get();
-        assertEquals(1, report.getCountOfMigratedFiles());
+        assertEquals(1, report.getCountOfUploadedFiles());
     }
 
     @Test

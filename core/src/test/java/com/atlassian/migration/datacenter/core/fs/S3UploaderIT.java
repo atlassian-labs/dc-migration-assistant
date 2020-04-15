@@ -114,7 +114,7 @@ class S3UploaderIT {
                                                 failedMigration.getReason()), (acc, partial) -> acc + "\n" + partial)));
         assertEquals(objectSummaries.size(), 1);
         assertEquals(objectSummaries.get(0).getKey(), tempDir.relativize(file).toString());
-        assertEquals(1, report.getCountOfMigratedFiles());
+        assertEquals(1, report.getCountOfUploadedFiles());
     }
 
     Path addFileToQueue(String fileName) throws IOException, InterruptedException {

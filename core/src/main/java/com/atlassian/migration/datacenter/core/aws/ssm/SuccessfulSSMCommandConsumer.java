@@ -49,7 +49,7 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
             }
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 logger.error("interrupted while waiting for s3 sync ssm command to be delivered", e);
                 throw new UnsuccessfulSSMCommandInvocationException("Interrupted while waiting to check command status", e);

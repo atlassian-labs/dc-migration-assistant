@@ -28,9 +28,10 @@ import java.time.Instant;
 import java.util.Set;
 
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
+import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DOWNLOADING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.NOT_STARTED;
-import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.RUNNING;
+import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.UPLOADING;
 
 public class DefaultFileSystemMigrationReport implements FileSystemMigrationReport {
 
@@ -80,7 +81,7 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     }
 
     private boolean isRunning() {
-        return currentStatus == RUNNING;
+        return currentStatus == UPLOADING || currentStatus == DOWNLOADING;
     }
 
     public void setClock(Clock clock) {
@@ -88,11 +89,11 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     }
 
     private boolean isStartingMigration(FilesystemMigrationStatus toStatus) {
-        return this.currentStatus != RUNNING && toStatus == RUNNING;
+        return !isRunning() && toStatus == UPLOADING;
     }
 
     private boolean isEndingMigration(FilesystemMigrationStatus toStatus) {
-        return this.currentStatus == RUNNING && isTerminalState(toStatus);
+        return isRunning() && isTerminalState(toStatus);
     }
 
     private boolean isTerminalState(FilesystemMigrationStatus toStatus) {
@@ -103,7 +104,7 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     public String toString() {
         return String.format("Filesystem migration report = { status: %s, migratedFiles: %d, erroredFiles: %d }",
                 currentStatus,
-                progress.getCountOfMigratedFiles(),
+                progress.getCountOfUploadedFiles(),
                 errorReport.getFailedFiles().size()
         );
     }
@@ -143,13 +144,23 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
     }
 
     @Override
-    public Long getCountOfMigratedFiles() {
-        return progress.getCountOfMigratedFiles();
+    public Long getCountOfUploadedFiles() {
+        return progress.getCountOfUploadedFiles();
     }
 
     @Override
-    public void reportFileMigrated() {
-        progress.reportFileMigrated();
+    public void reportFileUploaded() {
+        progress.reportFileUploaded();
+    }
+
+    @Override
+    public Long getCountOfDownloadFiles() {
+        return progress.getCountOfDownloadFiles();
+    }
+
+    @Override
+    public void setNumberOfFilesDownloaded(long downloadedFiles) {
+        progress.setNumberOfFilesDownloaded(downloadedFiles);
     }
 }
 

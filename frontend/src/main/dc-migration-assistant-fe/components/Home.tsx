@@ -19,7 +19,7 @@ import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
-import { overviewPath, fsPath } from '../utils/RoutePaths';
+import { overviewPath, fsPath, dbPath } from '../utils/RoutePaths';
 
 type HomeProps = {
     title: string;
@@ -45,6 +45,9 @@ export const Home = ({ title, synopsis, exploreMigrationButtonText }: HomeProps)
             <p>{synopsis}</p>
             <Link to={fsPath}>
                 <Button appearance="primary">FS Migration</Button>
+            </Link>
+            <Link to={dbPath}>
+                <Button appearance="primary">Database Migration</Button>
             </Link>
             <ButtonContainer>
                 <Link to={overviewPath}>

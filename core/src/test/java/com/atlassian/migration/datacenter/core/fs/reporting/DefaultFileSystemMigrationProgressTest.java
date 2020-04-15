@@ -34,14 +34,14 @@ public class DefaultFileSystemMigrationProgressTest {
 
     @Test
     void shouldBeInitialisedWithNoCompleteFiles() {
-        assertEquals(0, sut.getCountOfMigratedFiles());
+        assertEquals(0, sut.getCountOfUploadedFiles());
     }
 
     @Test
     void shouldAddMigratedFileToMigratedFiles() {
-        sut.reportFileMigrated();
+        sut.reportFileUploaded();
 
-        assertEquals(1, sut.getCountOfMigratedFiles());
+        assertEquals(1, sut.getCountOfUploadedFiles());
     }
 
     @Test
@@ -61,8 +61,8 @@ public class DefaultFileSystemMigrationProgressTest {
     @Test
     void shouldHandleLargeNumberOfMigratedFiles() {
         int numFilesToMigrate = 1000000;
-        IntStream.range(0, numFilesToMigrate).forEach(i -> sut.reportFileMigrated());
+        IntStream.range(0, numFilesToMigrate).forEach(i -> sut.reportFileUploaded());
 
-        assertEquals(numFilesToMigrate, sut.getCountOfMigratedFiles());
+        assertEquals(numFilesToMigrate, sut.getCountOfUploadedFiles());
     }
 }

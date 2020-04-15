@@ -40,8 +40,9 @@ import java.nio.file.Paths;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
+import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DOWNLOADING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
-import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.RUNNING;
+import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.UPLOADING;
 
 public class S3FilesystemMigrationService implements FilesystemMigrationService {
     private static final Logger logger = LoggerFactory.getLogger(S3FilesystemMigrationService.class);
@@ -129,7 +130,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         report = new DefaultFileSystemMigrationReport();
 
         migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        report.setStatus(RUNNING);
+        report.setStatus(UPLOADING);
 
         Crawler homeCrawler = new DirectoryStreamCrawler(report);
 
@@ -143,7 +144,8 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
             fsUploader.uploadDirectory(getSharedHomeDir());
 
             logger.info("upload of shared home complete. commencing shared home download");
-            fileSystemDownloadManager.downloadFileSystem();
+            report.setStatus(DOWNLOADING);
+            fileSystemDownloadManager.downloadFileSystem(report);
 
             report.setStatus(DONE);
 
