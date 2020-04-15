@@ -24,7 +24,7 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 import Flag from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/glyph/error';
 import { colors } from '@atlaskit/theme';
-import { Redirect } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
 import { quickstartPath } from '../../../utils/RoutePaths';
 
 export type AWSCreds = {
@@ -126,7 +126,8 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     getRegions,
 }): ReactElement => {
     const [credentialPersistError, setCredentialPersistError] = useState(false);
-    // const [showSpinner, setShowSpinner] = useState(true)
+    const [awaitResponseFromApi, setAwaitResponseFromApi] = useState(false);
+    const history = useHistory();
     const submitCreds = (formCreds: {
         accessKeyId: string;
         secretAccessKey: string;
@@ -139,10 +140,21 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             region: region.value as string,
         };
 
-        onSubmitCreds(creds)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        new Promise<void>(resolve => {
+            setAwaitResponseFromApi(true);
+            resolve();
+        })
+            .then(() => onSubmitCreds(creds))
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .then(_value => <Redirect to={quickstartPath} />)
-            .catch(() => setCredentialPersistError(true));
+            .then(_value => {
+                setAwaitResponseFromApi(false);
+                history.push(quickstartPath);
+            })
+            .catch(() => {
+                setAwaitResponseFromApi(false);
+                setCredentialPersistError(true);
+            });
     };
 
     return (
@@ -215,6 +227,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                     type="submit"
                                     appearance="primary"
                                     testId="awsSecretKeySubmitFormButton"
+                                    isLoading={awaitResponseFromApi}
                                 >
                                     {I18n.getText(
                                         'atlassian.migration.datacenter.authenticate.aws.submit'

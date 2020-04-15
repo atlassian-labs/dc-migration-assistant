@@ -18,6 +18,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import selectEvent from 'react-select-event';
 import { act } from 'react-dom/test-utils';
+import { MemoryRouter } from 'react-router-dom';
 
 import { AuthenticateAWS, AuthenticateAWSProps, AWSCreds } from './AuthenticateAWS';
 
@@ -30,7 +31,9 @@ const AWS_REGION_SELECT_LABEL = 'AWS_REGION_SELECT_LABEL';
 
 describe('AWS Authentication page', () => {
     it('should render', () => {
-        const { getByText } = render(<AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} />);
+        const { getByText } = render(<AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} />, {
+            wrapper: MemoryRouter,
+        });
 
         expect(getByText('atlassian.migration.datacenter.step.authenticate.phrase')).toBeTruthy();
         expect(
@@ -50,7 +53,8 @@ describe('AWS Authentication page', () => {
         };
 
         render(
-            <AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} getRegions={testGetRegions} />
+            <AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} getRegions={testGetRegions} />,
+            { wrapper: MemoryRouter }
         );
 
         expect(regionFunCalled).toBeTruthy();
@@ -67,7 +71,8 @@ describe('AWS Authentication page', () => {
                 <AuthenticateAWS
                     {...NO_OP_AUTHENTICATION_PAGE_PROPS}
                     onSubmitCreds={submitCredentialsCallback}
-                />
+                />,
+                { wrapper: MemoryRouter }
             );
 
             const submitButton = getByTestId('awsSecretKeySubmitFormButton');
@@ -95,7 +100,8 @@ describe('AWS Authentication page', () => {
                 <AuthenticateAWS
                     {...NO_OP_AUTHENTICATION_PAGE_PROPS}
                     onSubmitCreds={submitCredentialsCallback}
-                />
+                />,
+                { wrapper: MemoryRouter }
             );
 
             const secretKeyInput = container.querySelector('[name="secretAccessKey"]');
