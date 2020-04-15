@@ -109,7 +109,7 @@ const AuthenticationErrorFlag: FunctionComponent<AuthenticationErrorProps> = (
                             onClick: dismissErrorFunc,
                         },
                     ]}
-                    icon={<ErrorIcon primaryColor={colors.G300} label="Info" />}
+                    icon={<ErrorIcon primaryColor={colors.R400} label="Info" />}
                     description="You may not have permissions to connect to the AWS account with the supplied credentials. Please try again with a different set of credentials to continue with the migration."
                     id="aws-auth-connect-error-flag"
                     key="connect-error"
@@ -140,7 +140,6 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             region: region.value as string,
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         new Promise<void>(resolve => {
             setAwaitResponseFromApi(true);
             resolve();
@@ -148,10 +147,12 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             .then(() => onSubmitCreds(creds))
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .then(_value => {
+                console.log('IN CALLBACK');
                 setAwaitResponseFromApi(false);
                 history.push(quickstartPath);
             })
             .catch(() => {
+                console.log('IN ERROR');
                 setAwaitResponseFromApi(false);
                 setCredentialPersistError(true);
             });
