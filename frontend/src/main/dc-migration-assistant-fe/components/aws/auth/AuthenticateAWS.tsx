@@ -143,7 +143,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
 
     return (
         <>
-            <h1>{I18n.getText('atlassian.migration.datacenter.step.phrase')}</h1>
+            <h1>{I18n.getText('atlassian.migration.datacenter.step.authentication.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
             <AuthenticationErrorFlag
                 showError={credentialPersistError}

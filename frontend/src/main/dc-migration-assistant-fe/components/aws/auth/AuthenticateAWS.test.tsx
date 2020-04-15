@@ -33,7 +33,7 @@ describe('AWS Authentication page', () => {
     it('should render', () => {
         const { getByText } = render(<AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} />);
 
-        expect(getByText('atlassian.migration.datacenter.step.phrase')).toBeTruthy();
+        expect(getByText('atlassian.migration.datacenter.step.authentication.phrase')).toBeTruthy();
         expect(
             getByText('atlassian.migration.datacenter.authenticate.aws.accessKeyId.label')
         ).toBeTruthy();
