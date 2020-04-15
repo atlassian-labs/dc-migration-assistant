@@ -17,10 +17,10 @@
 import React, { FunctionComponent } from 'react';
 import { Route, Switch } from 'react-router-dom';
 
-import { quickstartPath, awsAuthPath, quickstartStatusPath } from '../../utils/RoutePaths';
+import { awsAuthPath, quickstartPath, quickstartStatusPath } from '../../utils/RoutePaths';
 import { QuickStartDeploy } from './quickstart/QuickStartDeploy';
 import { QuickStartStatus } from './quickstart/QuickStartStatus';
-import { AuthenticateAWS, QueryRegionFun, CredSubmitFun } from './auth/AuthenticateAWS';
+import { AuthenticateAWS, CredSubmitFun, QueryRegionFun } from './auth/AuthenticateAWS';
 import { callAppRest, RestApiPathConstants } from '../../utils/api';
 
 const getRegions: QueryRegionFun = () => {

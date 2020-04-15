@@ -24,6 +24,8 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 import Flag from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/glyph/error';
 import { colors } from '@atlaskit/theme';
+import { Redirect } from 'react-router-dom';
+import { quickstartPath } from '../../../utils/RoutePaths';
 
 export type AWSCreds = {
     accessKeyId: string;
@@ -124,6 +126,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     getRegions,
 }): ReactElement => {
     const [credentialPersistError, setCredentialPersistError] = useState(false);
+    // const [showSpinner, setShowSpinner] = useState(true)
     const submitCreds = (formCreds: {
         accessKeyId: string;
         secretAccessKey: string;
@@ -137,13 +140,14 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
         };
 
         onSubmitCreds(creds)
-            .then(value => setCredentialPersistError(false))
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            .then(_value => <Redirect to={quickstartPath} />)
             .catch(() => setCredentialPersistError(true));
     };
 
     return (
         <>
-            <h1>{I18n.getText('atlassian.migration.datacenter.step.authentication.phrase')}</h1>
+            <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
             <AuthenticationErrorFlag
                 showError={credentialPersistError}

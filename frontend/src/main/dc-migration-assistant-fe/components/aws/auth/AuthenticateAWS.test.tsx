@@ -17,7 +17,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import selectEvent from 'react-select-event';
-
 import { act } from 'react-dom/test-utils';
 
 import { AuthenticateAWS, AuthenticateAWSProps, AWSCreds } from './AuthenticateAWS';
@@ -33,7 +32,7 @@ describe('AWS Authentication page', () => {
     it('should render', () => {
         const { getByText } = render(<AuthenticateAWS {...NO_OP_AUTHENTICATION_PAGE_PROPS} />);
 
-        expect(getByText('atlassian.migration.datacenter.step.authentication.phrase')).toBeTruthy();
+        expect(getByText('atlassian.migration.datacenter.step.authenticate.phrase')).toBeTruthy();
         expect(
             getByText('atlassian.migration.datacenter.authenticate.aws.accessKeyId.label')
         ).toBeTruthy();
