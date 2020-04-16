@@ -31,7 +31,7 @@ const getRegions: QueryRegionFun = () => {
 
 const saveAWSCredentials: CredSubmitFun = creds => {
     return callAppRest('POST', RestApiPathConstants.awsCredentialsStorePath, creds).then(response =>
-        response.json()
+        response.status === 204 ? '' : response.json()
     );
 };
 

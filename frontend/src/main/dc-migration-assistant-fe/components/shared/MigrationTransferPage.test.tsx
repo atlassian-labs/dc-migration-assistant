@@ -18,8 +18,8 @@ import React, { FunctionComponent } from 'react';
 import { render } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransferPage';
 import moment from 'moment';
+import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransferPage';
 
 const props: MigrationTransferProps = {
     heading: 'heading',

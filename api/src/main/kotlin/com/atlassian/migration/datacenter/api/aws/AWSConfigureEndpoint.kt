@@ -44,12 +44,12 @@ class AWSConfigureEndpoint(private val awsConfigurationService: AWSConfiguration
         } catch (e: InvalidMigrationStageError) {
             Response
                     .status(Response.Status.CONFLICT)
-                    .entity(e.message)
+                    .entity(mapOf("message" to e.message))
                     .build()
         } catch (e: InvalidCredentialsException) {
             Response
                     .status(Response.Status.CONFLICT)
-                    .entity(e.message)
+                    .entity(mapOf("message" to e.message))
                     .build()
         }
     }
