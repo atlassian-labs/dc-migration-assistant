@@ -24,7 +24,7 @@ import { AsyncSelect, OptionType } from '@atlaskit/select';
 import Flag from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/glyph/error';
 import { colors } from '@atlaskit/theme';
-import { Redirect, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { quickstartPath } from '../../../utils/RoutePaths';
 
 export type AWSCreds = {
@@ -54,15 +54,6 @@ type AuthenticationErrorProps = {
     showError: boolean;
     dismissErrorFunc: () => void;
 };
-
-const CredsSubmitButton = styled(Button)`
-    margin-top: 10px;
-`;
-
-const CancelMigrationButton = styled(Button)`
-    margin-top: 10px;
-    margin-left: 5px;
-`;
 
 const AwsAuthErrorContainer = styled.div`
     position: fixed;
@@ -222,7 +213,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                         </Field>
                         <FormFooter align="start">
                             <ButtonGroup>
-                                <CredsSubmitButton
+                                <Button
                                     type="submit"
                                     appearance="primary"
                                     testId="awsSecretKeySubmitFormButton"
@@ -231,12 +222,12 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                                     {I18n.getText(
                                         'atlassian.migration.datacenter.authenticate.aws.submit'
                                     )}
-                                </CredsSubmitButton>
-                                <CancelMigrationButton appearance="default">
+                                </Button>
+                                <Button appearance="default">
                                     {I18n.getText(
                                         'atlassian.migration.datacenter.authenticate.aws.cancel'
                                     )}
-                                </CancelMigrationButton>
+                                </Button>
                             </ButtonGroup>
                         </FormFooter>
                     </form>
