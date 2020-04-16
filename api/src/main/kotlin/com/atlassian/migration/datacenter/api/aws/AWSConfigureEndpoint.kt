@@ -48,7 +48,7 @@ class AWSConfigureEndpoint(private val awsConfigurationService: AWSConfiguration
                     .build()
         } catch (e: InvalidCredentialsException) {
             Response
-                    .status(Response.Status.CONFLICT)
+                    .status(Response.Status.BAD_REQUEST)
                     .entity(mapOf("message" to e.message))
                     .build()
         }

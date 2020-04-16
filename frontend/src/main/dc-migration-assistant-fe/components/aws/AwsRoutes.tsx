@@ -30,9 +30,21 @@ const getRegions: QueryRegionFun = () => {
 };
 
 const saveAWSCredentials: CredSubmitFun = creds => {
-    return callAppRest('POST', RestApiPathConstants.awsCredentialsStorePath, creds).then(response =>
-        response.status === 204 ? '' : response.json()
+    const responsePromise = callAppRest(
+        'POST',
+        RestApiPathConstants.awsCredentialsStorePath,
+        creds
     );
+    const apiResponseHandler = async (promise: Promise<Response>): Promise<string> => {
+        const response = await promise;
+        // https://github.com/whatwg/fetch/issues/113 requires us to handle 204 responses explicitly
+        if (response.status === 204) {
+            return '';
+        }
+        const responseData = await response.json();
+        throw Error(`Unable to save credentials. API error: ${responseData}`);
+    };
+    return apiResponseHandler(responsePromise);
 };
 
 export const AWSRoutes: FunctionComponent = () => (

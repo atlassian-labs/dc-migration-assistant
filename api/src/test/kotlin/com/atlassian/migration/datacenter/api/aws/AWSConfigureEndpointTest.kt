@@ -87,7 +87,7 @@ internal class AWSConfigureEndpointTest {
 
         val response = sut.storeAWSCredentials(payload)
 
-        assertEquals(Response.Status.CONFLICT.statusCode, response.status)
+        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
         assertEquals(errorMessage, (response.entity as Map<*, *>)["message"])
     }
 }

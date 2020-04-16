@@ -147,12 +147,10 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             .then(() => onSubmitCreds(creds))
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .then(_value => {
-                console.log('IN CALLBACK');
                 setAwaitResponseFromApi(false);
                 history.push(quickstartPath);
             })
             .catch(() => {
-                console.log('IN ERROR');
                 setAwaitResponseFromApi(false);
                 setCredentialPersistError(true);
             });
