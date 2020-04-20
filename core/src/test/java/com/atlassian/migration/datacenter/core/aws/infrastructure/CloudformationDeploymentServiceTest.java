@@ -22,6 +22,8 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeplo
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
@@ -82,9 +84,10 @@ class CloudformationDeploymentServiceTest {
         assertEquals(InfrastructureDeploymentStatus.CREATE_IN_PROGRESS, sut.getDeploymentStatus(STACK_NAME));
     }
 
-    @Test
-    void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(StackStatus.CREATE_FAILED);
+    @ParameterizedTest
+    @EnumSource(mode = EnumSource.Mode.INCLUDE, names = {"CREATE_FAILED", "ROLLBACK_COMPLETE", "ROLLBACK_FAILED"}, value = StackStatus.class)
+    void shouldCallHandleFailedDeploymentWhenDeploymentFails(StackStatus failedStatus) throws InterruptedException {
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(failedStatus);
 
         deploySimpleStack();
 

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.CommandInvocationStatus;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
+import software.amazon.awssdk.services.ssm.model.InvocationDoesNotExistException;
 
 public abstract class SuccessfulSSMCommandConsumer<T> {
 
@@ -39,13 +40,19 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
     public T handleCommandOutput(int maxCommandStatusRetries) throws UnsuccessfulSSMCommandInvocationException, SSMCommandInvocationProcessingError {
         GetCommandInvocationResponse command = null;
         for (int i = 0; i < maxCommandStatusRetries; i++) {
-            command = ssmApi.getSSMCommand(commandId, instanceId);
-            final CommandInvocationStatus status = command.status();
+            logger.debug("Checking delivery of s3 sync ssm command. Attempt {}", i);
 
-            logger.debug("Checking delivery of s3 sync ssm command. Attempt {}. Status is: {}", i, status.toString());
+            try {
+                command = ssmApi.getSSMCommand(commandId, instanceId);
+                final CommandInvocationStatus status = command.status();
 
-            if (status.equals(CommandInvocationStatus.SUCCESS)) {
-                return handleSuccessfulCommand(command);
+                logger.debug("s3 sync command status is {}", status);
+
+                if (status.equals(CommandInvocationStatus.SUCCESS)) {
+                    return handleSuccessfulCommand(command);
+                }
+            } catch (InvocationDoesNotExistException e) {
+                logger.debug("Command does not exist - maybe it hasn't reached the EC2 instance yet. Will continue retrying");
             }
 
             try {

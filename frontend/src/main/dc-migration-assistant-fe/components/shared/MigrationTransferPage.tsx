@@ -26,11 +26,11 @@ import Spinner from '@atlaskit/spinner';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { overviewPath } from '../../utils/RoutePaths';
 
-const POLL_INTERVAL_MILLIS = 60000;
+const POLL_INTERVAL_MILLIS = 3000;
 
 export type Progress = {
     phase: string;
-    completeness: 0.0 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1.0;
+    completeness?: number;
     progress: string;
 };
 
@@ -103,7 +103,11 @@ const renderContentIfLoading = (
     return (
         <>
             <h4>{progress.phase}</h4>
-            <SuccessProgressBar value={progress.completeness} />
+            {progress.completeness ? (
+                <SuccessProgressBar value={progress.completeness} />
+            ) : (
+                <ProgressBar isIndeterminate />
+            )}
             <p>
                 {I18n.getText(
                     'atlassian.migration.datacenter.common.progress.started',
@@ -137,7 +141,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
 
     useEffect(() => {
         const updateProgress = (): Promise<void> => {
-            setLoading(true);
             return getProgress()
                 .then(result => {
                     setProgress(result);
@@ -150,6 +153,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             await updateProgress();
         }, POLL_INTERVAL_MILLIS);
 
+        setLoading(true);
         updateProgress();
 
         return (): void => clearInterval(id);

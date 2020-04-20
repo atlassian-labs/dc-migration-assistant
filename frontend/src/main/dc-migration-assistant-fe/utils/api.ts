@@ -16,6 +16,7 @@
 
 // eslint-disable-next-line import/no-unresolved
 import contextPath from 'wrm/context-path';
+import { Progress } from '../components/shared/MigrationTransferPage';
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 

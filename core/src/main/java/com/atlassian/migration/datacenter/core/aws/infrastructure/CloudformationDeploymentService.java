@@ -62,9 +62,10 @@ public abstract class CloudformationDeploymentService {
 
     /**
      * Deploys a cloudformation stack and starts a thread to monitor the deployment.
+     *
      * @param templateUrl the S3 url of the cloudformation template to deploy
-     * @param stackName the name for the cloudformation stack
-     * @param params the parameters for the cloudformation template
+     * @param stackName   the name for the cloudformation stack
+     * @param params      the parameters for the cloudformation template
      */
     protected void deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) {
         cfnApi.provisionStack(templateUrl, stackName, params);
@@ -98,7 +99,7 @@ public abstract class CloudformationDeploymentService {
                 handleSuccessfulDeployment();
                 stackCompleteFuture.complete("");
             }
-            if (status.equals(StackStatus.CREATE_FAILED)) {
+            if (isFailedStatus(status)) {
                 logger.error("stack {} creation failed", stackName);
                 handleFailedDeployment();
                 stackCompleteFuture.complete("");
@@ -116,5 +117,11 @@ public abstract class CloudformationDeploymentService {
             ticker.cancel(true);
             canceller.cancel(true);
         });
+    }
+
+    private boolean isFailedStatus(StackStatus status) {
+        return status.equals(StackStatus.CREATE_FAILED) ||
+                status.equals(StackStatus.ROLLBACK_COMPLETE) ||
+                status.equals(StackStatus.ROLLBACK_FAILED);
     }
 }

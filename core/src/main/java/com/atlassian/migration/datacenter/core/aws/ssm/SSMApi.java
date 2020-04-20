@@ -18,6 +18,8 @@ package com.atlassian.migration.datacenter.core.aws.ssm;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.util.concurrent.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationRequest;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
@@ -28,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 public class SSMApi {
+
+    private static final Logger logger = LoggerFactory.getLogger(SSMApi.class);
 
     private Supplier<SsmClient> clientFactory;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
@@ -48,6 +52,7 @@ public class SSMApi {
      * @return the command ID of the invoked command.
      */
     public String runSSMDocument(String documentName, String targetEc2InstanceId, Map<String, List<String>> commandParameters) {
+        logger.debug("running document {} against instance {} with parameters {}", documentName, targetEc2InstanceId, commandParameters.entrySet());
         SsmClient client = clientFactory.get();
         SendCommandRequest request = SendCommandRequest.builder()
                 .documentName(documentName)
@@ -78,6 +83,8 @@ public class SSMApi {
      * @see SsmClient#getCommandInvocation(GetCommandInvocationRequest) for other exception details
      */
     public GetCommandInvocationResponse getSSMCommand(String commandId, String targetEc2InstanceId) {
+        logger.debug("getting status of command {} on instance {}", commandId, targetEc2InstanceId);
+
         SsmClient client = clientFactory.get();
         GetCommandInvocationRequest request = GetCommandInvocationRequest.builder()
                 .commandId(commandId)
