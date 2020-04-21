@@ -66,4 +66,5 @@ export enum RestApiPathConstants {
     awsStackStatusRestPath = `aws/stack/:stackId:/status`,
     awsCredentialsStorePath = `aws/configure`,
     awsRegionListPath = `aws/global-infrastructure/regions`,
+    awsAzListForRegion = `aws/availabilityZones`,
 }

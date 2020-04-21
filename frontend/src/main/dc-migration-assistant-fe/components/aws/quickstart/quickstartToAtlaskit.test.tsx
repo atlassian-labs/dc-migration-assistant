@@ -85,6 +85,10 @@ const AZ_INPUT: QuickstartParameter = {
     },
 };
 
+const mockFetch = jest.fn();
+mockFetch.mockReturnValue(Promise.resolve({ json: ['us-east-1a', 'us-east-1b'] }));
+window.fetch = mockFetch;
+
 describe('Quick Start to Atlaskit Input Converter', () => {
     it('Should create a label and description for any parameter', () => {
         const { getByText } = render(createQuickstartFormField(STRING_INPUT));
