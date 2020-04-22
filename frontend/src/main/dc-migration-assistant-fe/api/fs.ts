@@ -9,8 +9,14 @@ type FailedFile = {
     reason: string;
 };
 
+type FileSystemMigrationDuration = {
+    seconds: number;
+    nanos: number;
+};
+
 type FileSystemMigrationStatusResponse = {
     status: 'NOT_STARTED' | 'FAILED' | 'UPLOADING' | 'DOWNLOADING' | 'DONE';
+    elapsedTime: FileSystemMigrationDuration;
     failedFiles: Array<FailedFile>;
     uploadedFiles: number;
     filesFound: number;

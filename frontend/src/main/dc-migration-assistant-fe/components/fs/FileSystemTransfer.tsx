@@ -36,6 +36,7 @@ const getFsMigrationProgress = (): Promise<Progress> => {
         .then(result => {
             if (result.status === 'UPLOADING') {
                 const progress: Progress = {
+                    elapsedTimeSeconds: result.elapsedTime.seconds,
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.upload'),
                 };
 
@@ -96,7 +97,6 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.fs.title'),
     description: I18n.getText('atlassian.migration.datacenter.fs.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    started: dummyStarted,
     getProgress: getFsMigrationProgress,
 };
 
