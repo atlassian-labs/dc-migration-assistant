@@ -23,16 +23,6 @@ import { MigrationTransferProps, MigrationTransferPage } from '../shared/Migrati
 const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.db.title'),
     description: I18n.getText('atlassian.migration.datacenter.db.description'),
-    infoTitle: I18n.getText('atlassian.migration.datacenter.db.progress.title.in_progress'),
-    infoContent: I18n.getText('atlassian.migration.datacenter.common.can_close_window'),
-    infoActions: [
-        {
-            key: 'learn',
-            href:
-                'https://media0.giphy.com/media/a6OnFHzHgCU1O/giphy.gif?cid=ecf05e472ee78099c642a7d2427127e6f1d4d6f0b77551c7&rid=giphy.gif',
-            text: I18n.getText('atlassian.migration.datacenter.common.learn_more'),
-        },
-    ],
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
     started: moment(),
     getProgress: () => {
@@ -41,7 +31,6 @@ const props: MigrationTransferProps = {
                 resolve({
                     completeness: 0.5,
                     phase: 'uploading files...',
-                    progress: '45 020 files copied',
                 });
             }, 500);
         });

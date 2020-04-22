@@ -30,6 +30,5 @@ describe('Database Migration page', () => {
 
         expect(getByText('atlassian.migration.datacenter.db.title')).toBeTruthy();
         expect(getByText('atlassian.migration.datacenter.db.description')).toBeTruthy();
-        expect(getByText('atlassian.migration.datacenter.common.can_close_window')).toBeTruthy();
     });
 });
