@@ -24,16 +24,6 @@ import { MigrationTransferProps, MigrationTransferPage } from './MigrationTransf
 const props: MigrationTransferProps = {
     heading: 'heading',
     description: 'description',
-    infoTitle: 'infoTitle',
-    infoContent: 'infoContent',
-    infoActions: [
-        {
-            key: 'learn',
-            href:
-                'https://media0.giphy.com/media/a6OnFHzHgCU1O/giphy.gif?cid=ecf05e472ee78099c642a7d2427127e6f1d4d6f0b77551c7&rid=giphy.gif',
-            text: 'infotext',
-        },
-    ],
     nextText: 'nextText',
     started: moment().subtract(20, 'minutes'),
     getProgress: () => {
@@ -42,7 +32,6 @@ const props: MigrationTransferProps = {
                 resolve({
                     completeness: 0.5,
                     phase: 'uploading files...',
-                    progress: '45 020 files copied',
                 });
             }, 500);
         });
@@ -62,6 +51,5 @@ describe('Migration Page Component', () => {
 
         expect(getByText('heading')).toBeTruthy();
         expect(getByText('description')).toBeTruthy();
-        expect(getByText('infoContent')).toBeTruthy();
     });
 });

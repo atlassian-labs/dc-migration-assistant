@@ -20,9 +20,9 @@ import Toggle from '@atlaskit/toggle';
 import TextField from '@atlaskit/textfield';
 import { ErrorMessage, Field, HelperMessage } from '@atlaskit/form';
 import { I18n } from '@atlassian/wrm-react-i18n';
-
 // eslint-disable-next-line import/extensions
 import { QuickstartParameter } from './QuickStartTypes';
+import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 
 type FormElementGenerator = (
     defaultProps: Record<string, string>,
@@ -30,27 +30,12 @@ type FormElementGenerator = (
 ) => ReactElement;
 type InputProps = Record<string, boolean | number | string | Function>;
 
+const availabilityZonesLoadOptions = (): Promise<Array<OptionType>> =>
+    callAppRest('GET', RestApiPathConstants.awsAzListForRegion)
+        .then(r => r.json())
+        .then(azs => (azs as Array<string>).map(az => ({ label: az, value: az, key: az })));
+
 const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
-    // TODO: This should be queried via plugin API
-    const AZsForRegion = [
-        'us-east-1a',
-        'us-east-1b',
-        'us-east-1c',
-        'us-east-1d',
-        'us-east-1e',
-        'us-east-1f',
-        'ap-southeast-2a',
-        'ap-southeast-2b',
-    ];
-
-    // This will be replaced by an API call
-    const promiseOptions = (): Promise<Array<OptionType>> =>
-        new Promise(resolve => {
-            setTimeout(() => {
-                resolve(AZsForRegion.map(az => ({ label: az, value: az, key: az })));
-            }, 1000);
-        });
-
     const {
         paramProperties: { Description },
     } = param;
@@ -73,7 +58,7 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
                         defaultOptions
                         isMulti
                         isSearchable={false}
-                        loadOptions={promiseOptions}
+                        loadOptions={availabilityZonesLoadOptions}
                         {...fieldProps}
                     />
                     {error && (
