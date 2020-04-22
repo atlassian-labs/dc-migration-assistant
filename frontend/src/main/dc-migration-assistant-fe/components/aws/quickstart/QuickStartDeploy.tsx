@@ -23,6 +23,7 @@ import Spinner from '@atlaskit/spinner';
 import { OptionType } from '@atlaskit/select';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import styled from 'styled-components';
+import Panel from '@atlaskit/panel';
 
 import { createQuickstartFormField } from './quickstartToAtlaskit';
 import {
@@ -53,9 +54,9 @@ const QuickstartFormContainer = styled.form`
     width: 60%;
 `;
 
-const ButtonRow = (props: React.HTMLProps<HTMLDivElement>) => (
-    <div style={{ margin: '15px 0px 0px 10px' }} {...props} />
-);
+const ButtonRow = styled.div`
+    margin: 15px 0px 0px 10px;
+`;
 
 const StackNameField = (): ReactElement => {
     const fieldNameValidator = (stackName: string): string => {
@@ -130,11 +131,17 @@ const QuickstartForm = ({
                 <StackNameField />
                 {quickstartParamGroups.map(group => {
                     return (
-                        <FormSection key={group.groupLabel} title={group.groupLabel}>
-                            {group.parameters.map(parameter => {
-                                return createQuickstartFormField(parameter);
-                            })}
-                        </FormSection>
+                        <Panel
+                            header={group.groupLabel}
+                            key={group.groupLabel}
+                            isDefaultExpanded={group.shouldExpandGroupOnLoad}
+                        >
+                            <FormSection>
+                                {group.parameters.map(parameter => {
+                                    return createQuickstartFormField(parameter);
+                                })}
+                            </FormSection>
+                        </Panel>
                     );
                 })}
                 <ButtonRow>
@@ -168,6 +175,7 @@ const buildQuickstartParams = (quickstartParamDoc: any): Array<QuickstartParamet
         const paramGroupLabel = Label;
         return {
             groupLabel: paramGroupLabel.default,
+            shouldExpandGroupOnLoad: !/optional/i.test(paramGroupLabel.default),
             parameters: Parameters.map(parameter => {
                 return {
                     paramKey: parameter,

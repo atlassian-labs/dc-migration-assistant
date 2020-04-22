@@ -10,6 +10,7 @@
         "@atlaskit/flag": "^12.3.8",
         "@atlaskit/form": "^6.3.2",
         "@atlaskit/icon": "^20.0.1",
+        "@atlaskit/panel": "^0.3.5",
         "@atlaskit/progress-bar": "^0.2.7",
         "@atlaskit/section-message": "^4.1.7",
         "@atlaskit/select": "^11.0.5",

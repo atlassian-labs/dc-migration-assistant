@@ -39,6 +39,7 @@ export type QuickstartParamGroupYamlNode = {
 
 export type QuickstartParameterGroup = {
     groupLabel: string;
+    shouldExpandGroupOnLoad: boolean;
     parameters: Array<QuickstartParameter>;
 };
 

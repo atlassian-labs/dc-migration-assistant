@@ -97,15 +97,15 @@ describe('Quick Start Provisioning Screen', () => {
             expect(firstGroup).toBeTruthy();
 
             const groupContainer = firstGroup.parentElement;
-            // 2 parameters plus the group label
-            expect(groupContainer.childElementCount).toEqual(3);
+            // 1 panel section + 1 form section
+            expect(groupContainer.childElementCount).toEqual(2);
 
             const secondGroup = getByText(SECOND_PARAM_GROUP_NAME);
             expect(secondGroup).toBeTruthy();
 
             const secondGroupContainer = secondGroup.parentElement;
-            // 2 parameters plus the group label
-            expect(secondGroupContainer.childElementCount).toEqual(3);
+            // 1 panel section + 1 form section
+            expect(secondGroupContainer.childElementCount).toEqual(2);
         });
     });
     it('Should enforce validation on string parameters with constraints', async () => {

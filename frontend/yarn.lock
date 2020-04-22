@@ -12,6 +12,27 @@
     tslib "^1.9.3"
     use-memo-one "^1.1.1"
 
+"@atlaskit/analytics-next@^6.3.6":
+  version "6.3.6"
+  resolved "https://registry.yarnpkg.com/@atlaskit/analytics-next/-/analytics-next-6.3.6.tgz#447ddbd1eb80f7228871570d39aad0b0d91636c9"
+  integrity sha512-LeByMgFN19rU8Awl+OG+9iERwxv2bg/nPLYV6anvPkL4H9IGgDu9+hLgJZ2muCQXN5AfamNMcxtU4LPGcDKRdQ==
+  dependencies:
+    prop-types "^15.5.10"
+    tslib "^1.9.3"
+    use-memo-one "^1.1.1"
+
+"@atlaskit/button@^13.3.10":
+  version "13.3.10"
+  resolved "https://registry.yarnpkg.com/@atlaskit/button/-/button-13.3.10.tgz#7a23ca56522fc9eead50de675c46899c9836a3c8"
+  integrity sha512-8RjJlGvOyMYzTgkDv7FUxV89Xb5vOfibw5dQV85tVsC4pZB/qZnrPrWvsic2BDNQZF4htKTNA8TxDD9abm5cGw==
+  dependencies:
+    "@atlaskit/analytics-next" "^6.3.6"
+    "@atlaskit/spinner" "^12.1.6"
+    "@atlaskit/theme" "^9.5.3"
+    "@emotion/core" "^10.0.9"
+    memoize-one "^5.1.0"
+    tslib "^1.9.3"
+
 "@atlaskit/button@^13.3.5", "@atlaskit/button@^13.3.9":
   version "13.3.9"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/button/-/button-13.3.9.tgz#0f66e41324c020b4f4bb36006bae3aa1ba208fd7"
@@ -80,6 +101,18 @@
     "@atlaskit/theme" "^9.5.1"
     tslib "^1.9.3"
     uuid "^3.1.0"
+
+"@atlaskit/panel@^0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@atlaskit/panel/-/panel-0.3.5.tgz#30cf67e61c242a06751419d18d3bb0bc2c092761"
+  integrity sha512-yNqI+2FessLZuPri+0Kgbck/nQl8F+k2cFPbkfyIedvazw3lItMyF0oG7JNM6sg9dRo147hKMvggpdVPbDDXhg==
+  dependencies:
+    "@atlaskit/button" "^13.3.10"
+    "@atlaskit/icon" "^20.0.1"
+    "@atlaskit/theme" "^9.5.3"
+    react-animate-height "^2.0.5"
+    react-focus-within "^2.0.1"
+    tslib "^1.9.3"
 
 "@atlaskit/portal@^3.1.6":
   version "3.1.6"
@@ -153,6 +186,15 @@
   version "9.5.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/theme/-/theme-9.5.2.tgz#a6ede937f5a6870c4acf6a6cbf094b429e0e759d"
   integrity sha1-pu3pN/WmhwxKz2psvwlLQp4OdZ0=
+  dependencies:
+    exenv "^1.2.2"
+    prop-types "^15.5.10"
+    tslib "^1.9.3"
+
+"@atlaskit/theme@^9.5.3":
+  version "9.5.3"
+  resolved "https://registry.yarnpkg.com/@atlaskit/theme/-/theme-9.5.3.tgz#7239b024093959dcc8e0e18283d91b08f1338d7e"
+  integrity sha512-GA8zpyDZHO81vPcSJbObQuRt3ajQxOHY+Qz6Zi1yIepr4Y6xz/fXIiFzamP/VJB/TvHQEhyNE0yeQIYVHGuhyg==
   dependencies:
     exenv "^1.2.2"
     prop-types "^15.5.10"
@@ -1882,6 +1924,14 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
+"@types/react@^15.0.0 || ^16.0.0":
+  version "16.9.34"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.9.34.tgz#f7d5e331c468f53affed17a8a4d488cd44ea9349"
+  integrity sha512-8AJlYMOfPe1KGLKyHpflCg5z46n0b5DbRfqDksxBLBTUpB75ypDBAO9eCUcjNwE6LCUslwTz00yyG/X9gaVtow==
+  dependencies:
+    "@types/prop-types" "*"
+    csstype "^2.2.0"
+
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
@@ -3460,7 +3510,7 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-classnames@^2.2.4, classnames@^2.2.6:
+classnames@^2.2.4, classnames@^2.2.5, classnames@^2.2.6:
   version "2.2.6"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
   integrity sha1-Q5Nb/90pHzJtrQogUwmzjQD2UM4=
@@ -9996,6 +10046,14 @@ raw-body@2.4.0:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
+react-animate-height@^2.0.5:
+  version "2.0.21"
+  resolved "https://registry.yarnpkg.com/react-animate-height/-/react-animate-height-2.0.21.tgz#da9223eb0e74457d52f72da477c8626550df2ce6"
+  integrity sha512-CZHdjMD8qqp10tYtWmauWYASXxxv9vYeljxFGFtbcrbNXhsUv0w3IjxVK+0yCnyfk7769WfMZKHra4vRcbMnQg==
+  dependencies:
+    classnames "^2.2.5"
+    prop-types "^15.6.1"
+
 react-app-polyfill@^1.0.1:
   version "1.0.6"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/react-app-polyfill/-/react-app-polyfill-1.0.6.tgz#890f8d7f2842ce6073f030b117de9130a5f385f0"
@@ -10058,6 +10116,14 @@ react-fast-compare@^2.0.1:
   version "2.0.4"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/react-fast-compare/-/react-fast-compare-2.0.4.tgz#e84b4d455b0fec113e0402c329352715196f81f9"
   integrity sha1-6EtNRVsP7BE+BALDKTUnFRlvgfk=
+
+react-focus-within@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/react-focus-within/-/react-focus-within-2.0.1.tgz#6bd727a96e81a9a602052396d681b5138818ba67"
+  integrity sha512-lsP9+UW/9iSoqAqZ34wARnypP2izt3BjQ14+5+VpfvTnsNet1wFn071GtJYMmUR0pT6Pa59WnW+HhSguFGXVQg==
+  dependencies:
+    "@types/react" "^15.0.0 || ^16.0.0"
+    prop-types "^15.6.1"
 
 react-hot-loader@^4.12.11:
   version "4.12.20"
