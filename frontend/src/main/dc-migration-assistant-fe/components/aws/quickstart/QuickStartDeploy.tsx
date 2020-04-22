@@ -54,6 +54,13 @@ const QuickstartFormContainer = styled.form`
     width: 60%;
 `;
 
+const PanelContainer = styled.div`
+    & span {
+        font-size: 1.4em;
+        font-weight: 400;
+    }
+`;
+
 const ButtonRow = styled.div`
     margin: 15px 0px 0px 10px;
 `;
@@ -131,17 +138,19 @@ const QuickstartForm = ({
                 <StackNameField />
                 {quickstartParamGroups.map(group => {
                     return (
-                        <Panel
-                            header={group.groupLabel}
-                            key={group.groupLabel}
-                            isDefaultExpanded={group.shouldExpandGroupOnLoad}
-                        >
-                            <FormSection>
-                                {group.parameters.map(parameter => {
-                                    return createQuickstartFormField(parameter);
-                                })}
-                            </FormSection>
-                        </Panel>
+                        <PanelContainer>
+                            <Panel
+                                header={group.groupLabel}
+                                key={group.groupLabel}
+                                isDefaultExpanded={group.shouldExpandGroupOnLoad}
+                            >
+                                <FormSection>
+                                    {group.parameters.map(parameter => {
+                                        return createQuickstartFormField(parameter);
+                                    })}
+                                </FormSection>
+                            </Panel>
+                        </PanelContainer>
                     );
                 })}
                 <ButtonRow>
