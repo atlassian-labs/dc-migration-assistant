@@ -51,7 +51,6 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
         <Field validate={validate} {...defaultFieldProps}>
             {({ fieldProps, error }: any): ReactElement => (
                 <>
-                    <HelperMessage>{Description}</HelperMessage>
                     <AsyncSelect
                         className="az-select"
                         cacheOptions
@@ -61,6 +60,7 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
                         loadOptions={availabilityZonesLoadOptions}
                         {...fieldProps}
                     />
+                    <HelperMessage>{Description}</HelperMessage>
                     {error && (
                         <ErrorMessage>
                             {I18n.getText(
@@ -124,8 +124,8 @@ const createNumberInputFromQuickstartParam: FormElementGenerator = (defaultField
             {({ fieldProps, error }: any): ReactElement => {
                 return (
                     <>
-                        <HelperMessage>{Description}</HelperMessage>
                         <TextField width="medium" {...fieldProps} {...overrideInputProps} />
+                        <HelperMessage>{Description}</HelperMessage>
                         {error && <ErrorMessage>{error}</ErrorMessage>}
                     </>
                 );
@@ -187,8 +187,8 @@ const createStringInputFromQuickstartParam: FormElementGenerator = (defaultField
         <Field {...defaultFieldProps} {...overrideFieldProps}>
             {({ fieldProps, error }: any): ReactElement => (
                 <>
-                    <HelperMessage>{Description}</HelperMessage>
                     <TextField width="xlarge" {...fieldProps} {...overrideInputProps} />
+                    <HelperMessage>{Description}</HelperMessage>
                     {error && <ErrorMessage>{error}</ErrorMessage>}
                 </>
             )}
@@ -219,12 +219,12 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
             <Field {...defaultFieldProps}>
                 {({ fieldProps }: any): ReactElement => (
                     <>
-                        <HelperMessage>{Description}</HelperMessage>
                         <Toggle
                             {...fieldProps}
                             size="large"
                             isDefaultChecked={Default as boolean}
                         />
+                        <HelperMessage>{Description}</HelperMessage>
                     </>
                 )}
             </Field>
@@ -242,8 +242,8 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
         <Field {...defaultFieldProps} defaultValue={defaultOption}>
             {({ fieldProps }: any): ReactElement => (
                 <>
-                    <HelperMessage>{Description}</HelperMessage>
                     <Select {...fieldProps} {...overrideFieldProps} />
+                    <HelperMessage>{Description}</HelperMessage>
                 </>
             )}
         </Field>
