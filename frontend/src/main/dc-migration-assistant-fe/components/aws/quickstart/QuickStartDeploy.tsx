@@ -138,13 +138,13 @@ const QuickstartForm = ({
                 <StackNameField />
                 {quickstartParamGroups.map(group => {
                     return (
-                        <PanelContainer>
+                        <PanelContainer key={`${group.groupLabel}-panelContainer`}>
                             <Panel
                                 header={group.groupLabel}
-                                key={group.groupLabel}
+                                key={`${group.groupLabel}-panel`}
                                 isDefaultExpanded={group.shouldExpandGroupOnLoad}
                             >
-                                <FormSection>
+                                <FormSection key={group.groupLabel}>
                                     {group.parameters.map(parameter => {
                                         return createQuickstartFormField(parameter);
                                     })}
