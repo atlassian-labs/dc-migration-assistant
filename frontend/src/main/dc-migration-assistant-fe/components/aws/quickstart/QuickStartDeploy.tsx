@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactElement, useEffect, useState } from 'react';
+import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
 import yaml from 'yaml';
 import Form, { ErrorMessage, Field, FormHeader, FormSection } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
@@ -94,6 +94,33 @@ const StackNameField = (): ReactElement => {
     );
 };
 
+const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
+    const getFormSectionFragment = (props = {}): ReactFragment => {
+        return (
+            <FormSection key={group.groupLabel} {...props}>
+                {group.parameters.map(parameter => {
+                    return createQuickstartFormField(parameter);
+                })}
+            </FormSection>
+        );
+    };
+
+    if (group.shouldExpandGroupOnLoad) {
+        return getFormSectionFragment({ title: group.groupLabel });
+    }
+    return (
+        <PanelContainer key={`${group.groupLabel}-panelContainer`}>
+            <Panel
+                header={group.groupLabel}
+                key={`${group.groupLabel}-panel`}
+                isDefaultExpanded={group.shouldExpandGroupOnLoad}
+            >
+                {getFormSectionFragment()}
+            </Panel>
+        </PanelContainer>
+    );
+};
+
 const QuickstartForm = ({
     quickstartParamGroups,
 }: Record<string, Array<QuickstartParameterGroup>>): ReactElement => (
@@ -137,21 +164,7 @@ const QuickstartForm = ({
                 />
                 <StackNameField />
                 {quickstartParamGroups.map(group => {
-                    return (
-                        <PanelContainer key={`${group.groupLabel}-panelContainer`}>
-                            <Panel
-                                header={group.groupLabel}
-                                key={`${group.groupLabel}-panel`}
-                                isDefaultExpanded={group.shouldExpandGroupOnLoad}
-                            >
-                                <FormSection key={group.groupLabel}>
-                                    {group.parameters.map(parameter => {
-                                        return createQuickstartFormField(parameter);
-                                    })}
-                                </FormSection>
-                            </Panel>
-                        </PanelContainer>
-                    );
+                    return renderFormSection(group);
                 })}
                 <ButtonRow>
                     <ButtonGroup>
