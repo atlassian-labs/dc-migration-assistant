@@ -43,6 +43,12 @@ const watchConfig = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': '*',
         },
+        proxy: {
+            '/rest': {
+                target: 'http://localhost:2990/jira',
+                auth: 'admin:admin',
+            },
+        },
     },
     plugins: [new webpack.HotModuleReplacementPlugin()],
     devtool: 'inline-source-map',
