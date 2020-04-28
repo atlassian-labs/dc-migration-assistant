@@ -2,5 +2,5 @@ package com.atlassian.migration.datacenter.core.aws.cloud;
 
 @FunctionalInterface
 public interface CloudCredentialsValidator {
-    Boolean validate(String accessKeyId, String secretAccessKey);
+    Boolean validate(String accessKeyId, String secretAccessKey, String region);
 }

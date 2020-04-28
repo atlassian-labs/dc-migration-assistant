@@ -54,7 +54,7 @@ class AWSConfigurationServiceTest {
 
     @BeforeEach
     void setUp() {
-        sut = new AWSConfigurationService(mockCredentialsWriter, mockRegionService, mockMigrationService, (accessKeyId, secretAccessKey) -> true);
+        sut = new AWSConfigurationService(mockCredentialsWriter, mockRegionService, mockMigrationService, (accessKeyId, secretAccessKey, region) -> true);
     }
 
     @Test
@@ -88,7 +88,7 @@ class AWSConfigurationServiceTest {
     @Test
     void shouldRaiseAnErrorWhenCredentialsAreInvalid() {
         mockValidMigration();
-        sut = new AWSConfigurationService(mockCredentialsWriter, mockRegionService, mockMigrationService, (accessKeyId, secretAccessKey) -> false);
+        sut = new AWSConfigurationService(mockCredentialsWriter, mockRegionService, mockMigrationService, (accessKeyId, secretAccessKey, region) -> false);
         assertThrows(InvalidCredentialsException.class, () -> sut.configureCloudProvider("garbage", "garbage", "garbage"));
     }
 

@@ -3,6 +3,7 @@ package com.atlassian.migration.datacenter.core.aws.cloud;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -20,21 +21,26 @@ public class DefaultAwsCloudCredentialsValidator implements CloudCredentialsVali
 //    TODO: Evaluate if we can use the simulate policy API ( This does not validate IAM policy as defined here {@link https://docs.aws.amazon.com/IAM/latest/APIReference/API_SimulatePrincipalPolicy.html} as invoking that). Invoking this API requires passing in a required `policySourceARN` that points to the user/group/role for which the simulation has to run for. We do not accept this as an input from the user yet.
 //    TODO: getCallerIdentity may not work for users using MFA and/or when the role does not have privileges to call getUser. Verify this
     @Override
-    public Boolean validate(String accessKeyId, String secretAccessKey) {
+    public Boolean validate(String accessKeyId, String secretAccessKey, String region) {
         try {
+            Region awsRegion = Region.of(region);
             AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
-            StsClient stsClient = buildStsClient(awsBasicCredentials);
+            StsClient stsClient = buildStsClient(awsBasicCredentials, awsRegion);
             GetCallerIdentityResponse callerIdentity = stsClient.getCallerIdentity();
             logCallerIdentityMetadata(callerIdentity);
             logger.debug("Successfully retrieved AWS credentials from ");
             return true;
         } catch (Exception e) {
+            logger.error("Error during AWS credentials validation", e);
             return false;
         }
     }
 
-    protected StsClient buildStsClient(AwsBasicCredentials awsBasicCredentials) {
-        return StsClient.builder().credentialsProvider(() -> awsBasicCredentials).build();
+    protected StsClient buildStsClient(AwsBasicCredentials awsBasicCredentials, Region region) {
+        return StsClient.builder()
+            .credentialsProvider(() -> awsBasicCredentials)
+            .region(region)
+            .build();
     }
 
     private static void logCallerIdentityMetadata(GetCallerIdentityResponse callerIdentity) {

@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidCredentialsExcep
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
 
 public class AWSConfigurationService implements CloudProviderConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(AWSConfigurationService.class);
@@ -45,25 +46,25 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
     /**
      * Configures the app to be able to authenticate with AWS.
      *
-     * @param entity    the AWS access key ID
+     * @param accessKey the AWS access key ID
      * @param secret    the AWS secret access key
-     * @param geography the AWS region
+     * @param region the AWS region
      * @throws InvalidMigrationStageError when not in {@link MigrationStage#AUTHENTICATION}
      */
     @Override
-    public void configureCloudProvider(String entity, String secret, String geography) throws InvalidMigrationStageError, InvalidCredentialsException {
+    public void configureCloudProvider(String accessKey, String secret, String region) throws InvalidMigrationStageError, InvalidCredentialsException {
         final MigrationStage currentStage = migrationService.getCurrentStage();
         if (!currentStage.equals(MigrationStage.AUTHENTICATION)) {
             logger.error("tried to configure AWS when in invalid stage {}", currentStage);
             throw new InvalidMigrationStageError("expected to be in stage " + MigrationStage.AUTHENTICATION + " but was in " + currentStage);
         }
 
-        if (!this.cloudCredentialsValidator.validate(entity, secret)) {
+        if (!this.cloudCredentialsValidator.validate(accessKey, secret, region)) {
             throw new InvalidCredentialsException("At least one of supplied access key and secret key are invalid");
         }
 
         try {
-            regionService.storeRegion(geography);
+            regionService.storeRegion(region);
             logger.info("stored aws region");
         } catch (InvalidAWSRegionException e) {
             logger.error("error storing AWS region", e);
@@ -71,7 +72,7 @@ public class AWSConfigurationService implements CloudProviderConfigurationServic
         }
 
         logger.info("Storing AWS credentials");
-        writeCredentialsService.storeAccessKeyId(entity);
+        writeCredentialsService.storeAccessKeyId(accessKey);
         writeCredentialsService.storeSecretAccessKey(secret);
 
         migrationService.transition(MigrationStage.PROVISION_APPLICATION);

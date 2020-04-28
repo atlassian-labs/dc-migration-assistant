@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 import software.amazon.awssdk.services.sts.model.StsException;
@@ -22,14 +23,14 @@ class DefaultAwsCloudCredentialsValidatorTest {
     @Test
     void shouldValidateSuccessfullyWhenCredentialsAreValid() {
         when(stsClient.getCallerIdentity()).thenReturn(GetCallerIdentityResponse.builder().userId("foo").build());
-        Boolean isValid = new StubAwsCloudCredentialsValidator(stsClient).validate("valid-foo", "valid-bar");
+        Boolean isValid = new StubAwsCloudCredentialsValidator(stsClient).validate("valid-foo", "valid-bar", "valid-region");
         Assertions.assertTrue(isValid);
     }
 
     @Test
     void shouldNotValidateWhenCredentialsAreInValid() {
         doThrow(StsException.class).when(stsClient).getCallerIdentity();
-        Boolean isValid = new StubAwsCloudCredentialsValidator(stsClient).validate("valid-foo", "invalid-bar");
+        Boolean isValid = new StubAwsCloudCredentialsValidator(stsClient).validate("valid-foo", "invalid-bar", "valid-region");
         Assertions.assertFalse(isValid);
 
     }
@@ -43,7 +44,7 @@ class DefaultAwsCloudCredentialsValidatorTest {
         }
 
         @Override
-        protected StsClient buildStsClient(AwsBasicCredentials awsBasicCredentials) {
+        protected StsClient buildStsClient(AwsBasicCredentials awsBasicCredentials, Region region) {
             return stsClient;
         }
     }
