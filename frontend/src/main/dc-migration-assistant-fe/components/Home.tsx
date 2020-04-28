@@ -18,14 +18,14 @@ import React, { ReactElement, useState, useEffect, FunctionComponent } from 'rea
 import Button from '@atlaskit/button';
 import InlineMessage from '@atlaskit/inline-message';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
 
-import { startPath } from '../utils/RoutePaths';
 import { migration, MigrationStage, redirectForStage } from '../api/migration';
 import { ErrorFlag } from './shared/ErrorFlag';
+import { quickstartPath } from '../utils/RoutePaths';
 
 type HomeProps = {
     title: string;
@@ -66,21 +66,24 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
 }) => {
     const [error, setError] = useState<string>();
     const [loading, setLoading] = useState<boolean>(false);
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
 
     const createMigration = (): void => {
         setLoading(true);
         migration
             .createMigration()
             .then(() => {
-                // Route to next page
+                setReadyForNextStep(true);
             })
             .catch(err => {
-                setError(err);
-            })
-            .finally(() => {
                 setLoading(false);
+                setError(err);
             });
     };
+
+    if (readyForNextStep) {
+        return <Redirect to={quickstartPath} push />;
+    }
 
     if (continuation.migrationInProgress) {
         return (
@@ -128,11 +131,12 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
         migration
             .getMigrationStage()
             .then((stage: string) => {
+                console.log(stage);
                 if (stage !== 'not_started') {
                     const currentStage = stage as MigrationStage;
                     setContinuation({
+                        currentStage,
                         migrationInProgress: true,
-                        currentStage: currentStage,
                         continuationPage: redirectForStage[currentStage],
                     });
                 }
