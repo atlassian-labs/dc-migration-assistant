@@ -24,7 +24,7 @@ import { OptionType } from '@atlaskit/select';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import styled from 'styled-components';
 import Panel from '@atlaskit/panel';
-import { useHistory } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 import { createQuickstartFormField } from './quickstartToAtlaskit';
 import {
@@ -203,8 +203,7 @@ const QuickStartDeployContainer = styled.div`
 export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
     const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const history = useHistory();
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
 
     useEffect(() => {
         setLoading(true);
@@ -245,7 +244,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
                 if (response.status !== 202) {
                     throw Error('Stack provisioning failed');
                 }
-                history.push(quickstartStatusPath);
+                setReadyForNextStep(true);
             })
             .catch(err => {
                 console.error(err);
@@ -254,6 +253,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
 
     return (
         <QuickStartDeployContainer>
+            {readyForNextStep && <Redirect to={quickstartStatusPath} />}
             {loading ? (
                 <Spinner />
             ) : (
