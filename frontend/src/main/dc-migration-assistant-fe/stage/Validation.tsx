@@ -23,7 +23,6 @@ import styled from 'styled-components';
 import { Link, useHistory } from 'react-router-dom';
 import { homePath } from '../utils/RoutePaths';
 import { migration, MigrationStage } from '../api/migration';
-import { ErrorFlag } from '../components/shared/ErrorFlag';
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
@@ -139,10 +138,58 @@ const MigrationSummary: FunctionComponent = () => {
     );
 };
 
+const ValidationSummary = ({
+    onClick,
+}: {
+    onClick: () => void;
+}): ReactElement => {
+    return (
+        <>
+            <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
+            <h3>{I18n.getText('atlassian.migration.datacenter.validation.message')}</h3>
+            <SectionMessageContainer>
+                <SectionMessage appearance="info">
+                    {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
+                </SectionMessage>
+            </SectionMessageContainer>
+            <MigrationSummary />
+            <MigrationSummaryActionCallout />
+            <Button
+                isLoading={false}
+                appearance="primary"
+                style={{
+                    marginTop: '15px',
+                }}
+                onClick={onClick}
+            >
+                {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
+            </Button>
+        </>
+    );
+};
+
+const InvalidMigrationStageErrorMessage = (): ReactElement => (
+    <SectionMessage appearance="error">
+        <p>
+            {I18n.getText(
+                'atlassian.migration.datacenter.step.validation.incorrect.stage.error.title'
+            )}
+        </p>
+        <p>
+            {I18n.getText(
+                'atlassian.migration.datacenter.step.validation.incorrect.stage.error.description'
+            )}
+        </p>
+        <p>
+            <Link to={homePath}>{I18n.getText('atlassian.migration.datacenter.step.validation.redirect.home')}</Link>
+        </p>
+    </SectionMessage>
+);
+
 export const ValidateStagePage: FunctionComponent = () => {
     const history = useHistory();
     const [isStageValid, setIsStageValid]: [boolean, Function] = useState<boolean>(true);
-    const redirectUserToHome = (): void => {
+    const redirectUserToMigrationHome = (): void => {
         history.push(homePath);
     };
     useEffect(() => {
@@ -158,38 +205,9 @@ export const ValidateStagePage: FunctionComponent = () => {
             });
     }, []);
 
-    return (
-        <>
-            <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
-            <h3>{I18n.getText('atlassian.migration.datacenter.validation.message')}</h3>
-            <ErrorFlag
-                showError={!isStageValid}
-                dismissErrorFunc={(): void => setIsStageValid(true)}
-                title={I18n.getText(
-                    'atlassian.migration.datacenter.step.validation.incorrect.stage.error.title'
-                )}
-                description={I18n.getText(
-                    'atlassian.migration.datacenter.step.validation.incorrect.stage.error.description'
-                )}
-                id="invalid-validation-step-error"
-            />
-            <SectionMessageContainer>
-                <SectionMessage appearance="info">
-                    {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
-                </SectionMessage>
-            </SectionMessageContainer>
-            <MigrationSummary />
-            <MigrationSummaryActionCallout />
-            <Button
-                isLoading={false}
-                appearance="primary"
-                style={{
-                    marginTop: '15px',
-                }}
-                onClick={redirectUserToHome}
-            >
-                {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
-            </Button>
-        </>
+    return isStageValid ? (
+        <ValidationSummary onClick={redirectUserToMigrationHome} />
+    ) : (
+        <InvalidMigrationStageErrorMessage />
     );
 };
