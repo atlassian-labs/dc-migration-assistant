@@ -219,7 +219,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
             if (isOptionType(value)) {
                 transformedCfnParams[key] = value.value;
             } else if (isArrayOfOptionType(value)) {
-                transformedCfnParams[key] = JSON.stringify(value.map(option => option.value));
+                transformedCfnParams[key] = value.map(option => option.value).join(',');
             }
         });
 
@@ -228,7 +228,6 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
             params: transformedCfnParams,
         })
             .then(response => {
-                console.log(response);
                 if (response.status !== 202) {
                     throw Error('Stack provisioning failed');
                 }
