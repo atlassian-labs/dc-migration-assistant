@@ -34,6 +34,8 @@ import {
 } from './QuickStartTypes';
 
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
+import { Redirect } from 'react-router-dom';
+import { quickstartStatusPath } from '../../../utils/RoutePaths';
 
 const QUICKSTART_PARAMETERS_URL =
     'https://dcd-slinghost-templates.s3-ap-southeast-2.amazonaws.com/mothra/quickstart-jira-dc-with-vpc.template.parameters.yaml';
@@ -217,8 +219,9 @@ const QuickStartDeployContainer = styled.div`
 `;
 
 export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
-    const [params, setParams]: [Array<QuickstartParameterGroup>, Function] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
 
     useEffect(() => {
         setLoading(true);
@@ -238,6 +241,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
 
     return (
         <QuickStartDeployContainer>
+            {readyForNextStep && <Redirect to={quickstartStatusPath} />}
             {loading ? <Spinner /> : <QuickstartForm quickstartParamGroups={params} />}
         </QuickStartDeployContainer>
     );
