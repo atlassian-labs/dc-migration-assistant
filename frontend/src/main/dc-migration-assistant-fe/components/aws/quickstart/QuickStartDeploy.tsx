@@ -123,39 +123,52 @@ const renderFormSection = (group: QuickstartParameterGroup): ReactFragment => {
 
 type QuickstartFormProps = {
     paramGroups: Array<QuickstartParameterGroup>;
-    onSubmit: (data: Record<string, any>) => void;
+    onSubmit: (data: Record<string, any>) => Promise<void>;
 };
 
-const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, onSubmit }) => (
-    <Form onSubmit={onSubmit}>
-        {({ formProps }: any): ReactElement => (
-            <QuickstartFormContainer {...formProps}>
-                <FormHeader
-                    title={I18n.getText('atlassian.migration.datacenter.provision.aws.form.title')}
-                />
-                <StackNameField />
-                {paramGroups.map(group => {
-                    return renderFormSection(group);
-                })}
-                <ButtonRow>
-                    <ButtonGroup>
-                        <Button type="submit" appearance="primary">
-                            {I18n.getText(
-                                'atlassian.migration.datacenter.provision.aws.form.deploy'
-                            )}
-                        </Button>
-                        <Button appearance="default">
-                            {I18n.getText('atlassian.migration.datacenter.provision.aws.form.save')}
-                        </Button>
-                        <Button appearance="default">
-                            {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
-                        </Button>
-                    </ButtonGroup>
-                </ButtonRow>
-            </QuickstartFormContainer>
-        )}
-    </Form>
-);
+const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, onSubmit }) => {
+    const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+
+    const doSubmit = (data: Record<string, any>): void => {
+        setSubmitLoading(true);
+        onSubmit(data).finally(() => setSubmitLoading(false));
+    };
+
+    return (
+        <Form onSubmit={doSubmit}>
+            {({ formProps }: any): ReactElement => (
+                <QuickstartFormContainer {...formProps}>
+                    <FormHeader
+                        title={I18n.getText(
+                            'atlassian.migration.datacenter.provision.aws.form.title'
+                        )}
+                    />
+                    <StackNameField />
+                    {paramGroups.map(group => {
+                        return renderFormSection(group);
+                    })}
+                    <ButtonRow>
+                        <ButtonGroup>
+                            <Button isLoading={submitLoading} type="submit" appearance="primary">
+                                {I18n.getText(
+                                    'atlassian.migration.datacenter.provision.aws.form.deploy'
+                                )}
+                            </Button>
+                            <Button appearance="default">
+                                {I18n.getText(
+                                    'atlassian.migration.datacenter.provision.aws.form.save'
+                                )}
+                            </Button>
+                            <Button appearance="default">
+                                {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
+                            </Button>
+                        </ButtonGroup>
+                    </ButtonRow>
+                </QuickstartFormContainer>
+            )}
+        </Form>
+    );
+};
 
 const buildQuickstartParams = (quickstartParamDoc: any): Array<QuickstartParameterGroup> => {
     const params: Record<string, QuickStartParameterYamlNode> = quickstartParamDoc.Parameters;
@@ -209,7 +222,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
             });
     }, []);
 
-    const onSubmitQuickstartForm = (data: Record<string, any>): void => {
+    const onSubmitQuickstartForm = (data: Record<string, any>): Promise<void> => {
         const transformedCfnParams = data;
         const stackNameValue = transformedCfnParams[STACK_NAME_FIELD_NAME];
         delete transformedCfnParams[STACK_NAME_FIELD_NAME];
@@ -224,7 +237,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
             }
         });
 
-        callAppRest('POST', RestApiPathConstants.awsStackCreateRestPath, {
+        return callAppRest('POST', RestApiPathConstants.awsStackCreateRestPath, {
             stackName: stackNameValue,
             params: transformedCfnParams,
         })
