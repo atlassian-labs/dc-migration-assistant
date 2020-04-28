@@ -27,6 +27,7 @@ import {
     toI18nProp,
 } from '../../api/db';
 import { MigrationStage } from '../../api/migration';
+import { validationPath } from '../../utils/RoutePaths';
 
 const dbMigrationInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
@@ -63,6 +64,7 @@ const props: MigrationTransferProps = {
     startMigrationPhase: startDbMigration,
     inProgressStages: dbMigrationInProgressStages,
     getProgress: getProgressFromStatus,
+    nextRoute: validationPath,
 };
 
 export const DatabaseTransferPage: FunctionComponent = () => {

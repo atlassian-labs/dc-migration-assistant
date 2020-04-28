@@ -23,6 +23,7 @@ import { MigrationTransferProps, MigrationTransferPage } from '../shared/Migrati
 import { Progress, ProgressBuilder } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { migration, MigrationStage } from '../../api/migration';
+import { dbPath } from '../../utils/RoutePaths';
 
 const dummyStarted = moment();
 
@@ -123,6 +124,7 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
     inProgressStages: [MigrationStage.FS_MIGRATION_COPY_WAIT],
     startMigrationPhase: fs.startFsMigration,
     getProgress: getFsMigrationProgress,
+    nextRoute: dbPath,
 };
 
 export const FileSystemTransferPage: FunctionComponent = () => {

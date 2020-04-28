@@ -43,6 +43,7 @@ const props: MigrationTransferProps = {
             }, 500);
         });
     },
+    nextRoute: '',
 };
 
 describe('Migration Page Component', () => {

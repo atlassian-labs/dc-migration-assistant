@@ -21,6 +21,7 @@ import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
+import { fsPath } from '../../../utils/RoutePaths';
 
 const getDeploymentProgress: ProgressCallback = () => {
     return provisioning
@@ -80,6 +81,7 @@ export const ProvisioningStatusPage: FunctionComponent = () => {
             nextText={I18n.getText('atlassian.migration.datacenter.generic.next')}
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
             startMigrationPhase={Promise.resolve}
+            nextRoute={fsPath}
         />
     );
 };
