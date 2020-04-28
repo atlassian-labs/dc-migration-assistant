@@ -1,4 +1,21 @@
+/*
+ * Copyright 2020 Atlassian
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { callAppRest } from '../utils/api';
+import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths';
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
@@ -26,6 +43,29 @@ export enum MigrationStage {
     FINISHED = 'finished',
     ERROR = 'error',
 }
+
+export const redirectForStage: Record<MigrationStage, string> = {
+    [MigrationStage.NOT_STARTED]: homePath,
+    [MigrationStage.AUTHENTICATION]: awsAuthPath,
+    // FIXME: To be filled out...
+    [MigrationStage.PROVISION_APPLICATION]: 'FIXME',
+    [MigrationStage.PROVISION_APPLICATION_WAIT]: 'FIXME',
+    [MigrationStage.PROVISION_MIGRATION_STACK]: 'FIXME',
+    [MigrationStage.PROVISION_MIGRATION_STACK_WAIT]: 'FIXME',
+    [MigrationStage.FS_MIGRATION_COPY]: 'FIXME',
+    [MigrationStage.FS_MIGRATION_COPY_WAIT]: 'FIXME',
+    [MigrationStage.OFFLINE_WARNING]: 'FIXME',
+    [MigrationStage.DB_MIGRATION_EXPORT]: 'FIXME',
+    [MigrationStage.DB_MIGRATION_EXPORT_WAIT]: 'FIXME',
+    [MigrationStage.DB_MIGRATION_UPLOAD]: 'FIXME',
+    [MigrationStage.DB_MIGRATION_UPLOAD_WAIT]: 'FIXME',
+    [MigrationStage.DATA_MIGRATION_IMPORT]: 'FIXME',
+    [MigrationStage.DATA_MIGRATION_IMPORT_WAIT]: 'FIXME',
+    [MigrationStage.VALIDATE]: 'FIXME',
+    [MigrationStage.CUTOVER]: 'FIXME',
+    [MigrationStage.FINISHED]: 'FIXME',
+    [MigrationStage.ERROR]: 'FIXME',
+};
 
 type GetMigrationResult = {
     stage: MigrationStage;

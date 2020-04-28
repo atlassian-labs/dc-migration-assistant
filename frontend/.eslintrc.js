@@ -72,6 +72,7 @@ module.exports = {
         'no-unused-expressions': 'warn',
         'import/no-unresolved': 'warn',
         'react/forbid-component-props': 'warn',
+        'object-shorthand': 'warn',
     },
     settings: {
         'import/resolver': {
