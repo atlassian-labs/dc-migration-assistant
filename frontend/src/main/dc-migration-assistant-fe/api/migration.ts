@@ -19,6 +19,7 @@ import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
+    migrationSummaryRestPath = `migration/summary`,
 }
 
 export enum MigrationStage {
@@ -91,5 +92,10 @@ export const migration = {
             }
             return res.json().then(json => Promise.reject(json.error));
         });
+    },
+    getMigrationSummary: (): Promise<Record<string, string>> => {
+        return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
+            res.json()
+        );
     },
 };

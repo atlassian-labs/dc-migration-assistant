@@ -20,9 +20,9 @@ import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
-import { Link, useHistory } from 'react-router-dom';
-import { callAppRest, RestApiPathConstants } from '../utils/api';
+import { Link } from 'react-router-dom';
 import { homePath } from '../utils/RoutePaths';
+import { migration, MigrationStage } from '../api/migration';
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
@@ -94,8 +94,8 @@ const MigrationSummary: FunctionComponent = () => {
     >([]);
 
     useEffect(() => {
-        callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath)
-            .then(response => response.json())
+        migration
+            .getMigrationSummary()
             .then(data => {
                 setSummaryData(
                     Object.entries(data).map(summary => {
@@ -138,15 +138,7 @@ const MigrationSummary: FunctionComponent = () => {
     );
 };
 
-export const ValidateStagePage: FunctionComponent = () => {
-    const history = useHistory();
-    const defaultMarginStyle = {
-        marginTop: '15px',
-    };
-    const redirectUserToHome = (): void => {
-        history.push(homePath);
-    };
-
+const ValidationSummary = (): ReactElement => {
     return (
         <>
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
@@ -161,11 +153,56 @@ export const ValidateStagePage: FunctionComponent = () => {
             <Button
                 isLoading={false}
                 appearance="primary"
-                style={defaultMarginStyle}
-                onClick={redirectUserToHome}
+                style={{
+                    marginTop: '15px',
+                }}
+                href={homePath}
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
             </Button>
         </>
     );
+};
+
+const InvalidMigrationStageErrorMessage = (): ReactElement => (
+    <SectionMessage
+        appearance="error"
+        actions={[
+            {
+                key: 'invalid-stage-error-section-link',
+                href: homePath,
+                text: I18n.getText('atlassian.migration.datacenter.step.validation.redirect.home'),
+            },
+        ]}
+    >
+        <p>
+            {I18n.getText(
+                'atlassian.migration.datacenter.step.validation.incorrect.stage.error.title'
+            )}
+        </p>
+        <p>
+            {I18n.getText(
+                'atlassian.migration.datacenter.step.validation.incorrect.stage.error.description'
+            )}
+        </p>
+    </SectionMessage>
+);
+
+export const ValidateStagePage: FunctionComponent = () => {
+    const [isStageValid, setIsStageValid]: [boolean, Function] = useState<boolean>(true);
+
+    useEffect(() => {
+        migration
+            .getMigrationStage()
+            .then(stage => {
+                if (stage !== MigrationStage.VALIDATE) {
+                    setIsStageValid(false);
+                }
+            })
+            .catch(() => {
+                setIsStageValid(false);
+            });
+    }, []);
+
+    return isStageValid ? <ValidationSummary /> : <InvalidMigrationStageErrorMessage />;
 };
