@@ -19,8 +19,9 @@ import Form, { ErrorMessage, Field, FormFooter, HelperMessage } from '@atlaskit/
 import Button, { ButtonGroup } from '@atlaskit/button';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { Redirect } from 'react-router-dom';
 import { AsyncSelect, OptionType } from '@atlaskit/select';
-import { useHistory } from 'react-router-dom';
+
 import { quickstartPath } from '../../../utils/RoutePaths';
 import { ErrorFlag } from '../../shared/ErrorFlag';
 
@@ -73,9 +74,10 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
     onSubmitCreds,
     getRegions,
 }): ReactElement => {
-    const [credentialPersistError, setCredentialPersistError] = useState(false);
-    const [awaitResponseFromApi, setAwaitResponseFromApi] = useState(false);
-    const history = useHistory();
+    const [credentialPersistError, setCredentialPersistError] = useState<boolean>(false);
+    const [awaitResponseFromApi, setAwaitResponseFromApi] = useState<boolean>(false);
+    const [readyForNextStep, setReadyForNextStep] = useState<boolean>(false);
+
     const submitCreds = (formCreds: {
         accessKeyId: string;
         secretAccessKey: string;
@@ -93,10 +95,9 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
             resolve();
         })
             .then(() => onSubmitCreds(creds))
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .then(_value => {
+            .then(() => {
                 setAwaitResponseFromApi(false);
-                history.push(quickstartPath);
+                setReadyForNextStep(true);
             })
             .catch(() => {
                 setAwaitResponseFromApi(false);
@@ -106,6 +107,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
 
     return (
         <>
+            {readyForNextStep && <Redirect to={quickstartPath} />}
             <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
             <ErrorFlag
