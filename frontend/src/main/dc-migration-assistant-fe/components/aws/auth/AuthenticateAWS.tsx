@@ -107,7 +107,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
 
     return (
         <>
-            {readyForNextStep && <Redirect to={quickstartPath} />}
+            {readyForNextStep && <Redirect to={quickstartPath} push />}
             <h1>{I18n.getText('atlassian.migration.datacenter.step.authenticate.phrase')}</h1>
             <h1>{I18n.getText('atlassian.migration.datacenter.authenticate.aws.title')}</h1>
             <ErrorFlag

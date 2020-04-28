@@ -253,7 +253,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
 
     return (
         <QuickStartDeployContainer>
-            {readyForNextStep && <Redirect to={quickstartStatusPath} />}
+            {readyForNextStep && <Redirect to={quickstartStatusPath} push />}
             {loading ? (
                 <Spinner />
             ) : (
