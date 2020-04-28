@@ -198,17 +198,13 @@ const createStringInputFromQuickstartParam: FormElementGenerator = (defaultField
 
 const createInputFromQuickstartParam: FormElementGenerator = (defaultFieldProps, param) => {
     const {
-        paramKey,
         paramProperties: { Type },
     } = param;
     if (Type === 'Number') {
         return createNumberInputFromQuickstartParam(defaultFieldProps, param);
     }
-    if (Type === 'String') {
-        return createStringInputFromQuickstartParam(defaultFieldProps, param);
-    }
 
-    return <div key={paramKey}>UNRECOGNISED PARAM TYPE</div>;
+    return createStringInputFromQuickstartParam(defaultFieldProps, param);
 };
 
 const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps, param) => {
