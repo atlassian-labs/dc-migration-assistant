@@ -20,7 +20,7 @@ import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
-import { Link, useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { homePath } from '../utils/RoutePaths';
 import { migration, MigrationStage } from '../api/migration';
 
@@ -138,11 +138,7 @@ const MigrationSummary: FunctionComponent = () => {
     );
 };
 
-const ValidationSummary = ({
-    onClick,
-}: {
-    onClick: () => void;
-}): ReactElement => {
+const ValidationSummary = (): ReactElement => {
     return (
         <>
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
@@ -160,7 +156,7 @@ const ValidationSummary = ({
                 style={{
                     marginTop: '15px',
                 }}
-                onClick={onClick}
+                href={homePath}
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
             </Button>
@@ -169,7 +165,16 @@ const ValidationSummary = ({
 };
 
 const InvalidMigrationStageErrorMessage = (): ReactElement => (
-    <SectionMessage appearance="error">
+    <SectionMessage
+        appearance="error"
+        actions={[
+            {
+                key: 'invalid-stage-error-section-link',
+                href: homePath,
+                text: I18n.getText('atlassian.migration.datacenter.step.validation.redirect.home'),
+            },
+        ]}
+    >
         <p>
             {I18n.getText(
                 'atlassian.migration.datacenter.step.validation.incorrect.stage.error.title'
@@ -180,18 +185,12 @@ const InvalidMigrationStageErrorMessage = (): ReactElement => (
                 'atlassian.migration.datacenter.step.validation.incorrect.stage.error.description'
             )}
         </p>
-        <p>
-            <Link to={homePath}>{I18n.getText('atlassian.migration.datacenter.step.validation.redirect.home')}</Link>
-        </p>
     </SectionMessage>
 );
 
 export const ValidateStagePage: FunctionComponent = () => {
-    const history = useHistory();
     const [isStageValid, setIsStageValid]: [boolean, Function] = useState<boolean>(true);
-    const redirectUserToMigrationHome = (): void => {
-        history.push(homePath);
-    };
+
     useEffect(() => {
         migration
             .getMigrationStage()
@@ -205,9 +204,5 @@ export const ValidateStagePage: FunctionComponent = () => {
             });
     }, []);
 
-    return isStageValid ? (
-        <ValidationSummary onClick={redirectUserToMigrationHome} />
-    ) : (
-        <InvalidMigrationStageErrorMessage />
-    );
+    return isStageValid ? <ValidationSummary /> : <InvalidMigrationStageErrorMessage />;
 };
