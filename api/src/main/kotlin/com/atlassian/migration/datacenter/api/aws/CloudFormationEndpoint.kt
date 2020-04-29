@@ -63,7 +63,8 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun infrastructureStatus(): Response {
-        if (migrationService.currentStage == MigrationStage.PROVISION_APPLICATION_WAIT) {
+        val currentMigrationStage = migrationService.currentStage
+        if (currentMigrationStage == MigrationStage.PROVISION_APPLICATION_WAIT) {
             return try {
                 val status = deploymentService.deploymentStatus
                 Response.ok(mapper.writeValueAsString(mapOf("status" to status, "phase" to "app_infra"))).build()
@@ -71,10 +72,10 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
                 Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
             }
         }
-        if (migrationService.currentStage == MigrationStage.PROVISION_MIGRATION_STACK) {
+        if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK) {
             return Response.ok(mapper.writeValueAsString(mapOf("status" to PENDING_MIGRATION_INFR_STATUS))).build()
         }
-        if (migrationService.currentStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
+        if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
             return try {
                 val status = helperDeploymentService.deploymentStatus
                 Response.ok(mapper.writeValueAsString(mapOf("status" to status, "phase" to "migration_infra"))).build()
@@ -83,7 +84,7 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
             }
         }
 
-        if (migrationService.currentStage == MigrationStage.NOT_STARTED || migrationService.currentStage == MigrationStage.AUTHENTICATION || migrationService.currentStage == MigrationStage.PROVISION_APPLICATION) {
+        if (currentMigrationStage == MigrationStage.NOT_STARTED || currentMigrationStage == MigrationStage.AUTHENTICATION || currentMigrationStage == MigrationStage.PROVISION_APPLICATION) {
             return Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to "not currently deploying any infrastructure")).build()
         }
 
