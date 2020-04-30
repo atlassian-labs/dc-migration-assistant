@@ -48,6 +48,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     private static final Logger logger = LoggerFactory.getLogger(AWSMigrationHelperDeploymentService.class);
     private static final String MIGRATION_HELPER_TEMPLATE_URL = "https://trebuchet-aws-resources.s3.amazonaws.com/migration-helper.yml";
 
+    private static final String templateUrl = System.getProperty("migration_helper.template.url", MIGRATION_HELPER_TEMPLATE_URL);
+
     private final Supplier<AutoScalingClient> autoscalingClientFactory;
     private final MigrationService migrationService;
     private final CfnApi cfnApi;
@@ -81,7 +83,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
         String applicationDeploymentId = migrationService.getCurrentContext().getApplicationDeploymentId();
         String migrationStackDeploymentId = applicationDeploymentId + "-migration";
-        super.deployCloudformationStack(MIGRATION_HELPER_TEMPLATE_URL, migrationStackDeploymentId, params);
+        super.deployCloudformationStack(templateUrl, migrationStackDeploymentId, params);
         migrationService.transition(MigrationStage.PROVISION_MIGRATION_STACK_WAIT);
 
         final MigrationContext context = migrationService.getCurrentContext();
