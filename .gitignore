@@ -156,3 +156,6 @@ package-lock.json
 # Emacs
 *~
 \#*\#
+
+# Env overrides file
+.env.*

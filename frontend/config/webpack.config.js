@@ -95,36 +95,35 @@ module.exports = (env, argv = {}) => {
 
     const parseEnvVariablesFrom = filePath => {
         const dotEnvOverrides = dotenv.config({ path: filePath }).parsed;
-
-        const acc = Object.keys(dotEnvOverrides).reduce((acc, current) => {
+        return Object.keys(dotEnvOverrides).reduce((acc, current) => {
             acc[`process.env.${current}`] = JSON.stringify(dotEnvOverrides[current]);
             return acc;
         }, {});
-        console.log(acc)
-        return acc;
     };
 
-    const loadDotEnvVariables = mode => {
-        const dotEnvFilePath = path.join(__dirname, '../..', '.env');
-        const acc = {};
-
+    const loadEnvVarsFrom = (dotEnvFilePath, acc) => {
         if (fs.existsSync(dotEnvFilePath)) {
             const envVars = parseEnvVariablesFrom(dotEnvFilePath);
             Object.keys(envVars).forEach(key => {
                 acc[key] = envVars[key];
             });
         }
+        return acc;
+    };
+
+    const loadDotEnvVariables = mode => {
+        const dotEnvFilePath = path.join(__dirname, '../..', '.env');
+        const varsFromEnvFile = loadEnvVarsFrom(dotEnvFilePath, {});
         if (!isProductionEnv(mode)) {
             const envScopedOverridesFile = `${dotEnvFilePath}.${mode}`;
-            if (fs.existsSync(envScopedOverridesFile)) {
-                const envVars = parseEnvVariablesFrom(envScopedOverridesFile);
-                Object.keys(envVars).forEach(key => {
-                    acc[key] = envVars[key];
-                });
-            }
-            console.log(acc);
-            return acc;
+            const envVarOverrides = loadEnvVarsFrom(envScopedOverridesFile, varsFromEnvFile);
+            console.log(`Loaded env vars with overrides`);
+            console.log(envVarOverrides);
+            return envVarOverrides;
         }
+        console.log(`Loaded env vars`);
+        console.log(varsFromEnvFile);
+        return varsFromEnvFile;
     };
 
     const isProduction = isProductionEnv();
