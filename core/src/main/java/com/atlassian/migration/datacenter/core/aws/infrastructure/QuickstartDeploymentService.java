@@ -44,6 +44,8 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     private final Logger logger = LoggerFactory.getLogger(QuickstartDeploymentService.class);
     private static final String QUICKSTART_TEMPLATE_URL = "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml";
 
+    private static final String templateUrl = System.getProperty("quickstart.template.url", QUICKSTART_TEMPLATE_URL);
+
     private final MigrationService migrationService;
     private final TargetDbCredentialsStorageService dbCredentialsStorageService;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
@@ -74,7 +76,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
-        super.deployCloudformationStack(QUICKSTART_TEMPLATE_URL, deploymentId, params);
+        super.deployCloudformationStack(templateUrl, deploymentId, params);
 
         addDeploymentIdToMigrationContext(deploymentId);
 

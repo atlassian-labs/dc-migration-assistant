@@ -16,7 +16,7 @@
 
 import React, { FunctionComponent, ReactElement, ReactFragment, useEffect, useState } from 'react';
 import yaml from 'yaml';
-import Form, { ErrorMessage, Field, HelperMessage, FormHeader, FormSection } from '@atlaskit/form';
+import Form, { ErrorMessage, Field, FormHeader, FormSection, HelperMessage } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import Button, { ButtonGroup } from '@atlaskit/button';
 import Spinner from '@atlaskit/spinner';
@@ -36,9 +36,6 @@ import {
 
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 import { quickstartStatusPath } from '../../../utils/RoutePaths';
-
-const QUICKSTART_PARAMETERS_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.parameters.yaml';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -206,6 +203,16 @@ const QuickStartDeployContainer = styled.div`
     justify-items: center;
 `;
 
+const DEFAULT_QUICKSTART_PARAMETER_URL =
+    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.parameters.yaml';
+
+const quickstartParametersTemplateLocation = () => {
+    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_PARAMETERS_URL;
+    return parametersUrlFromEnv === undefined
+        ? DEFAULT_QUICKSTART_PARAMETER_URL
+        : parametersUrlFromEnv;
+};
+
 export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
     const [params, setParams] = useState<Array<QuickstartParameterGroup>>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -213,7 +220,7 @@ export const QuickStartDeploy: FunctionComponent = (): ReactElement => {
 
     useEffect(() => {
         setLoading(true);
-        fetch(QUICKSTART_PARAMETERS_URL, {
+        fetch(quickstartParametersTemplateLocation(), {
             method: 'GET',
         })
             .then(resp => resp.text())
