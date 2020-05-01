@@ -24,6 +24,7 @@ import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -162,6 +163,8 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
 
     const transferError = progress?.error || error;
 
+    const LearnMoreLink =
+        'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-Additionalresources';
     return (
         <TransferPageContainer>
             <TransferContentContainer>
@@ -174,7 +177,20 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 <>
                     <TransferContentContainer>
                         {transferError && (
-                            <SectionMessage appearance="error">{transferError}</SectionMessage>
+                            <SectionMessage appearance="error">
+                                <p>
+                                    {transferError}{' '}
+                                    <a
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                        href={LearnMoreLink}
+                                    >
+                                        {I18n.getText(
+                                            'atlassian.migration.datacenter.common.learn_more'
+                                        )}
+                                    </a>
+                                </p>
+                            </SectionMessage>
                         )}
                         {started && (
                             <MigrationProgress
