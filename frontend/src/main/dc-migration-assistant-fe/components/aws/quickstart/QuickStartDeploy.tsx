@@ -158,11 +158,6 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, o
                                 )}
                             </Button>
                             <Button appearance="default">
-                                {I18n.getText(
-                                    'atlassian.migration.datacenter.provision.aws.form.save'
-                                )}
-                            </Button>
-                            <Button appearance="default">
                                 {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
                             </Button>
                         </ButtonGroup>
