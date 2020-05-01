@@ -45,6 +45,9 @@ const SectionMessageContainer = styled.div`
     width: 100%;
 `;
 
+const LearnMoreLink =
+    'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-Additionalresources';
+
 const MigrationSummaryActionCallout = (): ReactElement => {
     return (
         <MigrationSummaryContainer>
@@ -76,6 +79,11 @@ const MigrationSummaryActionCallout = (): ReactElement => {
                         )}
                     </li>
                 </ul>
+            </div>
+            <div>
+                <a target="_blank" rel="noreferrer noopener" href={LearnMoreLink}>
+                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                </a>
             </div>
         </MigrationSummaryContainer>
     );
