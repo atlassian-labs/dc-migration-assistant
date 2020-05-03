@@ -164,7 +164,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const transferError = progress?.error || error;
 
     const LearnMoreLink =
-        'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-Additionalresources';
+        'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-Knownissue';
     return (
         <TransferPageContainer>
             <TransferContentContainer>
