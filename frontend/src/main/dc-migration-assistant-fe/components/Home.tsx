@@ -150,7 +150,11 @@ export const Home = ({ title, synopsis, startButtonText }: HomeProps): ReactElem
             <h2>{title}</h2>
             <p>
                 {synopsis}{' '}
-                <a target="_blank" rel="noreferrer noopener" href="www.confluence.atlassian.com">
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html"
+                >
                     {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
                 </a>
             </p>

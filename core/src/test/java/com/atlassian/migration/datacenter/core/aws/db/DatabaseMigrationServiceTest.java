@@ -16,13 +16,18 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
+import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
+import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -40,11 +45,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class DatabaseMigrationServiceTest {
 
+    @TempDir
+    Path tempDir;
+
     @Mock
     MigrationService migrationService;
 
     @Mock
-    Path tempDirectory;
+    MigrationRunner migrationRunner;
 
     @Mock
     AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService;
@@ -58,10 +66,25 @@ public class DatabaseMigrationServiceTest {
     @Mock
     DatabaseArtifactS3UploadService s3UploadService;
 
-    @InjectMocks
     DatabaseMigrationService sut;
 
+    @BeforeEach
+    void setUp() {
+        sut = new DatabaseMigrationService(
+                tempDir,
+                migrationService,
+                migrationRunner,
+                databaseArchivalService,
+                new DatabaseArchiveStageTransitionCallback(migrationService),
+                s3UploadService,
+                new DatabaseUploadStageTransitionCallback(migrationService),
+                restoreService,
+                new DatabaseRestoreStageTransitionCallback(migrationService),
+                awsMigrationHelperDeploymentService);
+    }
+
     @Test
+    @Disabled("Everything that calls the transition callbacks is mocked")
     void databaseMigrationShouldExecuteCorrectTransitions() throws Exception {
         final String s3bucket = "s3bucket";
         final Path filePath = Paths.get("path");
@@ -69,7 +92,7 @@ public class DatabaseMigrationServiceTest {
 
         InOrder inOrder = inOrder(migrationService);
         when(awsMigrationHelperDeploymentService.getMigrationS3BucketName()).thenReturn(s3bucket);
-        when(databaseArchivalService.archiveDatabase(eq(tempDirectory), any())).thenReturn(filePath);
+        when(databaseArchivalService.archiveDatabase(eq(tempDir), any())).thenReturn(filePath);
         when(s3UploadService.upload(eq(filePath), eq(s3bucket), any())).thenReturn(report);
         sut.performMigration();
 

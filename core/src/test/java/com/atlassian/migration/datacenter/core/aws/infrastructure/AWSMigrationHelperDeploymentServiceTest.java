@@ -108,7 +108,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     void shouldProvisionCloudformationStack() {
         givenMigrationStackHasStartedDeploying();
 
-        verify(mockCfn).provisionStack("https://trebuchet-aws-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
+        verify(mockCfn).provisionStack("https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
     }
 
     @Test

@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 public class AWSMigrationHelperDeploymentService extends CloudformationDeploymentService implements MigrationInfrastructureDeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSMigrationHelperDeploymentService.class);
-    private static final String MIGRATION_HELPER_TEMPLATE_URL = "https://trebuchet-aws-resources.s3.amazonaws.com/migration-helper.yml";
+    private static final String MIGRATION_HELPER_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml";
 
     private static final String templateUrl = System.getProperty("migration_helper.template.url", MIGRATION_HELPER_TEMPLATE_URL);
 

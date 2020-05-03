@@ -85,11 +85,7 @@ public class DatabaseMigrationService {
 
         Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory, stageTransitionCallback);
 
-        migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT_WAIT);
-
         FileSystemMigrationErrorReport report;
-
-        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD);
 
         String bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
 
@@ -99,16 +95,13 @@ public class DatabaseMigrationService {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when uploading database dump to S3", e);
         }
-        migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_WAIT);
 
-        migrationService.transition(MigrationStage.DATA_MIGRATION_IMPORT);
         try {
             restoreService.restoreDatabase(restoreStageTransitionCallback);
         } catch (Exception e) {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when restoring database", e);
         }
-        migrationService.transition(MigrationStage.VALIDATE);
 
         return report;
     }

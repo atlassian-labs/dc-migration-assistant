@@ -58,6 +58,20 @@
     memoize-one "^5.1.0"
     tslib "^1.9.3"
 
+"@atlaskit/checkbox@^10.1.11":
+  version "10.1.11"
+  resolved "https://registry.yarnpkg.com/@atlaskit/checkbox/-/checkbox-10.1.11.tgz#3adbbad9479092f136ee5564c2154d7008891d4c"
+  integrity sha512-j9LzkbMGPMixm2rHvE25TyEaq+/nPl1n63IQF8nNPOG9UIJZ8v46LryRi1UWxWogl9Wsa3KwZ3vGc2x9jdM2Tw==
+  dependencies:
+    "@atlaskit/analytics-next" "^6.3.5"
+    "@atlaskit/icon" "^20.1.1"
+    "@atlaskit/theme" "^9.5.1"
+    "@emotion/core" "^10.0.9"
+    emotion-theming "^10.0.7"
+    lodash.merge "^4.6.2"
+    memoize-one "^5.1.0"
+    tslib "^1.9.3"
+
 "@atlaskit/css-reset@latest":
   version "5.0.10"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/css-reset/-/css-reset-5.0.10.tgz#a3fcd9df79eeca8c1a4399d6512b591ae8d6ea42"
@@ -187,8 +201,8 @@
 
 "@atlaskit/section-message@^4.1.7":
   version "4.1.7"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/section-message/-/section-message-4.1.7.tgz#a3a009568ca539946801a17ffca1ec19645215fd"
-  integrity sha1-o6AJVoylOZRoAaF//KHsGWRSFf0=
+  resolved "https://registry.yarnpkg.com/@atlaskit/section-message/-/section-message-4.1.7.tgz#a3a009568ca539946801a17ffca1ec19645215fd"
+  integrity sha512-Kvz9mSOToSiJN4HGrmJNIFdpwdE+9vOboqwj/IDwVP0w5w7r30AkFYwKr8SFf+L3HlvWXebhYaxFjiDfxs8KrQ==
   dependencies:
     "@atlaskit/button" "^13.3.9"
     "@atlaskit/icon" "^20.1.0"
@@ -5035,6 +5049,15 @@ emojis-list@^3.0.0:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/emojis-list/-/emojis-list-3.0.0.tgz#5570662046ad29e2e916e71aae260abdff4f6a78"
   integrity sha1-VXBmIEatKeLpFucariYKvf9Pang=
 
+emotion-theming@^10.0.7:
+  version "10.0.27"
+  resolved "https://registry.yarnpkg.com/emotion-theming/-/emotion-theming-10.0.27.tgz#1887baaec15199862c89b1b984b79806f2b9ab10"
+  integrity sha512-MlF1yu/gYh8u+sLUqA0YuA9JX0P4Hb69WlKc/9OLo+WCXuX6sy/KoIa+qJimgmr2dWqnypYKYPX37esjDBbhdw==
+  dependencies:
+    "@babel/runtime" "^7.5.5"
+    "@emotion/weak-memoize" "0.2.5"
+    hoist-non-react-statics "^3.3.0"
+
 encodeurl@~1.0.2:
   version "1.0.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
@@ -8745,6 +8768,11 @@ lodash.memoize@4.x, lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=
+
+lodash.merge@^4.6.2:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
+  integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
 lodash.set@^4.3.2:
   version "4.3.2"

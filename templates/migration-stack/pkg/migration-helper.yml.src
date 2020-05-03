@@ -125,7 +125,7 @@ Resources:
                     fi
 
                     echo 'EFS mount complete.'
-                  - { EFSID: !Ref EFSFileSystemId }
+                  - EFSID: !Ref EFSFileSystemId
                 mode: "000755"
           mount_efs:
             commands:
@@ -136,7 +136,7 @@ Resources:
               01_install_psql:
                 command: !Sub
                   - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
-                  - { PSQLClientVersion: !Ref PSQLVersion }
+                  - PSQLClientVersion: !Ref PSQLVersion
           create_rds_restore_script:
             files:
               /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh:
@@ -152,7 +152,7 @@ Resources:
                       exit 1
                     fi
                     aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
-                    if [ ${PIPESTATUS[0]} != 0]; then
+                    if [ ${pipestatus} != 0]; then
                       echo "Error when synchronising with the S3 bucket"
                       exit 1
                     fi
@@ -165,18 +165,17 @@ Resources:
                             exit 0
                     else
                             echo "Errors:"
-                            echo "${ERROR_OUTPUT}"
+                            echo "$ERROR_OUTPUT"
                             echo "ERROR: Database migration wasn't successful"
                             exit 1
                     fi
-                  - {
-                    SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
-                    MigrationBucket: !Ref MigrationBucket,
-                    DBHost: !Ref RDSEndpoint,
-                    DBPort: !Ref RDSPort,
-                    DBName: !Ref RDSDbName,
+                  - SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password"
+                    MigrationBucket: !Ref MigrationBucket
+                    DBHost: !Ref RDSEndpoint
+                    DBPort: !Ref RDSPort
+                    DBName: !Ref RDSDbName
                     DBUser: "atljira"
-                  }
+                    pipestatus: ${PIPESTATUS[0]}
                 mode: "000755"
           prepare_efs_sync_script:
             packages:
@@ -191,7 +190,7 @@ Resources:
                     echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
                     aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
                     echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
-                  - { MigrationBucket: !Ref MigrationBucket }
+                  - MigrationBucket: !Ref MigrationBucket
                 mode: "000755"
               /opt/atlassian/dc-migration-assistant/home-copy-status.py:
                 content: | %{HOME_COPY_SCRIPT}%
@@ -271,14 +270,12 @@ Resources:
             Statement:
               - Action: 's3:*'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket
-                }]
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}/*', { MigrationBucket: !Ref MigrationBucket }]
               - Action:
                   - 's3:ListBucket'
                   - 's3:HeadBucket'
                 Effect: Allow
-                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket
-                }]
+                Resource: !Sub ['arn:aws:s3:::${MigrationBucket}', { MigrationBucket: !Ref MigrationBucket }]
         - PolicyName: MigrationInstanceSecretReadAccess
           PolicyDocument:
             Version: 2012-10-17

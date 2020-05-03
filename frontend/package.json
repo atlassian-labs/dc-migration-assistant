@@ -6,6 +6,7 @@
     "license": "Apache 2",
     "dependencies": {
         "@atlaskit/button": "^13.3.5",
+        "@atlaskit/checkbox": "^10.1.11",
         "@atlaskit/css-reset": "latest",
         "@atlaskit/flag": "^12.3.8",
         "@atlaskit/form": "^6.3.2",

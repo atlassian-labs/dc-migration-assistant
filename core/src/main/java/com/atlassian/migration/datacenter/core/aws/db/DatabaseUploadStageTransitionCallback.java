@@ -32,7 +32,7 @@ public class DatabaseUploadStageTransitionCallback implements MigrationStageCall
 
     @Override
     public void transitionToServiceWaitStage() throws InvalidMigrationStageError {
-        this.migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT_WAIT);
+        this.migrationService.transition(MigrationStage.DB_MIGRATION_UPLOAD_WAIT);
     }
 
     @Override

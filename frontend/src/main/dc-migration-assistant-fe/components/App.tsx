@@ -23,6 +23,7 @@ import {
     homePath,
     awsBasePath,
     fsPath,
+    warningPath,
     dbPath,
     validationPath,
 } from '../utils/RoutePaths';
@@ -32,6 +33,7 @@ import { DatabaseTransferPage } from './db/DatabaseMigration';
 import { Home } from './Home';
 import { AWSRoutes } from './aws/AwsRoutes';
 import { ValidateStagePage } from '../stage/Validation';
+import { WarningStagePage } from './warning/WarningStage';
 
 export const App: FunctionComponent = () => (
     <Router>
@@ -44,6 +46,9 @@ export const App: FunctionComponent = () => (
             </Route>
             <Route path={fsPath}>
                 <FileSystemTransferPage />
+            </Route>
+            <Route path={warningPath}>
+                <WarningStagePage />
             </Route>
             <Route path={dbPath}>
                 <DatabaseTransferPage />
