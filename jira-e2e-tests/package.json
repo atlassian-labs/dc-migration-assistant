@@ -6,33 +6,14 @@
     "devDependencies": {
         "@types/jest": "^25.2.1",
         "@types/node": "^13.13.4",
-        "@types/selenium-webdriver": "^4.0.9",
         "@types/typescript": "^2.0.0",
-        "chromedriver": "^81.0.0",
+        "cypress": "^4.5.0",
         "jest": "^25.5.0",
-        "jest-environment-webdriver": "^0.2.0",
-        "selenium-webdriver": "^4.0.0-alpha.7",
-        "ts-jest": "^25.4.0"
+        "ts-jest": "^25.4.0",
+        "typescript": "^3.8.3"
     },
     "scripts": {
-        "test": "jest"
-    },
-    "jest": {
-        "verbose": true,
-        "roots": [
-            "./tests/"
-        ],
-        "moduleFileExtensions": [
-            "ts",
-            "js"
-        ],
-        "testMatch": [
-            "**/?(*.)+(spec|test).+(ts|js)"
-        ],
-        "testTimeout": 60000,
-        "transform": {
-            "^.+\\.(ts|tsx)$": "ts-jest"
-        },
-        "testEnvironment": "jest-environment-webdriver"
+        "cypress": "cypress open",
+        "test": "cypress run"
     }
 }

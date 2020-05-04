@@ -63,7 +63,7 @@
                 <version>${amps.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <jvmArgs>${amps.jvm.args}</jvmArgs>
+                    <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=allowAnyTransition</jvmArgs>
                     <product>jira</product>
                     <enableQuickReload>true</enableQuickReload>
                     <instructions>

@@ -20,6 +20,7 @@ import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
     migrationSummaryRestPath = `migration/summary`,
+    migrationResetPath = `develop/migration/reset`,
 }
 
 export enum MigrationStage {
@@ -98,4 +99,20 @@ export const migration = {
             res.json()
         );
     },
+    resetMigration: (): Promise<void> => {
+        return callAppRest('DELETE', RestApiPathConstants.migrationResetPath).then(res => {
+            if (res.ok) {
+                return Promise.resolve();
+            }
+            return res.json().then(json => Promise.reject(json.error));
+        });
+    },
 };
+
+// Convenience global for test automation.
+declare global {
+    interface Window {
+        AtlassianMigration: any;
+    }
+}
+window.AtlassianMigration = migration;

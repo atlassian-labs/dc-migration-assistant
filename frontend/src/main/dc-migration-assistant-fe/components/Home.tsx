@@ -91,7 +91,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
                 {I18n.getText('atlassian.migration.datacenter.home.start.alreadyStarted')}
                 <ButtonContainer>
                     <Link to={continuation.continuationPage}>
-                        <Button>
+                        <Button data-test="continue-migration">
                             {I18n.getText('atlassian.migration.datacenter.home.continue.button')}
                         </Button>
                     </Link>
@@ -110,7 +110,12 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({
             />
             <InlineMessage {...InfoProps} />
             <ButtonContainer>
-                <Button isLoading={loading} appearance="primary" onClick={createMigration}>
+                <Button
+                    isLoading={loading}
+                    appearance="primary"
+                    onClick={createMigration}
+                    data-test="start-migration"
+                >
                     {startButtonText}
                 </Button>
             </ButtonContainer>
