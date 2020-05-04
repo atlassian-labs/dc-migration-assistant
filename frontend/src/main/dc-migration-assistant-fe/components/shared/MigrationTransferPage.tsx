@@ -20,11 +20,11 @@ import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
-import { I18n } from '@atlassian/wrm-react-i18n';
 
 const POLL_INTERVAL_MILLIS = 3000;
 

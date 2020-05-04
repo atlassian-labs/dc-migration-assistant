@@ -19,6 +19,7 @@ import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
+    migrationResetRestPath = `migration/reset`,
     migrationSummaryRestPath = `migration/summary`,
 }
 
@@ -91,6 +92,11 @@ export const migration = {
                 return Promise.resolve();
             }
             return res.json().then(json => Promise.reject(json.error));
+        });
+    },
+    resetMigration: (): Promise<void> => {
+        return callAppRest('DELETE', RestApiPathConstants.migrationResetRestPath).then(res => {
+            return res.ok ? Promise.resolve() : res.json().then(json => Promise.reject(json.error));
         });
     },
     getMigrationSummary: (): Promise<Record<string, string>> => {

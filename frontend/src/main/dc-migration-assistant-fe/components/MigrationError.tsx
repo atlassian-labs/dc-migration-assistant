@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { migration, MigrationStage } from '../api/migration';
+import { Link, Redirect } from 'react-router-dom';
+import Button from '@atlaskit/button';
+import { homePath } from '../utils/RoutePaths';
 
 const MigrationErrorContainer = styled.div`
     display: flex;
@@ -26,28 +29,43 @@ const MigrationErrorContainer = styled.div`
     align-items: center;
 `;
 
-export const MigrationError = (): ReactElement => {
+export const MigrationError: FunctionComponent = () => {
+    const [isInErrorState, setIsInErrorState] = useState<boolean>(false);
+    const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
+
     useEffect(() => {
         migration.getMigrationStage().then((stage: string) => {
-            if (stage !== MigrationStage.ERROR.valueOf()) {
-                console.log('Stage is not in error stage');
+            if (stage === MigrationStage.ERROR.valueOf()) {
+                setIsInErrorState(true);
             }
         });
     }, []);
 
+    const resetMigration = (): void => {
+        migration.resetMigration().then(() => {
+            setRedirectToNewMigration(true);
+        });
+    };
+
     return (
-        <MigrationErrorContainer>
-            <h2>Error</h2>
-            <p>
-                This is the skeleton error page for the migration plugin{' '}
-                <a
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html"
-                >
-                    {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
-                </a>
-            </p>
-        </MigrationErrorContainer>
+        <>
+            {redirectToNewMigration && <Redirect to={homePath} push />}
+            <MigrationErrorContainer>
+                <h2>Error</h2>
+                <p>
+                    This is the skeleton error page for the migration plugin{' '}
+                    <a
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html"
+                    >
+                        {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                    </a>
+                </p>
+                <Button isDisabled={!isInErrorState} onClick={resetMigration} appearance="primary">
+                    {I18n.getText('atlassian.migration.datacenter.error.reset.button')}
+                </Button>
+            </MigrationErrorContainer>
+        </>
     );
 };
