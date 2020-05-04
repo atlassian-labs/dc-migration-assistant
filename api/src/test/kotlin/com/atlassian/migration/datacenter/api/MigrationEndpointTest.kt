@@ -21,16 +21,10 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
-import io.mockk.MockKAnnotations
-import io.mockk.Runs
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
@@ -121,5 +115,32 @@ class MigrationEndpointTest {
         val entity = response.entity as MutableMap<*, *>
         assertEquals("migration already exists", entity["error"])
         verify(exactly = 0) { migrationService.transition(any()) }
+    }
+
+    @Test
+    fun shouldResetMigrationWhenCurrentMigrationStageIsError() {
+        every { migrationService.deleteMigrations() } just Runs
+        every { migrationService.currentStage } returns MigrationStage.ERROR
+
+        val response = sut.resetMigration()
+
+        assertEquals(
+                Response.Status.OK.statusCode,
+                response.status
+        )
+        verify { migrationService.deleteMigrations() }
+    }
+
+    @Test
+    fun shouldNotResetMigrationWhenCurrentMigrationStageIsNotError() {
+        every { migrationService.currentStage } returns MigrationStage.AUTHENTICATION
+
+        val response = sut.resetMigration()
+
+        assertEquals(
+                Response.Status.CONFLICT.statusCode,
+                response.status
+        )
+        verify(exactly = 0) { migrationService.deleteMigrations() }
     }
 }
