@@ -20,11 +20,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
-import javax.ws.rs.Consumes
-import javax.ws.rs.GET
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -94,7 +90,22 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         }
     }
 
-    private fun migrationContextResponseEntity() : Map<String,String> {
+    @DELETE
+    @Path("/reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun resetMigration(): Response {
+        val currentStage = migrationService.currentStage
+        if (currentStage == MigrationStage.ERROR) {
+            migrationService.deleteMigrations()
+            return Response.ok().build()
+        }
+        return Response.status(Response.Status.CONFLICT)
+                .entity(mapOf("reason" to "Cannot reset migration when current stage is $currentStage"))
+                .build()
+    }
+
+
+    private fun migrationContextResponseEntity(): Map<String, String> {
         val currentContext = migrationService.currentContext
 
         return mapOf(
