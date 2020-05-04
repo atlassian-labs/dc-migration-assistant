@@ -106,15 +106,18 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void error() {
+    public void error(String message) {
         Migration migration = findFirstOrCreateMigration();
         setCurrentStage(migration, ERROR);
+        MigrationContext context = getCurrentContext();
+        context.setErrorMessage(message);
+        context.save();
     }
 
     @Override
     public void error(Throwable e)
     {
-        error();
+        error(e.getMessage());
         findFirstOrCreateMigration().getStage().setException(Optional.of(e));
     }
 

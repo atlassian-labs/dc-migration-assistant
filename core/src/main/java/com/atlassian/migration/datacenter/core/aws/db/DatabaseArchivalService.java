@@ -40,7 +40,7 @@ public class DatabaseArchivalService {
             extractorProcess.waitFor();
         } catch (Exception e) {
             String msg = "Error while waiting for DB extractor to finish";
-            archiveStageCallback.transitionToServiceErrorStage();
+            archiveStageCallback.transitionToServiceErrorStage(e.getMessage());
             throw new DatabaseMigrationFailure(msg, e);
         }
 

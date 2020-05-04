@@ -76,9 +76,11 @@ public interface MigrationService {
     /**
      * Moves the migration into an error stage
      *
+     * @param message a message describing the error
+     *
      * @see MigrationStage#ERROR
      */
-    void error();
+    void error(String message);
 
     /**
      * Moves the migration into an error stage, storing the cause.

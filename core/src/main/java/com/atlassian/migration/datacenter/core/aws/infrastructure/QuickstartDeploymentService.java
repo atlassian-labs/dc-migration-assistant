@@ -84,9 +84,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     }
 
     @Override
-    protected void handleFailedDeployment() {
+    protected void handleFailedDeployment(String error) {
         logger.error("application stack deployment failed");
-        migrationService.error();
+        migrationService.error(error);
     }
 
     @Override
@@ -138,7 +138,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
-            migrationService.error();
+            migrationService.error(invalidMigrationStageError.getMessage());
         }
     }
 

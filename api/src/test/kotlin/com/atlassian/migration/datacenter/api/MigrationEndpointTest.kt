@@ -64,6 +64,7 @@ class MigrationEndpointTest {
         every { migrationService.currentStage } returns MigrationStage.VALIDATE
         every { migrationService.currentContext } returns migrationContext
         every { migrationContext.serviceUrl } returns expectedServiceUrl
+        every { migrationContext.errorMessage } returns "foobar"
 
         val response = sut.getMigrationSummary()
 
@@ -135,8 +136,24 @@ class MigrationEndpointTest {
         val response = sut.resetMigration()
 
         assertThat(response.status, equalTo(Response.Status.CONFLICT.statusCode))
-        assertThat((response.entity as Map<String, String>)["reason"], equalTo("Cannot reset migration when current stage is authentication") )
+        assertThat((response.entity as Map<String, String>)["reason"], equalTo("Cannot reset migration when current stage is authentication"))
 
         verify(exactly = 0) { migrationService.deleteMigrations() }
+    }
+
+    @Test
+    fun shouldShowErrorMessageInMigration() {
+        val expectedError = "i am an error message"
+
+        every { migrationService.currentStage } returns MigrationStage.ERROR
+        every { migrationService.currentContext } returns migrationContext
+        every { migrationContext.serviceUrl } returns "foobar"
+        every { migrationContext.errorMessage } returns expectedError
+
+        val response = sut.getMigrationSummary()
+
+        assertThat(response.status, Matchers.equalTo(Response.Status.OK.statusCode))
+        val entity = response.entity as? Map<String, String>
+        assertThat(entity!!["error"], equalTo(expectedError))
     }
 }

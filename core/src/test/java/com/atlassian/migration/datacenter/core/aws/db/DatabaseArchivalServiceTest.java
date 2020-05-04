@@ -98,7 +98,8 @@ class DatabaseArchivalServiceTest {
     @Test
     void shouldThrowExceptionWhenProcessExecutionFails() throws Exception {
         when(this.databaseExtractor.startDatabaseDump(tempDir.resolve("db.dump"))).thenReturn(process);
-        when(process.waitFor()).thenThrow(new InterruptedException());
+        final String errorMessage = "error message";
+        when(process.waitFor()).thenThrow(new InterruptedException(errorMessage));
 
         assertThrows(DatabaseMigrationFailure.class, () -> {
             service.archiveDatabase(tempDir, migrationStageCallback);
@@ -106,6 +107,6 @@ class DatabaseArchivalServiceTest {
 
         verify(migrationStageCallback).assertInStartingStage();
         verify(migrationStageCallback).transitionToServiceWaitStage();
-        verify(migrationStageCallback).transitionToServiceErrorStage();
+        verify(migrationStageCallback).transitionToServiceErrorStage(errorMessage);
     }
 }

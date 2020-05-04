@@ -36,4 +36,8 @@ public interface MigrationContext extends Entity {
 
     void setServiceUrl(String url);
 
+    String getErrorMessage();
+
+    void setErrorMessage(String message);
+
 }

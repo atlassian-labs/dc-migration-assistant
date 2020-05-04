@@ -32,17 +32,20 @@ public class SsmPsqlDatabaseRestoreService {
     private final SSMApi ssm;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
-    SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries,
+            AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.ssm = ssm;
         this.maxCommandRetries = maxCommandRetries;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
     }
 
-    public SsmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    public SsmPsqlDatabaseRestoreService(SSMApi ssm,
+            AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this(ssm, 10, migrationHelperDeploymentService);
     }
 
-    public void restoreDatabase(DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) throws DatabaseMigrationFailure, InvalidMigrationStageError {
+    public void restoreDatabase(DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback)
+            throws DatabaseMigrationFailure, InvalidMigrationStageError {
         String dbRestorePlaybook = migrationHelperDeploymentService.getDbRestoreDocument();
         String migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
 
@@ -50,17 +53,20 @@ public class SsmPsqlDatabaseRestoreService {
 
         String commandId = ssm.runSSMDocument(dbRestorePlaybook, migrationInstanceId, Collections.emptyMap());
 
-        SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId, migrationInstanceId);
+        SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
+                migrationInstanceId);
 
         restoreStageTransitionCallback.transitionToServiceWaitStage();
 
         try {
             consumer.handleCommandOutput(maxCommandRetries);
             restoreStageTransitionCallback.transitionToServiceNextStage();
-        } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
-            restoreStageTransitionCallback.transitionToServiceErrorStage();
-            throw new DatabaseMigrationFailure("Unable to invoke database download command", e);
+        } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException
+                | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
+            final String errorMessage = "Error restoring database. Either download of database dump from S3 failed or pg_restore failed";
+            restoreStageTransitionCallback
+                    .transitionToServiceErrorStage(String.format("%s. %s", errorMessage, e.getMessage()));
+            throw new DatabaseMigrationFailure(errorMessage, e);
         }
     }
-
 }

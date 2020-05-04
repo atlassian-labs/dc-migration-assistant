@@ -22,5 +22,5 @@ public interface MigrationStageCallback {
 
     void transitionToServiceNextStage() throws InvalidMigrationStageError;
 
-    void transitionToServiceErrorStage();
+    void transitionToServiceErrorStage(String message);
 }

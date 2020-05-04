@@ -25,8 +25,7 @@ public class DatabaseUploadStageTransitionCallback implements MigrationStageCall
     }
 
     @Override
-    public void assertInStartingStage() throws InvalidMigrationStageError
-    {
+    public void assertInStartingStage() throws InvalidMigrationStageError {
         this.migrationService.assertCurrentStage(MigrationStage.DB_MIGRATION_UPLOAD);
     }
 
@@ -41,7 +40,7 @@ public class DatabaseUploadStageTransitionCallback implements MigrationStageCall
     }
 
     @Override
-    public void transitionToServiceErrorStage() {
-        this.migrationService.error();
+    public void transitionToServiceErrorStage(String errorMessage) {
+        this.migrationService.error(errorMessage);
     }
 }

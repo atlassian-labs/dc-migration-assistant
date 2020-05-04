@@ -57,7 +57,7 @@ class CloudformationDeploymentServiceTest {
     void setup() {
         sut = new CloudformationDeploymentService(mockCfnApi) {
             @Override
-            protected void handleFailedDeployment() {
+            protected void handleFailedDeployment(String message) {
                 deploymentFailed = true;
             }
 

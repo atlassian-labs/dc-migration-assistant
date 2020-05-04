@@ -1,0 +1,9 @@
+{
+    "fixturesFolder": "fixtures",
+    "integrationFolder": "integration",
+    "pluginsFile": false,
+    "screenshotsFolder": "screenshots",
+    "supportFile": "support/index.js",
+    "testFiles": "**/*.*",
+    "videosFolder": "videos"
+}

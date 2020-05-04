@@ -109,7 +109,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         val currentContext = migrationService.currentContext
 
         return mapOf(
-            "instanceUrl" to currentContext.serviceUrl
+            "instanceUrl" to currentContext.serviceUrl,
+            "error" to currentContext.errorMessage
         )
     }
 }

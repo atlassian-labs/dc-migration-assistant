@@ -61,7 +61,7 @@ public abstract class CloudformationDeploymentService {
     /**
      * Method that will be called if the deployment succeeds
      */
-    protected abstract void handleFailedDeployment();
+    protected abstract void handleFailedDeployment(String message);
 
     /**
      * Deploys a cloudformation stack and starts a thread to monitor the deployment.
@@ -93,14 +93,15 @@ public abstract class CloudformationDeploymentService {
             }
             if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
                 logger.error("stack {} creation failed", stackName);
-                handleFailedDeployment();
+                handleFailedDeployment(status.getReason());
                 stackCompleteFuture.complete("");
             }
         }, 0, deployStatusPollIntervalSeconds, TimeUnit.SECONDS);
 
         ScheduledFuture<?> canceller = scheduledExecutorService.scheduleAtFixedRate(() -> {
-            logger.error("timed out while waiting for stack {} to deploy", stackName);
-            handleFailedDeployment();
+            String message = String.format("timed out while waiting for stack %s to deploy", stackName);
+            logger.error(message);
+            handleFailedDeployment(message);
             ticker.cancel(true);
             // Need to have non-zero period otherwise we get illegal argument exception
         }, 1, 100, TimeUnit.HOURS);

@@ -47,7 +47,8 @@ import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigr
 public class S3FilesystemMigrationService implements FilesystemMigrationService {
     private static final Logger logger = LoggerFactory.getLogger(S3FilesystemMigrationService.class);
 
-    private static final String OVERRIDE_UPLOAD_DIRECTORY = System.getProperty("com.atlassian.migration.datacenter.fs.overrideJiraHome", "");
+    private static final String OVERRIDE_UPLOAD_DIRECTORY = System
+            .getProperty("com.atlassian.migration.datacenter.fs.overrideJiraHome", "");
 
     private S3AsyncClient s3AsyncClient;
     private final JiraHome jiraHome;
@@ -60,12 +61,9 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private FileSystemMigrationReport report;
     private FilesystemUploader fsUploader;
 
-    public S3FilesystemMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier,
-                                        JiraHome jiraHome,
-                                        S3SyncFileSystemDownloadManager fileSystemDownloadManager,
-                                        MigrationService migrationService,
-                                        MigrationRunner migrationRunner,
-                                        AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    public S3FilesystemMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier, JiraHome jiraHome,
+            S3SyncFileSystemDownloadManager fileSystemDownloadManager, MigrationService migrationService,
+            MigrationRunner migrationRunner, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.s3AsyncClientSupplier = s3AsyncClientSupplier;
         this.jiraHome = jiraHome;
         this.migrationService = migrationService;
@@ -92,15 +90,12 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     }
 
     @Override
-    public Boolean scheduleMigration() throws InvalidMigrationStageError
-    {
+    public Boolean scheduleMigration() throws InvalidMigrationStageError {
         Migration currentMigration = this.migrationService.getCurrentMigration();
         if (currentMigration.getStage() != FS_MIGRATION_COPY) {
-            throw new InvalidMigrationStageError(
-                    String.format(
-                            "Cannot start filesystem migration as the system is not ready. Required state should be %s but is %s",
-                            FS_MIGRATION_COPY,
-                            currentMigration.getStage()));
+            throw new InvalidMigrationStageError(String.format(
+                    "Cannot start filesystem migration as the system is not ready. Required state should be %s but is %s",
+                    FS_MIGRATION_COPY, currentMigration.getStage()));
         }
 
         JobId jobId = getScheduledJobId();
@@ -109,18 +104,19 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.error();
+            migrationService.error("Error starting filesystem migration job.");
         }
         return result;
     }
 
     /**
-     * Start filesystem migration to S3 bucket. This is a blocking operation and should be started from ExecutorService
-     * or preferably from ScheduledJob
+     * Start filesystem migration to S3 bucket. This is a blocking operation and
+     * should be started from ExecutorService or preferably from ScheduledJob
      */
     @Override
     public void startMigration() throws InvalidMigrationStageError {
-        logger.trace("Beginning migration. Uploading shared home dir {} to S3 bucket {}", getSharedHomeDir(), getS3Bucket());
+        logger.trace("Beginning migration. Uploading shared home dir {} to S3 bucket {}", getSharedHomeDir(),
+                getS3Bucket());
         if (isRunning()) {
             logger.warn("Filesystem migration is currently in progress, aborting new execution.");
             return;
@@ -154,7 +150,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         } catch (FileSystemMigrationFailure e) {
             logger.error("Encountered critical error during file system migration");
             report.setStatus(FAILED);
-            migrationService.error();
+            migrationService.error(e.getMessage());
         }
     }
 
@@ -164,14 +160,16 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         migrationRunner.abortJobIfPresesnt(getScheduledJobId());
 
         if (!isRunning() || fsUploader == null) {
-            throw new InvalidMigrationStageError(String.format("Invalid migration stage when cancelling filesystem migration: %s", migrationService.getCurrentStage()));
+            throw new InvalidMigrationStageError(
+                    String.format("Invalid migration stage when cancelling filesystem migration: %s",
+                            migrationService.getCurrentStage()));
         }
 
         logger.warn("Aborting running filesystem migration");
         fsUploader.abort();
         report.setStatus(FAILED);
 
-        migrationService.error();
+        migrationService.error("File system migration was aborted");
     }
 
     private String getS3Bucket() {

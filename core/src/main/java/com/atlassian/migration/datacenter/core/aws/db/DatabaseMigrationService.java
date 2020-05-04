@@ -53,16 +53,14 @@ public class DatabaseMigrationService {
 
     private final AtomicReference<Optional<LocalDateTime>> startTime = new AtomicReference<>(Optional.empty());
 
-    public DatabaseMigrationService(Path tempDirectory,
-                                    MigrationService migrationService,
-                                    MigrationRunner migrationRunner,
-                                    DatabaseArchivalService databaseArchivalService,
-                                    DatabaseArchiveStageTransitionCallback stageTransitionCallback,
-                                    DatabaseArtifactS3UploadService s3UploadService,
-                                    DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
-                                    SsmPsqlDatabaseRestoreService restoreService,
-                                    DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback,
-                                    AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    public DatabaseMigrationService(Path tempDirectory, MigrationService migrationService,
+            MigrationRunner migrationRunner, DatabaseArchivalService databaseArchivalService,
+            DatabaseArchiveStageTransitionCallback stageTransitionCallback,
+            DatabaseArtifactS3UploadService s3UploadService,
+            DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+            SsmPsqlDatabaseRestoreService restoreService,
+            DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback,
+            AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
         this.stageTransitionCallback = stageTransitionCallback;
@@ -76,10 +74,12 @@ public class DatabaseMigrationService {
     }
 
     /**
-     * Start database dump and upload to S3 bucket. This is a blocking operation and should be started from ExecutorService
-     * or preferably from ScheduledJob. The status of the migration can be queried via getStatus().
+     * Start database dump and upload to S3 bucket. This is a blocking operation and
+     * should be started from ExecutorService or preferably from ScheduledJob. The
+     * status of the migration can be queried via getStatus().
      */
-    public FileSystemMigrationErrorReport performMigration() throws DatabaseMigrationFailure, InvalidMigrationStageError {
+    public FileSystemMigrationErrorReport performMigration()
+            throws DatabaseMigrationFailure, InvalidMigrationStageError {
         migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
         startTime.set(Optional.of(LocalDateTime.now()));
 
@@ -123,7 +123,7 @@ public class DatabaseMigrationService {
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
         if (!result) {
-            migrationService.error();
+            migrationService.error("Unable to start database migration job.");
         }
         return result;
     }
@@ -133,12 +133,14 @@ public class DatabaseMigrationService {
         migrationRunner.abortJobIfPresesnt(getScheduledJobId());
 
         if (!migrationService.getCurrentStage().isDBPhase() || s3UploadService == null) {
-            throw new InvalidMigrationStageError(String.format("Invalid migration stage when cancelling filesystem migration: %s", migrationService.getCurrentStage()));
+            throw new InvalidMigrationStageError(
+                    String.format("Invalid migration stage when cancelling filesystem migration: %s",
+                            migrationService.getCurrentStage()));
         }
 
         logger.warn("Aborting running filesystem migration");
 
-        migrationService.error();
+        migrationService.error("File system migration was aborted");
     }
 
     private JobId getScheduledJobId() {
@@ -146,4 +148,3 @@ public class DatabaseMigrationService {
     }
 
 }
-

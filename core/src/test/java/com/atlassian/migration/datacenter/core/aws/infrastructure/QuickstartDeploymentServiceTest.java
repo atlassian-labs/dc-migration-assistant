@@ -181,7 +181,7 @@ class QuickstartDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        verify(mockMigrationService).error();
+        verify(mockMigrationService).error("it broke");
     }
 
     @Test

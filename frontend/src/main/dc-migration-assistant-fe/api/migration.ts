@@ -15,7 +15,7 @@
  */
 
 import { callAppRest } from '../utils/api';
-import { homePath, quickstartStatusPath, awsAuthPath } from '../utils/RoutePaths';
+import { homePath, awsAuthPath } from '../utils/RoutePaths';
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
@@ -105,3 +105,11 @@ export const migration = {
         );
     },
 };
+
+// Convenience global for test automation.
+declare global {
+    interface Window {
+        AtlassianMigration: any;
+    }
+}
+window.AtlassianMigration = migration;

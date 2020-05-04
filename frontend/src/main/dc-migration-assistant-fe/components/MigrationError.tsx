@@ -19,7 +19,7 @@ import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { migration, MigrationStage } from '../api/migration';
-import { Link, Redirect } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import Button from '@atlaskit/button';
 import { homePath } from '../utils/RoutePaths';
 

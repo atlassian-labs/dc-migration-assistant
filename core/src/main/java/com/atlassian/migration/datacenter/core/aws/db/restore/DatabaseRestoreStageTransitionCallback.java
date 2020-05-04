@@ -30,8 +30,7 @@ public class DatabaseRestoreStageTransitionCallback implements MigrationStageCal
     }
 
     @Override
-    public void assertInStartingStage() throws InvalidMigrationStageError
-    {
+    public void assertInStartingStage() throws InvalidMigrationStageError {
         migrationService.assertCurrentStage(MigrationStage.DATA_MIGRATION_IMPORT);
     }
 
@@ -46,7 +45,7 @@ public class DatabaseRestoreStageTransitionCallback implements MigrationStageCal
     }
 
     @Override
-    public void transitionToServiceErrorStage() {
-        migrationService.error();
+    public void transitionToServiceErrorStage(String errorMessage) {
+        migrationService.error(errorMessage);
     }
 }
