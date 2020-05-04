@@ -99,7 +99,9 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
             migrationService.deleteMigrations()
             return Response.ok().build()
         }
-        return Response.status(Response.Status.CONFLICT).build()
+        return Response.status(Response.Status.CONFLICT)
+                .entity(mapOf("reason" to "Cannot reset migration when current stage is $currentStage"))
+                .build()
     }
 
 
