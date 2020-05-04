@@ -19,7 +19,6 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import {
-    overviewPath,
     homePath,
     awsBasePath,
     fsPath,
@@ -27,33 +26,30 @@ import {
     dbPath,
     validationPath,
 } from '../utils/RoutePaths';
-import { MigrationOverview } from './MigrationOverview';
 import { FileSystemTransferPage } from './fs/FileSystemTransfer';
 import { DatabaseTransferPage } from './db/DatabaseMigration';
 import { Home } from './Home';
 import { AWSRoutes } from './aws/AwsRoutes';
 import { ValidateStagePage } from '../stage/Validation';
 import { WarningStagePage } from './warning/WarningStage';
+import { MigrationStageRenderer } from './MigrationStageRenderer';
 
-export const App: FunctionComponent = () => (
+export const Routes: FunctionComponent = () => (
     <Router>
         <Switch>
-            <Route exact path={overviewPath}>
-                <MigrationOverview />
-            </Route>
             <Route path={awsBasePath}>
                 <AWSRoutes />
             </Route>
-            <Route path={fsPath}>
+            <Route exact path={fsPath}>
                 <FileSystemTransferPage />
             </Route>
-            <Route path={warningPath}>
+            <Route exact path={warningPath}>
                 <WarningStagePage />
             </Route>
-            <Route path={dbPath}>
+            <Route exact path={dbPath}>
                 <DatabaseTransferPage />
             </Route>
-            <Route path={validationPath}>
+            <Route exact path={validationPath}>
                 <ValidateStagePage />
             </Route>
             <Route exact path={homePath}>
@@ -64,6 +60,9 @@ export const App: FunctionComponent = () => (
                         'atlassian.migration.datacenter.home.migration.start'
                     )}
                 />
+            </Route>
+            <Route default>
+                <MigrationStageRenderer />
             </Route>
         </Switch>
     </Router>

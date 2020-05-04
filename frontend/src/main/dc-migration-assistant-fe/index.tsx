@@ -19,11 +19,11 @@ import ReactDOM from 'react-dom';
 import whenDomReady from 'when-dom-ready';
 import { hot } from 'react-hot-loader';
 
-import { App } from './components/App';
+import { MigrationAssistant } from './components/MigrationAssistant';
 
 whenDomReady().then(function example() {
     const container = document.getElementById('dc-migration-assistant-root');
     // eslint-disable-next-line no-undef
-    const AwsMigrationPlugin = hot(module)(() => <App />);
+    const AwsMigrationPlugin = hot(module)(() => <MigrationAssistant />);
     ReactDOM.render(<AwsMigrationPlugin />, container);
 });
