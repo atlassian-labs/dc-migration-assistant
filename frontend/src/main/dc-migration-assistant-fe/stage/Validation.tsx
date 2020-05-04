@@ -134,9 +134,14 @@ const MigrationSummary: FunctionComponent = () => {
                                     )}
                                 </Cell>
                                 <Cell width={400}>
-                                    <Link to={summary.value} style={{ whiteSpace: 'nowrap' }}>
+                                    <a
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                        href={summary.value}
+                                        style={{ whiteSpace: 'nowrap' }}
+                                    >
                                         {summary.value}
-                                    </Link>
+                                    </a>
                                 </Cell>
                             </Row>
                         );
