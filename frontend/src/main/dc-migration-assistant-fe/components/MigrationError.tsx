@@ -27,19 +27,19 @@ import { getPathForStage } from '../utils/migration-stage-to-path';
 const MigrationErrorContainer = styled.div`
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
 `;
 
 type ResetMigrationProps = {
     currentStage: MigrationStage;
     resetMigrationFunc: VoidFunction;
-    errorContent: string;
+    additionalErrorContext: string;
 };
 
 const StageAwareMigrationSection = ({
     resetMigrationFunc,
     currentStage,
-    errorContent,
+    additionalErrorContext,
 }: ResetMigrationProps): ReactElement => {
     const learnMoreText = I18n.getText('atlassian.migration.datacenter.common.learn_more');
 
@@ -58,7 +58,7 @@ const StageAwareMigrationSection = ({
                         {learnMoreText.toLowerCase()}
                     </a>{' '}
                     about why this may have occurred
-                    {errorContent} <br />
+                    {additionalErrorContext} <br />
                 </p>
                 <Button onClick={resetMigrationFunc} appearance="primary">
                     {I18n.getText('atlassian.migration.datacenter.error.reset.button')}
@@ -84,16 +84,12 @@ const StageAwareMigrationSection = ({
 };
 
 export const MigrationError: FunctionComponent = () => {
-    const [isInErrorState, setIsInErrorState] = useState<boolean>(false);
     const [currentStage, setCurrentStage] = useState<MigrationStage>(MigrationStage.NOT_STARTED);
     const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
 
     useEffect(() => {
         migration.getMigrationStage().then((stage: string) => {
             setCurrentStage(stage as MigrationStage);
-            if (stage === MigrationStage.ERROR.valueOf()) {
-                setIsInErrorState(true);
-            }
         });
     }, []);
 
@@ -110,7 +106,7 @@ export const MigrationError: FunctionComponent = () => {
                 <StageAwareMigrationSection
                     currentStage={currentStage}
                     resetMigrationFunc={resetMigration}
-                    errorContent=""
+                    additionalErrorContext=""
                 />
             </MigrationErrorContainer>
         </>
