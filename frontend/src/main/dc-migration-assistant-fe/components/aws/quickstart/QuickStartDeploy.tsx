@@ -80,6 +80,7 @@ const StackNameField = (): ReactElement => {
                 'atlassian.migration.datacenter.provision.aws.form.stackName.label'
             )}
             name={STACK_NAME_FIELD_NAME}
+            data-test="stack-name"
         >
             {({ fieldProps, error }: any): ReactElement => (
                 <>
@@ -152,7 +153,12 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, o
                     })}
                     <ButtonRow>
                         <ButtonGroup>
-                            <Button isLoading={submitLoading} type="submit" appearance="primary">
+                            <Button
+                                isLoading={submitLoading}
+                                type="submit"
+                                appearance="primary"
+                                data-test="qs-submit"
+                            >
                                 {I18n.getText(
                                     'atlassian.migration.datacenter.provision.aws.form.deploy'
                                 )}

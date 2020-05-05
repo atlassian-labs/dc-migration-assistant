@@ -1,4 +1,5 @@
 {
+    "defaultCommandTimeout": 8000,
     "fixturesFolder": "fixtures",
     "integrationFolder": "integration",
     "pluginsFile": false,

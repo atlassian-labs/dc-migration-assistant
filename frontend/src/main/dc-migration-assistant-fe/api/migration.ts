@@ -19,8 +19,9 @@ import { homePath, awsAuthPath } from '../utils/RoutePaths';
 
 enum RestApiPathConstants {
     migrationRestPath = `migration`,
-    migrationResetRestPath = `migration/reset`,
     migrationSummaryRestPath = `migration/summary`,
+    migrationResetRestPath = `migration/reset`,
+    migrationForceResetPath = `develop/migration/reset`,
 }
 
 export enum MigrationStage {
@@ -72,6 +73,11 @@ type GetMigrationResult = {
     stage: MigrationStage;
 };
 
+type GetMigrationSummaryResult = {
+    instanceUrl: string;
+    error: string;
+};
+
 export const migration = {
     getMigrationStage: (): Promise<MigrationStage> => {
         return callAppRest('GET', RestApiPathConstants.migrationRestPath).then(res => {
@@ -99,10 +105,18 @@ export const migration = {
             return res.ok ? Promise.resolve() : res.json().then(json => Promise.reject(json.error));
         });
     },
-    getMigrationSummary: (): Promise<Record<string, string>> => {
+    getMigrationSummary: (): Promise<GetMigrationSummaryResult> => {
         return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
             res.json()
         );
+    },
+    forceResetMigration: (): Promise<void> => {
+        return callAppRest('DELETE', RestApiPathConstants.migrationForceResetPath).then(res => {
+            if (res.ok) {
+                return Promise.resolve();
+            }
+            return res.json().then(json => Promise.reject(json.error));
+        });
     },
 };
 

@@ -58,6 +58,7 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
                         isMulti
                         isSearchable={false}
                         loadOptions={availabilityZonesLoadOptions}
+                        data-test="az-select"
                         {...fieldProps}
                     />
                     <HelperMessage>{Description}</HelperMessage>

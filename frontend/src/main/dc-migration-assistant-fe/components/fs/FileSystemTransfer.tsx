@@ -88,6 +88,7 @@ const getFsMigrationProgress = (): Promise<Progress> => {
             builder.setCompleteness(getCompletenessFromResult(result));
             builder.setPhase(getPhaseFromStatus(result));
             builder.setElapsedSeconds(result.elapsedTime.seconds);
+            builder.setFailed(result.status === 'FAILED');
 
             if (result.status === 'DONE') {
                 builder.setCompleteMessage(

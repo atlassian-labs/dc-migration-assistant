@@ -58,6 +58,18 @@ class DevelopEndpoint(private val migrationService: MigrationService, private va
         }
     }
 
+    @DELETE
+    @Path("/migration/reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun resetMigrations(): Response {
+        return if (!isProfileEnabled()) {
+            Response.status(Response.Status.NOT_FOUND).build()
+        } else {
+            migrationService.deleteMigrations()
+            return Response.ok("Reset migration status").build()
+        }
+    }
+
     private fun isProfileEnabled(): Boolean {
         return environment.activeProfiles.any { it.equals(ALLOW_ANY_TRANSITION_PROFILE, ignoreCase = true) }
     }

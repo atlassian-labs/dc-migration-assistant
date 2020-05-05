@@ -19,12 +19,14 @@ import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
+import { Redirect } from 'react-router-dom';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationTransferActions } from './MigrationTransferPageActions';
 import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
+import { migrationErrorPath } from '../../utils/RoutePaths';
 
 const POLL_INTERVAL_MILLIS = 3000;
 
@@ -124,7 +126,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setStarted(true);
             })
             .catch(err => {
-                console.log('setting error from start');
                 setError(err.message);
                 setLoading(false);
             });
@@ -160,6 +161,10 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         }
         return (): void => undefined;
     }, [started]);
+
+    if (progress?.failed) {
+        return <Redirect to={migrationErrorPath} push />;
+    }
 
     const transferError = progress?.error || error;
 

@@ -25,6 +25,7 @@ import {
     dbStartEndpoint,
     DatabaseMigrationStatus,
     statusToI18nString,
+    DBMigrationStatus,
 } from '../../api/db';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
@@ -42,6 +43,7 @@ const toProgress = (status: DatabaseMigrationStatus): Progress => {
     return {
         phase: statusToI18nString(status.status),
         elapsedTimeSeconds: status.elapsedTime.seconds,
+        failed: status.status === DBMigrationStatus.FAILED,
     };
 };
 

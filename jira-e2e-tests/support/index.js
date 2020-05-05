@@ -13,6 +13,8 @@ Cypress.Commands.add('jira_login', (uname, passwd) => {
     cy.get('#login-form-username').type('admin');
     cy.get('#login-form-password').type('admin');
     cy.get('#login-form-submit').click();
+    // Force wait for dashboard to avoid flakiness.
+    cy.get('[class=g-intro]').should('exist');
 })
 
 
@@ -33,7 +35,8 @@ Cypress.Commands.add('jira_setup', () => {
 
 Cypress.Commands.add('reset_migration', () => {
     cy.visit(migrationHome);
+    cy.get('#dc-migration-assistant-root').should('exist');
     cy.window().then((window: Window) => {
-        window.AtlassianMigration.resetMigration();
+        window.AtlassianMigration.forceResetMigration();
     });
 });

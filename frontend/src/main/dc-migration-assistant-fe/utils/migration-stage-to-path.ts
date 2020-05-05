@@ -40,7 +40,7 @@ export const getPathForStage = (stage: MigrationStage): string => {
         case 'finished':
             return paths.validationPath;
         case 'error':
-            throw new Error('page error not implemented');
+            return paths.migrationErrorPath;
         default:
             return paths.homePath;
     }

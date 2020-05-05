@@ -14,7 +14,6 @@ export const MigrationStageRenderer: FunctionComponent = () => {
             .getMigrationStage()
             .then(stage => {
                 setStage(stage);
-                console.log(stage);
             })
             .catch(() => {
                 setStage(MigrationStage.ERROR);

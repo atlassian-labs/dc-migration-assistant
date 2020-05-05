@@ -2,22 +2,47 @@ import React, { FunctionComponent, useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
-import { Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { dbPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
 
-const Container = styled.div`
-    max-width: 920px;
+const Paragraph = styled.p`
+    margin-bottom: '20px';
 `;
 
-const Paragraph = styled.p`
-    margin-bottom: '10px';
+const WarningPageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 920px;
+    margin-right: auto;
+    margin-bottom: auto;
+    padding-left: 15px;
+`;
+
+const WarningContentContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding-right: 30px;
+
+    padding-bottom: 5px;
+`;
+
+const WarningActionsContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+
+    margin-top: 20px;
 `;
 
 const CheckboxContainer = styled.div`
-    margin: '20px';
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-top: 10px;
+    padding: 10px;
 `;
 
 const nextButtonStyle = {
@@ -25,41 +50,41 @@ const nextButtonStyle = {
     marginRight: '20px',
 };
 
+const LearnMore: FunctionComponent = () => {
+    const LearnMoreLink =
+        'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-downtimepage';
+
+    return (
+        <Paragraph>
+            <a target="_blank" rel="noreferrer noopener" href={LearnMoreLink}>
+                {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+            </a>
+        </Paragraph>
+    );
+};
+
 export const WarningStagePage: FunctionComponent = () => {
     const [agreed, setAgreed] = useState<boolean>(false);
-    const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
-
-    const handleConfirmation = (): void => {
-        if (agreed) {
-            setShouldRedirect(true);
-        }
-    };
 
     const agreeOnClick = (event: any): void => {
         setAgreed(event.target.checked);
     };
 
-    if (shouldRedirect) {
-        return <Redirect to={dbPath} push />;
-    }
-
     const NextButton = (
-        <Button
-            isDisabled={!agreed}
-            onClick={handleConfirmation}
-            appearance="primary"
-            style={nextButtonStyle}
-        >
+        <Button href={dbPath} isDisabled={!agreed} appearance="primary" style={nextButtonStyle}>
             {I18n.getText('atlassian.migration.datacenter.generic.next')}
         </Button>
     );
 
     return (
-        <Container>
-            <h1>{I18n.getText('atlassian.migration.datacenter.warning.title')}</h1>
-            <Paragraph>
-                {I18n.getText('atlassian.migration.datacenter.warning.description')}
-            </Paragraph>
+        <WarningPageContainer>
+            <WarningContentContainer>
+                <h1>{I18n.getText('atlassian.migration.datacenter.warning.title')}</h1>
+                <Paragraph>
+                    {I18n.getText('atlassian.migration.datacenter.warning.description')}
+                </Paragraph>
+                <LearnMore />
+            </WarningContentContainer>
             <SectionMessage
                 appearance="info"
                 title={I18n.getText('atlassian.migration.datacenter.warning.section.header')}
@@ -85,8 +110,10 @@ export const WarningStagePage: FunctionComponent = () => {
                     name="agree"
                 />
             </CheckboxContainer>
-            {NextButton}
-            <CancelButton />
-        </Container>
+            <WarningActionsContainer>
+                {NextButton}
+                <CancelButton />
+            </WarningActionsContainer>
+        </WarningPageContainer>
     );
 };

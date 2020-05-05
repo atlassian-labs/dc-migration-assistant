@@ -60,6 +60,7 @@ const getDeploymentProgress: ProgressCallback = () => {
             );
             builder.setError(err.message);
             builder.setCompleteness(0);
+            builder.setFailed(true);
             return builder.build();
         });
 };

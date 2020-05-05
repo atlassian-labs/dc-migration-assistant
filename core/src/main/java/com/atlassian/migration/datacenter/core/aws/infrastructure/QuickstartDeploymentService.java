@@ -42,7 +42,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     static final String SECURITY_GROUP_NAME_STACK_OUTPUT_KEY = "SGname";
 
     private final Logger logger = LoggerFactory.getLogger(QuickstartDeploymentService.class);
-    private static final String QUICKSTART_TEMPLATE_URL = "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc-with-vpc.template.yaml";
+    private static final String QUICKSTART_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml";
 
     private static final String templateUrl = System.getProperty("quickstart.template.url", QUICKSTART_TEMPLATE_URL);
 
