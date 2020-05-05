@@ -50,7 +50,7 @@ const StageAwareMigrationSection = ({
     if (currentStage === MigrationStage.ERROR) {
         return (
             <>
-                <h2>Error</h2>
+                <h2>{I18n.getText('atlassian.migration.datacenter.generic.error')}</h2>
                 <SectionMessage appearance="error">
                     <p>
                         {I18n.getText('atlassian.migration.datacenter.error.section.message')}{' '}
@@ -73,7 +73,7 @@ const StageAwareMigrationSection = ({
 
     return (
         <>
-            <h2>Migration In Progress</h2>
+            <h2>{I18n.getText('atlassian.migration.datacenter.generic.migration.in_progress')}</h2>
             <SectionMessage appearance="warning">
                 <p>
                     {I18n.getText('atlassian.migration.datacenter.error.section.warning.message')}
