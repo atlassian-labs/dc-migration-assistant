@@ -24,6 +24,7 @@ import Spinner from '@atlaskit/spinner';
 import { migration, MigrationStage } from '../api/migration';
 import { homePath } from '../utils/RoutePaths';
 import { getPathForStage } from '../utils/migration-stage-to-path';
+import SectionMessage from '@atlaskit/section-message';
 
 const MigrationErrorContainer = styled.div`
     display: flex;
@@ -42,7 +43,6 @@ const StageAwareMigrationSection = ({
     currentStage,
     additionalErrorContext,
 }: ResetMigrationProps): ReactElement => {
-    const learnMoreText = I18n.getText('atlassian.migration.datacenter.common.learn_more');
     const buttonStyle = {
         marginTop: '20px',
     };
@@ -51,17 +51,18 @@ const StageAwareMigrationSection = ({
         return (
             <>
                 <h2>Error</h2>
-                <p>
-                    The Migration assistant entered an error state. Click here to{' '}
-                    <a
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html?#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors"
-                    >
-                        {learnMoreText.toLowerCase()}
-                    </a>{' '}
-                    about why this may have occurred
-                </p>
+                <SectionMessage appearance="error">
+                    <p>
+                        {I18n.getText('atlassian.migration.datacenter.error.section.message')}{' '}
+                        <a
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            href="https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html?#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors"
+                        >
+                            {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                        </a>
+                    </p>
+                </SectionMessage>
                 <p>{additionalErrorContext}</p>
                 <Button onClick={resetMigrationFunc} appearance="primary" style={buttonStyle}>
                     {I18n.getText('atlassian.migration.datacenter.error.reset.button')}
@@ -72,14 +73,16 @@ const StageAwareMigrationSection = ({
 
     return (
         <>
-            <p>
-                This is an error page that is shown only when a migration fails. You currently have
-                a migration in progress.
-            </p>
-            <p>Click the button below to view the latest status.</p>
+            <h2>Migration In Progress</h2>
+            <SectionMessage appearance="warning">
+                <p>
+                    {I18n.getText('atlassian.migration.datacenter.error.section.warning.message')}
+                </p>
+            </SectionMessage>
+
             <Link to={getPathForStage(currentStage)}>
                 <Button appearance="primary" style={buttonStyle}>
-                    {I18n.getText('atlassian.migration.datacenter.error.current.stage')}
+                    {I18n.getText('atlassian.migration.datacenter.error.view.migration.button')}
                 </Button>
             </Link>
         </>
