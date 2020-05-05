@@ -18,9 +18,10 @@ import React, { FunctionComponent, ReactElement, useEffect, useState } from 'rea
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { migration, MigrationStage } from '../api/migration';
 import { Link, Redirect } from 'react-router-dom';
 import Button from '@atlaskit/button';
+import Spinner from '@atlaskit/spinner';
+import { migration, MigrationStage } from '../api/migration';
 import { homePath } from '../utils/RoutePaths';
 import { getPathForStage } from '../utils/migration-stage-to-path';
 
@@ -42,14 +43,16 @@ const StageAwareMigrationSection = ({
     additionalErrorContext,
 }: ResetMigrationProps): ReactElement => {
     const learnMoreText = I18n.getText('atlassian.migration.datacenter.common.learn_more');
+    const buttonStyle = {
+        marginTop: '20px',
+    };
 
     if (currentStage === MigrationStage.ERROR) {
         return (
             <>
                 <h2>Error</h2>
                 <p>
-                    The Migration assistant entered an error state <br />
-                    Click here to{' '}
+                    The Migration assistant entered an error state. Click here to{' '}
                     <a
                         target="_blank"
                         rel="noreferrer noopener"
@@ -58,9 +61,9 @@ const StageAwareMigrationSection = ({
                         {learnMoreText.toLowerCase()}
                     </a>{' '}
                     about why this may have occurred
-                    {additionalErrorContext} <br />
                 </p>
-                <Button onClick={resetMigrationFunc} appearance="primary">
+                <p>{additionalErrorContext}</p>
+                <Button onClick={resetMigrationFunc} appearance="primary" style={buttonStyle}>
                     {I18n.getText('atlassian.migration.datacenter.error.reset.button')}
                 </Button>
             </>
@@ -75,7 +78,7 @@ const StageAwareMigrationSection = ({
             </p>
             <p>Click the button below to view the latest status.</p>
             <Link to={getPathForStage(currentStage)}>
-                <Button appearance="primary">
+                <Button appearance="primary" style={buttonStyle}>
                     {I18n.getText('atlassian.migration.datacenter.error.current.stage')}
                 </Button>
             </Link>
@@ -86,11 +89,17 @@ const StageAwareMigrationSection = ({
 export const MigrationError: FunctionComponent = () => {
     const [currentStage, setCurrentStage] = useState<MigrationStage>(MigrationStage.NOT_STARTED);
     const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        migration.getMigrationStage().then((stage: string) => {
-            setCurrentStage(stage as MigrationStage);
-        });
+        migration
+            .getMigrationStage()
+            .then((stage: string) => {
+                setCurrentStage(stage as MigrationStage);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, []);
 
     const resetMigration = (): void => {
@@ -102,13 +111,16 @@ export const MigrationError: FunctionComponent = () => {
     return (
         <>
             {redirectToNewMigration && <Redirect to={homePath} push />}
-            <MigrationErrorContainer>
-                <StageAwareMigrationSection
-                    currentStage={currentStage}
-                    resetMigrationFunc={resetMigration}
-                    additionalErrorContext=""
-                />
-            </MigrationErrorContainer>
+            {isLoading && <Spinner />}
+            {!isLoading && (
+                <MigrationErrorContainer>
+                    <StageAwareMigrationSection
+                        currentStage={currentStage}
+                        resetMigrationFunc={resetMigration}
+                        additionalErrorContext=""
+                    />
+                </MigrationErrorContainer>
+            )}
         </>
     );
 };
