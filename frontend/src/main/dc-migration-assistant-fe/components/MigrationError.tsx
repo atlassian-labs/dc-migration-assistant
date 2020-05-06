@@ -36,16 +36,22 @@ type ResetMigrationProps = {
     currentStage: MigrationStage;
     resetMigrationFunc: VoidFunction;
     additionalErrorContext: string;
+    isAwaitingApiResponse: boolean;
 };
 
 const StageAwareMigrationSection = ({
     resetMigrationFunc,
     currentStage,
     additionalErrorContext,
+    isAwaitingApiResponse,
 }: ResetMigrationProps): ReactElement => {
     const buttonStyle = {
         marginTop: '20px',
     };
+
+    if (isAwaitingApiResponse) {
+        return <Spinner />;
+    }
 
     if (currentStage === MigrationStage.ERROR) {
         return (
@@ -79,7 +85,6 @@ const StageAwareMigrationSection = ({
                     {I18n.getText('atlassian.migration.datacenter.error.section.warning.message')}
                 </p>
             </SectionMessage>
-
             <Link to={getPathForStage(currentStage)}>
                 <Button appearance="primary" style={buttonStyle}>
                     {I18n.getText('atlassian.migration.datacenter.error.view.migration.button')}
@@ -92,7 +97,7 @@ const StageAwareMigrationSection = ({
 export const MigrationError: FunctionComponent = () => {
     const [currentStage, setCurrentStage] = useState<MigrationStage>(MigrationStage.NOT_STARTED);
     const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isAwaitingApiResponse, setIsAwaitingApiResponse] = useState<boolean>(true);
 
     useEffect(() => {
         migration
@@ -101,10 +106,11 @@ export const MigrationError: FunctionComponent = () => {
                 setCurrentStage(stage as MigrationStage);
             })
             .finally(() => {
-                setIsLoading(false);
+                setIsAwaitingApiResponse(false);
             });
     }, []);
 
+    // TODO: We may need to handle error from this API in the future
     const resetMigration = (): void => {
         migration.resetMigration().then(() => {
             setRedirectToNewMigration(true);
@@ -114,16 +120,14 @@ export const MigrationError: FunctionComponent = () => {
     return (
         <>
             {redirectToNewMigration && <Redirect to={homePath} push />}
-            {isLoading && <Spinner />}
-            {!isLoading && (
-                <MigrationErrorContainer>
-                    <StageAwareMigrationSection
-                        currentStage={currentStage}
-                        resetMigrationFunc={resetMigration}
-                        additionalErrorContext=""
-                    />
-                </MigrationErrorContainer>
-            )}
+            <MigrationErrorContainer>
+                <StageAwareMigrationSection
+                    currentStage={currentStage}
+                    resetMigrationFunc={resetMigration}
+                    additionalErrorContext=""
+                    isAwaitingApiResponse={isAwaitingApiResponse}
+                />
+            </MigrationErrorContainer>
         </>
     );
 };
