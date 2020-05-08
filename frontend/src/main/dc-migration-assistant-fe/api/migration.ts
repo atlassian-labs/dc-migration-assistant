@@ -77,13 +77,24 @@ export const migration = {
         });
     },
     resetMigration: (): Promise<void> => {
+        const DEFAULT_MIGRATION_ERROR_REASON =
+            'Encountered an error while trying to cancel the migration. Please check the logs for more details'
         return callAppRest('DELETE', RestApiPathConstants.migrationResetRestPath)
             .then(res => {
                 return res.ok
                     ? Promise.resolve()
-                    : res.json().then(json => Promise.reject(json.error));
+                    : res.json().then(json => {
+                          return Promise.reject(json.reason);
+                      });
             })
-            .catch(reason => Promise.reject(reason.toString()));
+            .catch(reason => {
+                if (reason instanceof Error) {
+                    return Promise.reject(reason.message);
+                }
+                return Promise.reject(
+                    reason !== undefined ? reason : DEFAULT_MIGRATION_ERROR_REASON
+                );
+            });
     },
     getMigrationSummary: (): Promise<GetMigrationSummaryResult> => {
         return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
