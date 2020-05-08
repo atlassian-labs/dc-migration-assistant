@@ -17,25 +17,64 @@
 import React, { FunctionComponent, useState } from 'react';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import styled from 'styled-components';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 const CancelModalContainer = styled.div``;
+const CancelModalContentContainer = styled.div``;
+
+const LearnMoreLink =
+    'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html?#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
 
 export const CancelModal: FunctionComponent = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    const actions = [
-        { text: 'Cancel Migration', onClick: console.log },
-        { text: 'Close', onClick: console.log },
-    ];
-    const closeModal = () => {
+    const closeModal = (): void => {
         setIsModalOpen(false);
     };
+
+    const actions: Array<any> = [
+        {
+            text: I18n.getText('atlassian.migration.datacenter.generic.nevermind'),
+            onClick: closeModal,
+            appearance: 'default',
+        },
+        {
+            text: I18n.getText('atlassian.migration.datacenter.generic.cancel_migration.question'),
+            onClick: console.log,
+            appearance: 'warning',
+        },
+    ];
 
     return (
         <CancelModalContainer>
             <ModalTransition>
                 {isModalOpen && (
-                    <Modal actions={actions} onClose={closeModal} heading="Modal Title" />
+                    <Modal
+                        actions={actions}
+                        onClose={closeModal}
+                        appearance="warning"
+                        heading="Cancel Migration?"
+                    >
+                        <CancelModalContentContainer>
+                            <p>
+                                {I18n.getText(
+                                    'atlassian.migration.datacenter.cancellation.modal.progress.warning'
+                                )}
+                            </p>
+                            <p>
+                                {I18n.getText(
+                                    'atlassian.migration.datacenter.cancellation.modal.aws.resource.cleanup.warning'
+                                )}
+                            </p>
+                            <p>
+                                <a target="_blank" rel="noreferrer noopener" href={LearnMoreLink}>
+                                    {I18n.getText(
+                                        'atlassian.migration.datacenter.common.learn_more'
+                                    )}
+                                </a>
+                            </p>
+                        </CancelModalContentContainer>
+                    </Modal>
                 )}
             </ModalTransition>
         </CancelModalContainer>
