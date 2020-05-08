@@ -15,7 +15,7 @@
  */
 
 import React, { FunctionComponent, ReactElement, useState } from 'react';
-import Form, { ErrorMessage, Field, FormFooter, HelperMessage } from '@atlaskit/form';
+import Form, { ErrorMessage, Field, FormFooter } from '@atlaskit/form';
 import Button, { ButtonGroup } from '@atlaskit/button';
 import TextField from '@atlaskit/textfield';
 import { I18n } from '@atlassian/wrm-react-i18n';

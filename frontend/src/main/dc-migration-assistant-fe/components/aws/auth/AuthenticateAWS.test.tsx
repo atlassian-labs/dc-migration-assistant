@@ -67,21 +67,24 @@ describe('AWS Authentication page', () => {
             return Promise.resolve('credentials stored');
         };
         await act(async () => {
-            const { getByTestId, getByText } = render(
+            const { getByTestId, container } = render(
                 <AuthenticateAWS
                     {...NO_OP_AUTHENTICATION_PAGE_PROPS}
                     onSubmitCreds={submitCredentialsCallback}
                 />,
                 { wrapper: MemoryRouter }
             );
+            const secretKeyInput = container.querySelector('[name="secretAccessKey"]');
+            await fireEvent.reset(secretKeyInput);
+            await fireEvent.change(secretKeyInput, { target: { value: '' } });
+
+            const accessKeyInput = container.querySelector('[name="accessKeyId"]');
+            await fireEvent.change(accessKeyInput, { target: { value: '' } });
 
             const submitButton = getByTestId('awsSecretKeySubmitFormButton');
             await fireEvent.submit(submitButton);
 
             expect(credentialsSubmitted).toBeFalsy();
-            expect(
-                getByText('atlassian.migration.datacenter.authenticate.aws.region.error')
-            ).toBeTruthy();
         });
     });
 
@@ -96,7 +99,7 @@ describe('AWS Authentication page', () => {
         };
 
         await act(async () => {
-            const { getByTestId, container, getByLabelText } = render(
+            const { container, getByLabelText, getByTestId } = render(
                 <AuthenticateAWS
                     {...NO_OP_AUTHENTICATION_PAGE_PROPS}
                     onSubmitCreds={submitCredentialsCallback}

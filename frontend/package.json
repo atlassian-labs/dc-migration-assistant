@@ -9,7 +9,7 @@
         "@atlaskit/checkbox": "^10.1.11",
         "@atlaskit/css-reset": "latest",
         "@atlaskit/flag": "^12.3.8",
-        "@atlaskit/form": "^6.3.2",
+        "@atlaskit/form": "^7.2.1",
         "@atlaskit/icon": "^20.0.1",
         "@atlaskit/inline-message": "^10.1.6",
         "@atlaskit/modal-dialog": "^10.5.8",

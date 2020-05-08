@@ -25,10 +25,17 @@ import { QuickstartParameter } from './QuickStartTypes';
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 
 type FormElementGenerator = (
-    defaultProps: Record<string, string>,
+    defaultProps: DefaultFieldProps,
     param: QuickstartParameter
 ) => ReactElement;
 type InputProps = Record<string, boolean | number | string | Function>;
+
+type DefaultFieldProps = {
+    key: string;
+    label: string;
+    name: string;
+    defaultValue: string;
+};
 
 const availabilityZonesLoadOptions = (): Promise<Array<OptionType>> =>
     callAppRest('GET', RestApiPathConstants.awsAzListForRegion)
@@ -41,14 +48,19 @@ const createAZSelection: FormElementGenerator = (defaultFieldProps, param) => {
     } = param;
 
     const validate = (value: Array<OptionType>): string => {
-        if (value.length !== 2) {
+        if (value?.length !== 2) {
             return 'INCORRECT_NUM_AZ';
         }
         return undefined;
     };
 
     return (
-        <Field validate={validate} {...defaultFieldProps}>
+        <Field
+            validate={validate}
+            name={defaultFieldProps.name}
+            label={defaultFieldProps.label}
+            key={defaultFieldProps.key}
+        >
             {({ fieldProps, error }: any): ReactElement => (
                 <>
                     <AsyncSelect
@@ -247,6 +259,31 @@ const createSelectFromQuickstartParam: FormElementGenerator = (defaultFieldProps
     );
 };
 
+const createKeyPairNameField: FormElementGenerator = (defaultFieldProps, param) => {
+    const {
+        paramProperties: { Description, ConstraintDescription },
+    } = param;
+
+    const validateFun = (val: string): string => {
+        if (val.length === 0) {
+            return 'TOO_SHORT';
+        }
+        return undefined;
+    };
+
+    return (
+        <Field validate={validateFun} {...defaultFieldProps}>
+            {({ fieldProps, error }: any): ReactElement => (
+                <>
+                    <TextField width="xlarge" {...fieldProps} />
+                    <HelperMessage>{Description}</HelperMessage>
+                    {error && <ErrorMessage>{ConstraintDescription}</ErrorMessage>}
+                </>
+            )}
+        </Field>
+    );
+};
+
 const quickstartParamToAtlaskitFormElement: FormElementGenerator = (defaultFieldProps, param) => {
     const { paramProperties } = param;
     if (paramProperties.AllowedValues) {
@@ -254,6 +291,9 @@ const quickstartParamToAtlaskitFormElement: FormElementGenerator = (defaultField
     }
     if (paramProperties.Type === 'List<AWS::EC2::AvailabilityZone::Name>') {
         return createAZSelection(defaultFieldProps, param);
+    }
+    if (paramProperties.Type === 'AWS::EC2::KeyPair::KeyName') {
+        return createKeyPairNameField(defaultFieldProps, param);
     }
     return createInputFromQuickstartParam(defaultFieldProps, param);
 };

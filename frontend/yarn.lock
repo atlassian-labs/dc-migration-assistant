@@ -104,29 +104,19 @@
     tslib "^1.9.3"
     uuid "^3.1.0"
 
-"@atlaskit/form@^6.3.2":
-  version "6.3.2"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/form/-/form-6.3.2.tgz#06019d0a1f4ec1ab84eb6d53fe0ad8a02ebfea68"
-  integrity sha1-BgGdCh9OwauE621T/grYoC6/6mg=
+"@atlaskit/form@^7.2.1":
+  version "7.2.1"
+  resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/form/-/form-7.2.1.tgz#e1c453e4a13210abc7a345ea91ae4dc752859cbb"
+  integrity sha1-4cRT5KEyEKvHo0Xqka5Nx1KFnLs=
   dependencies:
-    "@atlaskit/icon" "^19.0.6"
-    "@atlaskit/theme" "^9.2.4"
-    "@babel/runtime" "^7.0.0"
-    final-form "^4.13.0"
+    "@atlaskit/icon" "^20.1.1"
+    "@atlaskit/theme" "^9.5.1"
+    final-form "^4.14.1"
     final-form-focus "^1.1.0"
     memoize-one "^5.1.0"
     react-uid "^2.2.0"
-    shallow-equal "^1.0.0"
     tiny-invariant "^0.0.3"
-
-"@atlaskit/icon@^19.0.6":
-  version "19.1.0"
-  resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/icon/-/icon-19.1.0.tgz#50e7050765a6d055cf0005f18a189f9eb80e3753"
-  integrity sha1-UOcFB2Wm0FXPAAXxihifnrgON1M=
-  dependencies:
-    "@atlaskit/theme" "^9.5.0"
     tslib "^1.9.3"
-    uuid "^3.1.0"
 
 "@atlaskit/icon@^20.0.1", "@atlaskit/icon@^20.1.0":
   version "20.1.0"
@@ -303,7 +293,7 @@
     "@emotion/core" "^10.0.9"
     tslib "^1.9.3"
 
-"@atlaskit/theme@^9.2.4", "@atlaskit/theme@^9.5.0", "@atlaskit/theme@^9.5.1", "@atlaskit/theme@^9.5.2":
+"@atlaskit/theme@^9.5.1", "@atlaskit/theme@^9.5.2":
   version "9.5.2"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@atlaskit/theme/-/theme-9.5.2.tgz#a6ede937f5a6870c4acf6a6cbf094b429e0e759d"
   integrity sha1-pu3pN/WmhwxKz2psvwlLQp4OdZ0=
@@ -6005,7 +5995,7 @@ final-form-focus@^1.1.0:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/final-form-focus/-/final-form-focus-1.1.2.tgz#8ea5c4bd802e220cebaa47a587bb0be164eb6806"
   integrity sha1-jqXEvYAuIgzrqkelh7sL4WTraAY=
 
-final-form@^4.13.0:
+final-form@^4.14.1:
   version "4.19.1"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/final-form/-/final-form-4.19.1.tgz#1aa1a3bf67f7399b54ed6185d56f9a8d74cfda5a"
   integrity sha1-GqGjv2f3OZtU7WGF1W+ajXTP2lo=
