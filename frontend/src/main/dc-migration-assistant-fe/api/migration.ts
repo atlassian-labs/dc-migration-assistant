@@ -77,7 +77,8 @@ export const migration = {
         });
     },
     resetMigration: (): Promise<void> => {
-        return callAppRest('DELETE', RestApiPathConstants.migrationResetRestPath).then(res => {
+        return callAppRest('DELETE', RestApiPathConstants.migrationResetRestPath)
+            .then(res => {
                 return res.ok
                     ? Promise.resolve()
                     : res.json().then(json => Promise.reject(json.error));

@@ -18,8 +18,8 @@ import React, { FunctionComponent, useState } from 'react';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
-import { migration } from '../../api/migration';
 import { Redirect } from 'react-router-dom';
+import { migration } from '../../api/migration';
 import { homePath } from '../../utils/RoutePaths';
 import { ErrorFlag } from './ErrorFlag';
 
