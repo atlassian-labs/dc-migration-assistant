@@ -29,13 +29,20 @@ const CancelModalContentContainer = styled.div``;
 const LearnMoreLink =
     'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html?#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
 
-export const CancelModal: FunctionComponent = () => {
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+type CancelModalProps = {
+    toggleModalDisplay: (modalState: boolean) => void;
+    modalState: boolean;
+};
+
+export const CancelModal: FunctionComponent<CancelModalProps> = ({
+    modalState,
+    toggleModalDisplay,
+}) => {
     const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
     const [resetMigrationError, setResetMigrationError] = useState<string>('');
 
     const closeModal = (): void => {
-        setIsModalOpen(false);
+        toggleModalDisplay(!modalState);
     };
 
     const resetMigration = (): void => {
@@ -45,7 +52,7 @@ export const CancelModal: FunctionComponent = () => {
                 setRedirectToNewMigration(true);
             })
             .catch(reason => {
-                setIsModalOpen(false);
+                closeModal();
                 setResetMigrationError(reason);
             });
     };
@@ -79,7 +86,7 @@ export const CancelModal: FunctionComponent = () => {
                 id="migration-reset-error"
             />
             <ModalTransition>
-                {isModalOpen && (
+                {modalState && (
                     <Modal
                         actions={actions}
                         onClose={closeModal}
