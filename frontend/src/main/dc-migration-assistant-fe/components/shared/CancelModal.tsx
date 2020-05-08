@@ -18,6 +18,10 @@ import React, { FunctionComponent, useState } from 'react';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { migration } from '../../api/migration';
+import { Redirect } from 'react-router-dom';
+import { homePath } from '../../utils/RoutePaths';
+import { ErrorFlag } from './ErrorFlag';
 
 const CancelModalContainer = styled.div``;
 const CancelModalContentContainer = styled.div``;
@@ -26,10 +30,24 @@ const LearnMoreLink =
     'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html?#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
 
 export const CancelModal: FunctionComponent = () => {
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+    const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
+    const [resetMigrationError, setResetMigrationError] = useState<string>('');
 
     const closeModal = (): void => {
         setIsModalOpen(false);
+    };
+
+    const resetMigration = (): void => {
+        migration
+            .resetMigration()
+            .then(() => {
+                setRedirectToNewMigration(true);
+            })
+            .catch(reason => {
+                setIsModalOpen(false);
+                setResetMigrationError(reason);
+            });
     };
 
     const actions: Array<any> = [
@@ -40,13 +58,26 @@ export const CancelModal: FunctionComponent = () => {
         },
         {
             text: I18n.getText('atlassian.migration.datacenter.generic.cancel_migration.question'),
-            onClick: console.log,
+            onClick: resetMigration,
             appearance: 'warning',
         },
     ];
 
+    if (redirectToNewMigration) {
+        return <Redirect to={homePath} push />;
+    }
+
     return (
         <CancelModalContainer>
+            <ErrorFlag
+                showError={resetMigrationError && resetMigrationError !== ''}
+                dismissErrorFunc={(): void => setResetMigrationError('')}
+                title={I18n.getText(
+                    'atlassian.migration.datacenter.error.cancellation.failed.error'
+                )}
+                description={resetMigrationError}
+                id="migration-reset-error"
+            />
             <ModalTransition>
                 {isModalOpen && (
                     <Modal
