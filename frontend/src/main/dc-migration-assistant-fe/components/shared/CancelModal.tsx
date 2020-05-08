@@ -22,6 +22,7 @@ import { Redirect } from 'react-router-dom';
 import { migration } from '../../api/migration';
 import { homePath } from '../../utils/RoutePaths';
 import { ErrorFlag } from './ErrorFlag';
+import { ButtonProps } from '@atlaskit/button';
 
 const CancelModalContainer = styled.div``;
 const CancelModalContentContainer = styled.div``;
@@ -57,7 +58,7 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
             });
     };
 
-    const actions: Array<any> = [
+    const actions: Array<ButtonProps & { text: string }> = [
         {
             text: I18n.getText('atlassian.migration.datacenter.generic.nevermind'),
             onClick: closeModal,
