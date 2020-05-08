@@ -12,6 +12,7 @@
         "@atlaskit/form": "^6.3.2",
         "@atlaskit/icon": "^20.0.1",
         "@atlaskit/inline-message": "^10.1.6",
+        "@atlaskit/modal-dialog": "^10.5.8",
         "@atlaskit/panel": "^0.3.5",
         "@atlaskit/progress-bar": "^0.2.7",
         "@atlaskit/section-message": "^4.1.7",
