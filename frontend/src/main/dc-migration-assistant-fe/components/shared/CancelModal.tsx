@@ -62,12 +62,12 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
         {
             text: I18n.getText('atlassian.migration.datacenter.generic.nevermind'),
             onClick: closeModal,
-            appearance: 'default',
+            appearance: 'subtle',
         },
         {
-            text: I18n.getText('atlassian.migration.datacenter.generic.cancel_migration.question'),
+            text: I18n.getText('atlassian.migration.datacenter.generic.cancel_migration'),
             onClick: resetMigration,
-            appearance: 'warning',
+            appearance: 'primary',
         },
     ];
 
