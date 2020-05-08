@@ -34,7 +34,6 @@ type CancelModalProps = {
     modalState: boolean;
 };
 
-;
 export const CancelModal: FunctionComponent<CancelModalProps> = ({
     modalState,
     toggleModalDisplay,
