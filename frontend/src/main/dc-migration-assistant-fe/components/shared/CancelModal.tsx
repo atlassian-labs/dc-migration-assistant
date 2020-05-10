@@ -40,6 +40,7 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
     toggleModalDisplay,
 }) => {
     const [redirectToNewMigration, setRedirectToNewMigration] = useState<boolean>(false);
+    const [showSpinner, setShowSpinner] = useState<boolean>(false);
     const [resetMigrationError, setResetMigrationError] = useState<string>('');
 
     const closeModal = (): void => {
@@ -47,6 +48,7 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
     };
 
     const resetMigration = (): void => {
+        setShowSpinner(true);
         migration
             .resetMigration()
             .then(() => {
@@ -55,6 +57,9 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
             .catch(reason => {
                 closeModal();
                 setResetMigrationError(reason);
+            })
+            .finally(() => {
+                setShowSpinner(false);
             });
     };
 
@@ -68,6 +73,7 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
             text: I18n.getText('atlassian.migration.datacenter.generic.cancel_migration'),
             onClick: resetMigration,
             appearance: 'primary',
+            isLoading: showSpinner,
         },
     ];
 
