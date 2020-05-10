@@ -36,6 +36,7 @@ import {
 
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 import { quickstartStatusPath } from '../../../utils/RoutePaths';
+import { CancelButton } from '../../shared/CancelButton';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -165,9 +166,7 @@ const QuickstartForm: FunctionComponent<QuickstartFormProps> = ({ paramGroups, o
                                     'atlassian.migration.datacenter.provision.aws.form.deploy'
                                 )}
                             </Button>
-                            <Button appearance="default">
-                                {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
-                            </Button>
+                            <CancelButton />
                         </ButtonGroup>
                     </ButtonRow>
                 </QuickstartFormContainer>
