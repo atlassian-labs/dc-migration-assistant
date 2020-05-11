@@ -94,14 +94,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @Path("/reset")
     @Produces(MediaType.APPLICATION_JSON)
     fun resetMigration(): Response {
-        val currentStage = migrationService.currentStage
-        if (currentStage == MigrationStage.ERROR) {
-            migrationService.deleteMigrations()
-            return Response.ok().build()
-        }
-        return Response.status(Response.Status.CONFLICT)
-                .entity(mapOf("reason" to "Cannot reset migration when current stage is $currentStage"))
-                .build()
+        migrationService.deleteMigrations()
+        return Response.ok().build()
     }
 
 

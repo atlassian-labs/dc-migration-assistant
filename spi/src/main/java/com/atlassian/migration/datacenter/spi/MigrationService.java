@@ -61,7 +61,7 @@ public interface MigrationService {
     MigrationContext getCurrentContext();
 
     /**
-     * Deletes all migrations and associated contexts. It should be used only in developer testing.
+     * Deletes all migrations and associated contexts.
      */
     void deleteMigrations();
 
