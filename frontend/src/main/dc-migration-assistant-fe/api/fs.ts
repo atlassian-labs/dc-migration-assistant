@@ -23,7 +23,7 @@ enum RestApiPathConstants {
 }
 
 type FailedFile = {
-    path: string;
+    filePath: string;
     reason: string;
 };
 

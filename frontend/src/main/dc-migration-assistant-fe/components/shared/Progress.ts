@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 /**
  * **boldPrefix** - text that will be at the beginning of the message in bold. This should be used
  * to communicate *how much* data has been migrated
@@ -13,7 +15,10 @@ export type CompleteMessage = {
  * **phase**: Text describing the current phase of the transfer e.g. uploading, downloading, importing..
  * **completeness**: A fraction representing the percentage complete the transfer is.
  * **elapsedTimeSeconds**: The number of seconds the transfer has been going on for.
- * **error**: Text describing a non-critical error that the user may want to verify.
+ * **error**: A React node displaying the error content to the user in the error section message.
+ *            Note that a raw string is a valid React node, ReactNode is the type simply so more complex
+ *            errors can be rendered.
+ *            Absence implies no errors occured and results in no error section message being rendered.
  * **completeMessage**: Message to display when the transfer has completed.
  * **failed**: a flag that should be true if a migration-stopping error has occcured, false otherwise.
  */
@@ -21,7 +26,7 @@ export type Progress = {
     phase: string;
     completeness?: number;
     elapsedTimeSeconds?: number;
-    error?: string;
+    errorMessage?: ReactNode;
     completeMessage?: CompleteMessage;
     failed?: boolean;
 };
@@ -34,7 +39,7 @@ export class ProgressBuilder {
 
     private completeness: number;
 
-    private error: string;
+    private errorMessage: ReactNode;
 
     private completeMessage: CompleteMessage;
 
@@ -57,8 +62,8 @@ export class ProgressBuilder {
         return this;
     }
 
-    setError(error: string): ProgressBuilder {
-        this.error = error;
+    setError(error: ReactNode): ProgressBuilder {
+        this.errorMessage = error;
         return this;
     }
 
@@ -70,7 +75,7 @@ export class ProgressBuilder {
         return this;
     }
 
-    setFailed(failed: boolean) {
+    setFailed(failed: boolean): ProgressBuilder {
         this.failed = failed;
 
         return this;
@@ -81,13 +86,13 @@ export class ProgressBuilder {
             throw new Error('must include phase in progress object');
         }
 
-        const { phase, completeMessage, completeness, error, elapsedSeconds, failed } = this;
+        const { phase, completeMessage, completeness, errorMessage, elapsedSeconds, failed } = this;
 
         return {
             phase,
             completeMessage,
             completeness,
-            error,
+            errorMessage,
             elapsedTimeSeconds: elapsedSeconds,
             failed: failed || false,
         };
