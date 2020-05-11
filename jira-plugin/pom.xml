@@ -12,8 +12,8 @@
     <artifactId>jira-plugin</artifactId>
     <packaging>atlassian-plugin</packaging>
 
-    <name>Atlassian Data Center Migration Assistant for Jira</name>
-    <description>This is the officially supported DC Migration plugin for Atlassian JIRA.</description>
+    <name>Jira Data Center Migration App</name>
+    <description>This is an alpha release of the Jira Data Center Migration App. It is currently unsupported, and only available for testing and evaluation.</description>
 
     <dependencies>
         <dependency>
