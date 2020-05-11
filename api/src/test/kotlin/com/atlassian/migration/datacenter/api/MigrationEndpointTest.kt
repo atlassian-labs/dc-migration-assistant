@@ -119,26 +119,13 @@ class MigrationEndpointTest {
     }
 
     @Test
-    fun shouldResetMigrationWhenCurrentMigrationStageIsError() {
+    fun shouldResetMigration() {
         every { migrationService.deleteMigrations() } just Runs
-        every { migrationService.currentStage } returns MigrationStage.ERROR
 
         val response = sut.resetMigration()
 
         assertThat(response.status, equalTo(Response.Status.OK.statusCode))
         verify { migrationService.deleteMigrations() }
-    }
-
-    @Test
-    fun shouldNotResetMigrationWhenCurrentMigrationStageIsNotError() {
-        every { migrationService.currentStage } returns MigrationStage.AUTHENTICATION
-
-        val response = sut.resetMigration()
-
-        assertThat(response.status, equalTo(Response.Status.CONFLICT.statusCode))
-        assertThat((response.entity as Map<String, String>)["reason"], equalTo("Cannot reset migration when current stage is authentication"))
-
-        verify(exactly = 0) { migrationService.deleteMigrations() }
     }
 
     @Test
