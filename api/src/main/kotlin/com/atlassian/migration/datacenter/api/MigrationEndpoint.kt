@@ -98,7 +98,6 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         return Response.ok().build()
     }
 
-
     private fun migrationContextResponseEntity(): Map<String, String> {
         val currentContext = migrationService.currentContext
 

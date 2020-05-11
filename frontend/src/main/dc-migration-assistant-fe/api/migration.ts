@@ -20,7 +20,6 @@ enum RestApiPathConstants {
     migrationRestPath = `migration`,
     migrationSummaryRestPath = `migration/summary`,
     migrationResetRestPath = `migration/reset`,
-    migrationForceResetPath = `develop/migration/reset`,
 }
 
 export enum MigrationStage {
@@ -100,14 +99,6 @@ export const migration = {
         return callAppRest('GET', RestApiPathConstants.migrationSummaryRestPath).then(res =>
             res.json()
         );
-    },
-    forceResetMigration: (): Promise<void> => {
-        return callAppRest('DELETE', RestApiPathConstants.migrationForceResetPath).then(res => {
-            if (res.ok) {
-                return Promise.resolve();
-            }
-            return res.json().then(json => Promise.reject(json.error));
-        });
     },
 };
 

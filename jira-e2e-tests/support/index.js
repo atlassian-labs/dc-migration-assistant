@@ -43,6 +43,6 @@ Cypress.Commands.add('reset_migration', () => {
     cy.visit(migrationHome);
     cy.get('#dc-migration-assistant-root').should('exist');
     cy.window().then((window: Window) => {
-        window.AtlassianMigration.forceResetMigration();
+        window.AtlassianMigration.resetMigration();
     });
 });
