@@ -103,7 +103,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
 }) => {
     const [progress, setProgress] = useState<Progress>();
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string>();
+    const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
 
     const updateProgress = (): Promise<void> => {
@@ -113,20 +113,20 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setLoading(false);
             })
             .catch(err => {
-                setError(err);
+                setProgressFetchingError(err);
                 setLoading(false);
             });
     };
 
     const startMigration = (): Promise<void> => {
         setLoading(true);
-        setError('');
+        setProgressFetchingError('');
         return startMigrationPhase()
             .then(() => {
                 setStarted(true);
             })
             .catch(err => {
-                setError(err.message);
+                setProgressFetchingError(err.message);
                 setLoading(false);
             });
     };
@@ -166,7 +166,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return <Redirect to={migrationErrorPath} push />;
     }
 
-    const transferError = progress?.error || error;
+    const transferError = progress?.errorMessage;
 
     const LearnMoreLink =
         'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-Knownissue';
@@ -181,10 +181,11 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             ) : (
                 <>
                     <TransferContentContainer>
-                        {transferError && (
+                        {(transferError || progressFetchingError) && (
                             <SectionMessage appearance="error">
+                                {transferError}
                                 <p>
-                                    {transferError}{' '}
+                                    {progressFetchingError || ''}{' '}
                                     <a
                                         target="_blank"
                                         rel="noreferrer noopener"

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
+import Panel from '@atlaskit/panel';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
 import { Progress, ProgressBuilder } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
@@ -30,20 +31,29 @@ const dummyStarted = moment();
 dummyStarted.subtract(49, 'hours');
 dummyStarted.subtract(23, 'minutes');
 
-const getErrorFromResult = (result: FileSystemMigrationStatusResponse): string | undefined => {
+const getErrorFromResult = (result: FileSystemMigrationStatusResponse): ReactNode | undefined => {
     if (result?.failedFiles.length > 0) {
         const failedFilesCount = result.failedFiles.length;
-        const reasons: Record<string, boolean> = {};
 
-        result.failedFiles.forEach(failure => {
-            if (!reasons[failure.reason]) {
-                reasons[failure.reason] = true;
-            }
-        });
-
-        const reasonsString = Object.keys(reasons).join(', ');
-
-        return `Encountered ${failedFilesCount} upload errors. Error details: ${reasonsString}`;
+        return (
+            <>
+                <strong>{failedFilesCount} files</strong> failed to upload.
+                <Panel header={I18n.getText('atlassian.migration.datacenter.fs.error.failedFiles')}>
+                    <ul>
+                        {result.failedFiles.map(({ filePath, reason }) => (
+                            <li key={filePath}>
+                                {filePath}
+                                <br />
+                                <strong>
+                                    {I18n.getText('atlassian.migration.datacenter.error.reason')}:{' '}
+                                </strong>
+                                {reason.replace(/, Request ID.*/g, ')')}
+                            </li>
+                        ))}
+                    </ul>
+                </Panel>
+            </>
+        );
     }
     return undefined;
 };
