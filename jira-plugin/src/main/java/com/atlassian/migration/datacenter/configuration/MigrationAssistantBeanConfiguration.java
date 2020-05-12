@@ -64,6 +64,7 @@ import com.atlassian.util.concurrent.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -263,12 +264,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentCaptor attachmentCapturer() {
+    public AttachmentCaptor attachmentCaptor() {
         return new DefaultAttachmentCaptor();
-    }
-
-    @Bean
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
-        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
     }
 }
