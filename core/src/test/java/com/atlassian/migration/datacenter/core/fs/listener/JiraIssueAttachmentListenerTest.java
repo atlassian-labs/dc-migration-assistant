@@ -44,9 +44,6 @@ class JiraIssueAttachmentListenerTest {
     @Mock
     EventPublisher mockPublisher;
 
-    @InjectMocks
-    JiraIssueAttachmentListener sut;
-
     @Mock
     Issue mockIssue;
 
@@ -57,6 +54,8 @@ class JiraIssueAttachmentListenerTest {
     Attachment anotherMockAttachment;
 
     private List<Attachment> capturedPaths = new LinkedList<>();
+
+    private JiraIssueAttachmentListener sut;
 
     @BeforeEach
     void setUp() {
