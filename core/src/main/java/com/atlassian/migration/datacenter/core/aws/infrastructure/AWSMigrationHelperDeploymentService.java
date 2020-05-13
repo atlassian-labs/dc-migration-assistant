@@ -24,7 +24,6 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService;
-import com.atlassian.util.concurrent.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -37,6 +36,7 @@ import software.amazon.awssdk.services.cloudformation.model.Stack;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**

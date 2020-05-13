@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.aws.ssm;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
-import com.atlassian.util.concurrent.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -28,6 +27,7 @@ import software.amazon.awssdk.services.ssm.model.SendCommandResponse;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class SSMApi {
 
