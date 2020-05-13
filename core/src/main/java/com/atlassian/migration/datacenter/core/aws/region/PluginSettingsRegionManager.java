@@ -19,12 +19,12 @@ package com.atlassian.migration.datacenter.core.aws.region;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
-import com.atlassian.util.concurrent.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
 
 import javax.annotation.PostConstruct;
+import java.util.function.Supplier;
 
 /**
  * Manages the persistence and retrieval of the region used to make AWS SDK API calls.

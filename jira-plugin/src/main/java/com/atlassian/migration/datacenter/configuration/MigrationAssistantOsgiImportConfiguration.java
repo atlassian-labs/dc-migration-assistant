@@ -25,9 +25,10 @@ import com.atlassian.sal.api.permission.PermissionEnforcer;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
-import com.atlassian.util.concurrent.Supplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.function.Supplier;
 
 import static com.atlassian.migration.datacenter.configuration.SpringOsgiConfigurationUtil.lazyImportOsgiService;
 import static com.atlassian.plugins.osgi.javaconfig.OsgiServices.importOsgiService;

@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
-import com.atlassian.util.concurrent.Supplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 import static org.mockito.Mockito.verify;
 

@@ -20,11 +20,11 @@ import com.atlassian.migration.datacenter.core.fs.S3Uploader;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
-import com.atlassian.util.concurrent.Supplier;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import javax.annotation.PostConstruct;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 public class DatabaseArtifactS3UploadService {
     private final Supplier<S3AsyncClient> s3AsyncClientSupplier;
