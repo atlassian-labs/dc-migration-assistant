@@ -74,6 +74,18 @@
             <groupId>com.atlassian.jira</groupId>
             <artifactId>jira-api</artifactId>
         </dependency>
+        <!-- TODO: Verify if scope is valid in 7.13 -->
+        <dependency>
+            <groupId>com.atlassian.util.concurrent</groupId>
+            <artifactId>atlassian-util-concurrent</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- TODO: Verify if scope is valid. Will this be provided? -->
+        <dependency>
+            <groupId>io.atlassian.util.concurrent</groupId>
+            <artifactId>atlassian-util-concurrent</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
             <artifactId>woodstox-core</artifactId>

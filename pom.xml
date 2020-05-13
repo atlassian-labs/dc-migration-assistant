@@ -231,6 +231,16 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>com.atlassian.util.concurrent</groupId>
+                <artifactId>atlassian-util-concurrent</artifactId>
+                <version>3.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.atlassian.util.concurrent</groupId>
+                <artifactId>atlassian-util-concurrent</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
                 <groupId>com.atlassian.soy</groupId>
                 <artifactId>soy-template-renderer-api</artifactId>
                 <version>${soy.version}</version>
