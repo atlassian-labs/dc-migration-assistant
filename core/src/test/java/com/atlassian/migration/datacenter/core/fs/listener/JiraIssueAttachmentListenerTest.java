@@ -14,38 +14,33 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.core.fs.listener;
 
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.attachment.Attachment;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JiraIssueAttachmentListenerTest {
-
-    public static final String A_MOCK_ATTACHMENT_PATH = "a/mock/attachment";
-    public static final String ANOTHER_MOCK_ATTACHMENT_PATH = "another/mock/attachment";
-
     @Mock
     EventPublisher mockPublisher;
 
@@ -56,26 +51,20 @@ class JiraIssueAttachmentListenerTest {
     Issue mockIssue;
 
     @Mock
-    AttachmentStore attachmentStore;
-
-    @Mock
     Attachment aMockAttachment;
 
     @Mock
     Attachment anotherMockAttachment;
 
-    private List<Path> capturedPaths = new LinkedList<>();
+    private List<Attachment> capturedPaths = new LinkedList<>();
 
     @BeforeEach
     void setUp() {
-        sut = new JiraIssueAttachmentListener(mockPublisher, this::captureAttachment, attachmentStore);
+        sut = new JiraIssueAttachmentListener(mockPublisher, this::captureAttachment);
     }
 
     @Test
-    @Disabled("Until the attachment store dependency on the promise from atlassian.concurrent is sorted")
     void shouldCaptureAttachmentInIssueCreatedEvent() {
-        when(aMockAttachment.getFilename()).thenReturn(A_MOCK_ATTACHMENT_PATH);
-        when(anotherMockAttachment.getFilename()).thenReturn(ANOTHER_MOCK_ATTACHMENT_PATH);
         when(mockIssue.getAttachments()).thenReturn(new ArrayList<Attachment>() {{
             add(aMockAttachment);
             add(anotherMockAttachment);
@@ -83,13 +72,32 @@ class JiraIssueAttachmentListenerTest {
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_CREATED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedPaths, contains(
-                Paths.get(A_MOCK_ATTACHMENT_PATH),
-                Paths.get(ANOTHER_MOCK_ATTACHMENT_PATH)
-        ));
+        assertThat(capturedPaths, contains(aMockAttachment,anotherMockAttachment));
     }
 
-    private void captureAttachment(Path path) {
-        capturedPaths.add(path);
+
+    @Test
+    void shouldCaptureAttachmentInIssueUpdatedEvent() {
+        when(mockIssue.getAttachments()).thenReturn(new ArrayList<Attachment>() {{
+            add(aMockAttachment);
+            add(anotherMockAttachment);
+        }});
+        IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_UPDATED_ID);
+        sut.onIssueEvent(mockEvent);
+
+        assertThat(capturedPaths, contains(aMockAttachment,anotherMockAttachment));
+    }
+
+    @Test
+    void shouldNotCaptureAttachmentInIssueCommentEditedEvent() {
+        IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_COMMENT_EDITED_ID);
+        sut.onIssueEvent(mockEvent);
+
+        assertThat(capturedPaths.size(), is(0));
+        verify(mockIssue, never()).getAttachments();
+    }
+
+    private void captureAttachment(Attachment attachment) {
+        capturedPaths.add(attachment);
     }
 }

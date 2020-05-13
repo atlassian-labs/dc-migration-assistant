@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.captor;
+package com.atlassian.migration.datacenter.core.fs.listener;
 
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
+    private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
-    private AttachmentStore attachmentStore;
-    private final AttachmentPathCaptor attachmentPathCaptor;
+    private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
         this.eventPublisher = eventPublisher;
-        this.attachmentPathCaptor = attachmentPathCaptor;
-        this.attachmentStore = attachmentStore;
+        this.attachmentCaptor = attachmentCaptor;
     }
 
     @Override
@@ -52,15 +52,12 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     @EventListener
     public void onIssueEvent(IssueEvent issueEvent) {
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
-        if (issueEvent.getEventTypeId().equals(EventType.ISSUE_CREATED_ID)) {
+        if (ISSUE_EVENT_TYPES_TO_LISTEN.contains(issueEvent.getEventTypeId())) {
             logger.trace("got issue created event");
             issueEvent
                 .getIssue()
                 .getAttachments()
-                .stream()
-                .map(this.attachmentStore::getAttachmentFile)
-                .map(File::toPath)
-                .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+                .forEach(this.attachmentCaptor::captureAttachment);
         }
     }
 
