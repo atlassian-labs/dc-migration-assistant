@@ -1,8 +1,7 @@
 package com.atlassian.migration.datacenter.configuration;
 
-import io.atlassian.util.concurrent.LazyReference;
-
-import java.util.function.Supplier;
+import com.atlassian.util.concurrent.LazyReference;
+import com.atlassian.util.concurrent.Supplier;
 
 import static com.atlassian.plugins.osgi.javaconfig.OsgiServices.importOsgiService;
 
@@ -16,7 +15,7 @@ public class SpringOsgiConfigurationUtil {
     public static <T> Supplier<T> lazyImportOsgiService(Class<T> clazz) {
         return new LazyReference<T>() {
             @Override
-            protected T create() {
+            protected T create() throws Exception {
                 return importOsgiService(clazz);
             }
         };

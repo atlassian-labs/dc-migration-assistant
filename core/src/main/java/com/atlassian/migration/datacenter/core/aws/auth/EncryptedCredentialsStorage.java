@@ -19,8 +19,7 @@ package com.atlassian.migration.datacenter.core.aws.auth;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
-
-import java.util.function.Supplier;
+import com.atlassian.util.concurrent.Supplier;
 
 /**
  * Class for managing the storage and retrieval of AWS Credentials. Should not be used for direct access to credentials
