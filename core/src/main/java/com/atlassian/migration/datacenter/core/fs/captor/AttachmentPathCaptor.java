@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.fs.captor;
 
 import java.nio.file.Path;
 
+@FunctionalInterface
 public interface AttachmentPathCaptor {
     void captureAttachmentPath(Path attachmentPath);
 }
