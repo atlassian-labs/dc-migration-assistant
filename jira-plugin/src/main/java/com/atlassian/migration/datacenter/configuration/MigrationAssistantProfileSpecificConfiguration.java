@@ -47,6 +47,4 @@ public class MigrationAssistantProfileSpecificConfiguration {
     public AttachmentPathCaptor attachmentPathCaptor(ActiveObjects activeObjects, MigrationService migrationService) {
         return new DefaultAttachmentPathCaptor(activeObjects, migrationService);
     }
-
-
 }
