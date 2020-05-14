@@ -72,7 +72,7 @@ import java.nio.file.Paths;
 
 @Configuration
 //ComponentScan is required only because IDEA seems to need it.
-@ComponentScan
+//@ComponentScan
 public class MigrationAssistantBeanConfiguration {
 
     @Bean

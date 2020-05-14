@@ -217,7 +217,6 @@
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
@@ -513,6 +512,7 @@
         <jackson.version>2.10.3</jackson.version>
         <mockk.version>1.9.3</mockk.version>
         <surefire.version>3.0.0-M4</surefire.version>
+        <jira.version>8.5.0</jira.version>
         <amps.jvm.args/>
 
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
