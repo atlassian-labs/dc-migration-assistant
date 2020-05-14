@@ -16,21 +16,15 @@
 
 package com.atlassian.migration.datacenter.dto;
 
-import com.atlassian.migration.datacenter.spi.MigrationStage;
 import net.java.ao.Entity;
-import net.java.ao.OneToMany;
-import net.java.ao.OneToOne;
 
-public interface Migration extends Entity {
+public interface FileSyncRecord extends Entity {
+    /**
+     * @return the migration that this file was captured in
+     */
+    Migration getMigration();
+    void setMigration(Migration migration);
 
-    MigrationStage getStage();
-
-    void setStage(MigrationStage stage);
-
-    @OneToOne(reverse = "getMigration")
-    MigrationContext getContext();
-
-    @OneToMany(reverse = "getMigration")
-    FileSyncRecord[] getRecords();
-
+    String getFilePath();
+    void setFilePath(String path);
 }

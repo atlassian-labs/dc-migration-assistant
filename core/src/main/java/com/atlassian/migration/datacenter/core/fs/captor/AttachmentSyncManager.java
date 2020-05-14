@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.dto;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
-import com.atlassian.migration.datacenter.spi.MigrationStage;
-import net.java.ao.Entity;
-import net.java.ao.OneToMany;
-import net.java.ao.OneToOne;
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 
-public interface Migration extends Entity {
+import java.util.Set;
 
-    MigrationStage getStage();
-
-    void setStage(MigrationStage stage);
-
-    @OneToOne(reverse = "getMigration")
-    MigrationContext getContext();
-
-    @OneToMany(reverse = "getMigration")
-    FileSyncRecord[] getRecords();
-
+public interface AttachmentSyncManager extends AttachmentPathCaptor {
+    Set<FileSyncRecord> getCapturedAttachments();
 }

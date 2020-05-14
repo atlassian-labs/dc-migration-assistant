@@ -16,9 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor;
 
-import com.atlassian.jira.issue.attachment.Attachment;
 
-@FunctionalInterface
-public interface AttachmentCaptor {
-    void captureAttachment(Attachment attachment);
+import java.nio.file.Path;
+
+public interface AttachmentPathCaptor {
+    void captureAttachmentPath(Path attachmentPath);
 }

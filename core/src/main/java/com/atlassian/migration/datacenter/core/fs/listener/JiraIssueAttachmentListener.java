@@ -21,13 +21,17 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
+import com.atlassian.jira.issue.attachment.Attachment;
+import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
@@ -35,12 +39,14 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
     private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
-    private final AttachmentCaptor attachmentCaptor;
     private final EventPublisher eventPublisher;
+    private final AttachmentPathCaptor attachmentPathCaptor;
+    private final AttachmentStore attachmentStore;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
         this.eventPublisher = eventPublisher;
-        this.attachmentCaptor = attachmentCaptor;
+        this.attachmentPathCaptor = attachmentPathCaptor;
+        this.attachmentStore = attachmentStore;
     }
 
     @Override
@@ -53,11 +59,23 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     public void onIssueEvent(IssueEvent issueEvent) {
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (ISSUE_EVENT_TYPES_TO_LISTEN.contains(issueEvent.getEventTypeId())) {
-            logger.trace("got issue created event");
-            issueEvent
-                .getIssue()
-                .getAttachments()
-                .forEach(this.attachmentCaptor::captureAttachment);
+
+            Collection<Attachment> attachments = issueEvent
+                    .getIssue()
+                    .getAttachments();
+
+            attachments
+                    .stream()
+                    .map(this.attachmentStore::getAttachmentFile)
+                    .map(File::toPath)
+                    .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+
+            attachments
+                    .stream()
+                    .filter(Attachment::isThumbnailable)
+                    .map(attachmentStore::getThumbnailFile)
+                    .map(File::toPath)
+                    .forEach(this.attachmentPathCaptor::captureAttachmentPath);
         }
     }
 

@@ -25,6 +25,7 @@
         <description>The module configuring the Active Objects service used by this plugin</description>
         <entity>com.atlassian.migration.datacenter.dto.Migration</entity>
         <entity>com.atlassian.migration.datacenter.dto.MigrationContext</entity>
+        <entity>com.atlassian.migration.datacenter.dto.FileSyncRecord</entity>
     </ao>
 
     <!-- add our i18n resource -->
