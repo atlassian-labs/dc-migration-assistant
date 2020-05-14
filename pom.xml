@@ -217,7 +217,6 @@
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
@@ -229,6 +228,20 @@
                 <artifactId>jira-api</artifactId>
                 <version>7.13.12</version>
                 <scope>provided</scope>
+            </dependency>
+            <!-- We depend on atlassian-util-concurrent to be present on the compile classpath as we use LazyReference from the library. This is not exported by jira in versions below 8.0. Scopes are defined in the child modules at the point of usage for readability and atlassian convention.
+            -->
+            <dependency>
+                <groupId>io.atlassian.util.concurrent</groupId>
+                <artifactId>atlassian-util-concurrent</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <!-- We use the Attachment Store API and have a dependency on com.atlassian.util.concurrent. This will be provided by the system bundle even in the most recent version of jira i.e. 8.8.x at the time of this commit. Scopes are defined in the child modules at the point of usage for readability and atlassian convention.-->
+            <!--Revisit this in case this is no longer provided by the jira system bundle-->
+            <dependency>
+                <groupId>com.atlassian.util.concurrent</groupId>
+                <artifactId>atlassian-util-concurrent</artifactId>
+                <version>3.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.atlassian.soy</groupId>

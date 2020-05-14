@@ -70,10 +70,22 @@
             <groupId>com.atlassian.scheduler</groupId>
             <artifactId>atlassian-scheduler-api</artifactId>
         </dependency>
+
+        <!-- Jira dependencies will have to be moved to jira-plugin when we start supporting multiple products -->
         <dependency>
             <groupId>com.atlassian.jira</groupId>
             <artifactId>jira-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.atlassian.util.concurrent</groupId>
+            <artifactId>atlassian-util-concurrent</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.util.concurrent</groupId>
+            <artifactId>atlassian-util-concurrent</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
             <artifactId>woodstox-core</artifactId>
