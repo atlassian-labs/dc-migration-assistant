@@ -24,7 +24,6 @@ import com.atlassian.jira.issue.attachment.Attachment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -98,5 +97,6 @@ class JiraIssueAttachmentListenerTest {
 
     private void captureAttachment(Attachment attachment) {
         capturedPaths.add(attachment);
+
     }
 }

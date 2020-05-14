@@ -37,5 +37,9 @@ public class DefaultAttachmentCaptor implements AttachmentCaptor {
     public void captureAttachment(Attachment attachment) {
         Path path = attachmentStore.getAttachmentFile(attachment).toPath();
         logger.debug("captured attachment for final sync: {} at path {}", attachment, path);
+        if (attachment.isThumbnailable()){
+            Path thumbnailPath = attachmentStore.getThumbnailFile(attachment).toPath();
+            logger.debug("captured attachment thumbnail for final sync: {} at path {}", attachment, thumbnailPath);
+        }
     }
 }

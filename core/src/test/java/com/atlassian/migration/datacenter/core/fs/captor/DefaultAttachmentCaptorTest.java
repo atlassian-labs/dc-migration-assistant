@@ -11,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class DefaultAttachmentCaptorTest {
 
@@ -26,14 +28,29 @@ class DefaultAttachmentCaptorTest {
 
 
     @Test
-    void captureAttachment() {
+    void shouldCaptureAttachment() {
         Attachment oneAttachment = Mockito.mock(Attachment.class);
         File oneAttachmentFile = Mockito.mock(File.class);
-        Mockito.when(store.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
+        when(store.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
 
         sut.captureAttachment(oneAttachment);
 
         Mockito.verify(oneAttachmentFile).toPath();
+    }
 
+    @Test
+    void shouldCaptureAttachmentThumbnail() {
+        Attachment oneAttachment = Mockito.mock(Attachment.class);
+        File oneAttachmentFile = Mockito.mock(File.class);
+        File oneAttachmentThumbnailFile = Mockito.mock(File.class);
+
+        when(store.getAttachmentFile(oneAttachment)).thenReturn(oneAttachmentFile);
+        when(oneAttachment.isThumbnailable()).thenReturn(true);
+        when(store.getThumbnailFile(oneAttachment)).thenReturn(oneAttachmentThumbnailFile);
+
+        sut.captureAttachment(oneAttachment);
+
+        Mockito.verify(oneAttachmentFile).toPath();
+        Mockito.verify(oneAttachmentThumbnailFile).toPath();
     }
 }
