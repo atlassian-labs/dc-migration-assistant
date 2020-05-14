@@ -514,6 +514,7 @@
         <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
         <amps.version>8.0.2</amps.version>
+        <jira.version>8.5.2</jira.version>
         <soy.version>5.0.0</soy.version>
         <webfragments.version>5.1.0</webfragments.version>
         <mockito.version>3.2.4</mockito.version>
