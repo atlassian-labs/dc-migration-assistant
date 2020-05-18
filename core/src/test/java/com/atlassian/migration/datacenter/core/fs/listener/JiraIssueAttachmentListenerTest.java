@@ -37,8 +37,10 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,10 +56,12 @@ class JiraIssueAttachmentListenerTest {
     EventPublisher mockPublisher;
 
     @Mock
-    Issue mockIssue;
+    AttachmentStore attachmentStore;
+
+    JiraIssueAttachmentListener sut;
 
     @Mock
-    AttachmentStore attachmentStore;
+    Issue mockIssue;
 
     @Mock
     Attachment aMockAttachment;
@@ -66,8 +70,6 @@ class JiraIssueAttachmentListenerTest {
     Attachment anotherMockAttachment;
 
     private List<Path> capturedPaths = new LinkedList<>();
-
-    private JiraIssueAttachmentListener sut;
 
     @BeforeEach
     void setUp() {
@@ -82,7 +84,6 @@ class JiraIssueAttachmentListenerTest {
 
         assertThat(capturedPaths, contains(Paths.get(A_MOCK_ATTACHMENT_PATH), Paths.get((ANOTHER_MOCK_ATTACHMENT_PATH))));
     }
-
 
     @Test
     void shouldCaptureAttachmentInIssueUpdatedEvent() {
@@ -117,6 +118,26 @@ class JiraIssueAttachmentListenerTest {
         ));
     }
 
+    @Test
+    void shouldNotRegisterWithListenerIfNotStarted() {
+        verify(mockPublisher, never()).register(sut);
+    }
+
+    @Test
+    void shouldRegisterAfterStarting() {
+        sut.start();
+
+        assertTrue(sut.isStarted(), "expected listener to be started after starting");
+    }
+
+    @Test
+    void shouldRegisterOnce() {
+        sut.start();
+        sut.start();
+
+        verify(mockPublisher, times(1)).register(sut);
+    }
+
     private void captureAttachment(Path path) {
         capturedPaths.add(path);
     }
@@ -130,8 +151,8 @@ class JiraIssueAttachmentListenerTest {
         when(this.attachmentStore.getAttachmentFile(aMockAttachment)).thenReturn(new File(A_MOCK_ATTACHMENT_PATH));
         when(this.attachmentStore.getAttachmentFile(anotherMockAttachment)).thenReturn(new File(ANOTHER_MOCK_ATTACHMENT_PATH));
 
-        when(aMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
-        when(anotherMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
+//        when(aMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
+//        when(anotherMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
 
         if (includeThumbnails) {
             when(this.attachmentStore.getThumbnailFile(aMockAttachment)).thenReturn(new File(A_MOCK_ATTACHMENT_THUMBNAIL_PATH));

@@ -16,8 +16,10 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.jira.config.util.JiraHome;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.event.api.EventPublisher;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -25,26 +27,22 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
-import com.atlassian.scheduler.config.JobId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
-import java.util.function.Supplier;
+import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.core.env.Environment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,42 +51,72 @@ import static org.mockito.Mockito.when;
 class S3FilesystemMigrationServiceTest {
 
     @Mock
-    JiraHome jiraHome;
-
-    @Mock
     MigrationService migrationService;
 
     @Mock
     MigrationRunner migrationRunner;
 
     @Mock
-    Supplier<S3AsyncClient> s3AsyncClientSupplier;
-
-    @Mock
     S3SyncFileSystemDownloadManager downloadManager;
 
     @Mock
-    AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    Environment mockEnv;
+
+    JiraIssueAttachmentListener attachmentListener;
+
+    @Mock
+    S3BulkCopy bulkCopy;
 
     @InjectMocks
     S3FilesystemMigrationService fsService;
 
+    @BeforeEach
+    void setUp() {
+        attachmentListener = new JiraIssueAttachmentListener(mock(EventPublisher.class), mock(AttachmentPathCaptor.class), null);
+        fsService = new S3FilesystemMigrationService(mockEnv, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
+    }
+
     @Test
-    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError {
-        Path nonexistentDir = Paths.get(UUID.randomUUID().toString());
+    void shouldStartAttachmentListenerWhenGAProfileActive() throws InvalidMigrationStageError {
+        givenGaProfileActive();
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
-        when(jiraHome.getHome()).thenReturn(nonexistentDir.toFile());
+
+        fsService.startMigration();
+
+        assertTrue(attachmentListener.isStarted(), "attachment listener was not started");
+    }
+
+    @Test
+    void shouldNotStartAttachmentListenerWhenGAProfileNotActive() throws InvalidMigrationStageError {
+        givenNoSpringProfileActive();
+        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+
+        fsService.startMigration();
+
+        assertFalse(attachmentListener.isStarted(), "attachment listener was started");
+    }
+
+    @Test
+    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+        givenNoSpringProfileActive();
+
+        final String errorMessage = "Failed to migrate content. File not found: abc";
+        when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        doThrow(
+                new FilesystemUploader.FileUploadException(errorMessage)
+        )
+                .when(bulkCopy)
+                .copySharedHomeToS3();
 
         fsService.startMigration();
 
         verify(migrationService).transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        verify(migrationService).error(startsWith("Failed to traverse/upload filesystem"));
+        verify(migrationService).error(errorMessage);
     }
 
     @Test
     void shouldFailToStartMigrationWhenMigrationStageIsInvalid() throws InvalidMigrationStageError {
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
-        when(this.jiraHome.getHome()).thenReturn(Paths.get("stub").toFile());
         Mockito.doThrow(InvalidMigrationStageError.class).when(migrationService).transition(any());
         assertThrows(InvalidMigrationStageError.class, () -> {
             fsService.startMigration();
@@ -100,7 +128,6 @@ class S3FilesystemMigrationServiceTest {
     @Test
     void shouldFailToStartMigrationWhenMigrationAlreadyInProgress() throws InvalidMigrationStageError {
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        when(this.jiraHome.getHome()).thenReturn(Paths.get("stub").toFile());
 
         fsService.startMigration();
 
@@ -108,11 +135,8 @@ class S3FilesystemMigrationServiceTest {
     }
 
     @Test
-    void shouldNotScheduleMigrationWhenCurrentMigrationStageIsNotFilesystemMigrationCopy() {
-        Migration mockMigration = mock(Migration.class);
-
-        when(migrationService.getCurrentMigration()).thenReturn(mockMigration);
-        when(mockMigration.getStage()).thenReturn(MigrationStage.NOT_STARTED);
+    void shouldNotScheduleMigrationWhenCurrentMigrationStageIsNotFilesystemMigrationCopy() throws InvalidMigrationStageError {
+        doThrow(new InvalidMigrationStageError("wrong stage")).when(migrationService).assertCurrentStage(MigrationStage.FS_MIGRATION_COPY);
 
         assertThrows(InvalidMigrationStageError.class, fsService::scheduleMigration);
     }
@@ -121,7 +145,6 @@ class S3FilesystemMigrationServiceTest {
     void shouldScheduleMigrationWhenCurrentMigrationStageIsFsCopy() throws Exception {
         createStubMigration(MigrationStage.FS_MIGRATION_COPY);
 
-        JobId id = JobId.of(S3UploadJobRunner.KEY + 42);
         when(migrationRunner.runMigration(any(), any())).thenReturn(true);
 
         Boolean isScheduled = fsService.scheduleMigration();
@@ -132,12 +155,8 @@ class S3FilesystemMigrationServiceTest {
     void shouldAbortRunningMigration() throws Exception {
         mockJobDetailsAndMigration(MigrationStage.FS_MIGRATION_COPY_WAIT);
 
-        final FilesystemUploader uploader = mock(FilesystemUploader.class);
-        FieldSetter.setField(fsService, fsService.getClass().getDeclaredField("fsUploader"), uploader);
-
         fsService.abortMigration();
 
-        verify(uploader).abort();
         verify(migrationService).error("File system migration was aborted");
         assertEquals(fsService.getReport().getStatus(), FilesystemMigrationStatus.FAILED);
     }
@@ -149,10 +168,17 @@ class S3FilesystemMigrationServiceTest {
         assertThrows(InvalidMigrationStageError.class, () -> fsService.abortMigration());
     }
 
+    private void givenGaProfileActive() {
+        when(mockEnv.getActiveProfiles()).thenReturn(new String[]{"gaFeature"});
+    }
+
+    private OngoingStubbing<String[]> givenNoSpringProfileActive() {
+        return when(mockEnv.getActiveProfiles()).thenReturn(new String[] {});
+    }
+
     private Migration createStubMigration(MigrationStage migrationStage) {
         Migration mockMigration = mock(Migration.class);
         when(migrationService.getCurrentMigration()).thenReturn(mockMigration);
-        when(mockMigration.getStage()).thenReturn(migrationStage);
         when(mockMigration.getID()).thenReturn(42);
         return mockMigration;
     }

@@ -16,12 +16,11 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.jira.config.util.JiraHome;
-import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
-import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure;
@@ -31,52 +30,40 @@ import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationRe
 import com.atlassian.scheduler.config.JobId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-
-import javax.annotation.PostConstruct;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.function.Supplier;
+import org.springframework.core.env.Environment;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DOWNLOADING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
-import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.UPLOADING;
 
 public class S3FilesystemMigrationService implements FilesystemMigrationService {
     private static final Logger logger = LoggerFactory.getLogger(S3FilesystemMigrationService.class);
 
-    private static final String OVERRIDE_UPLOAD_DIRECTORY = System
-            .getProperty("com.atlassian.migration.datacenter.fs.overrideJiraHome", "");
 
-    private S3AsyncClient s3AsyncClient;
-    private final JiraHome jiraHome;
+    private final Environment environment;
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
     private final S3SyncFileSystemDownloadManager fileSystemDownloadManager;
-    private final Supplier<S3AsyncClient> s3AsyncClientSupplier;
-    private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    private final JiraIssueAttachmentListener attachmentListener;
+    private final S3BulkCopy bulkCopy;
 
     private FileSystemMigrationReport report;
-    private FilesystemUploader fsUploader;
 
-    public S3FilesystemMigrationService(Supplier<S3AsyncClient> s3AsyncClientSupplier, JiraHome jiraHome,
-            S3SyncFileSystemDownloadManager fileSystemDownloadManager, MigrationService migrationService,
-            MigrationRunner migrationRunner, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
-        this.s3AsyncClientSupplier = s3AsyncClientSupplier;
-        this.jiraHome = jiraHome;
+    public S3FilesystemMigrationService(Environment environment,
+                                        S3SyncFileSystemDownloadManager fileSystemDownloadManager,
+                                        MigrationService migrationService,
+                                        MigrationRunner migrationRunner,
+                                        JiraIssueAttachmentListener attachmentListener,
+                                        S3BulkCopy bulkCopy) {
+        this.environment = environment;
         this.migrationService = migrationService;
         this.migrationRunner = migrationRunner;
         this.fileSystemDownloadManager = fileSystemDownloadManager;
-        this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        this.attachmentListener = attachmentListener;
+        this.bulkCopy = bulkCopy;
 
         this.report = new DefaultFileSystemMigrationReport();
-    }
-
-    @PostConstruct
-    public void postConstruct() {
-        this.s3AsyncClient = this.s3AsyncClientSupplier.get();
     }
 
     @Override
@@ -91,12 +78,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
     @Override
     public Boolean scheduleMigration() throws InvalidMigrationStageError {
-        Migration currentMigration = this.migrationService.getCurrentMigration();
-        if (currentMigration.getStage() != FS_MIGRATION_COPY) {
-            throw new InvalidMigrationStageError(String.format(
-                    "Cannot start filesystem migration as the system is not ready. Required state should be %s but is %s",
-                    FS_MIGRATION_COPY, currentMigration.getStage()));
-        }
+        migrationService.assertCurrentStage(FS_MIGRATION_COPY);
 
         JobId jobId = getScheduledJobId();
         S3UploadJobRunner jobRunner = new S3UploadJobRunner(this);
@@ -115,29 +97,28 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
      */
     @Override
     public void startMigration() throws InvalidMigrationStageError {
-        logger.trace("Beginning migration. Uploading shared home dir {} to S3 bucket {}", getSharedHomeDir(),
-                getS3Bucket());
         if (isRunning()) {
             logger.warn("Filesystem migration is currently in progress, aborting new execution.");
             return;
         }
 
-        s3AsyncClient = this.s3AsyncClientSupplier.get();
-        report = new DefaultFileSystemMigrationReport();
-
         migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
-        report.setStatus(UPLOADING);
 
-        Crawler homeCrawler = new DirectoryStreamCrawler(report);
+        for (String profile : environment.getActiveProfiles()) {
+            if (profile.equals("gaFeature")) {
+                logger.info("detected GA feature flag. Enabling file listener");
+                attachmentListener.start();
+            } else {
+                logger.trace("not enabling file listener");
+            }
+        }
 
-        S3UploadConfig s3UploadConfig = new S3UploadConfig(getS3Bucket(), s3AsyncClient, getSharedHomeDir());
-        Uploader s3Uploader = new S3Uploader(s3UploadConfig, report);
-
-        fsUploader = new FilesystemUploader(homeCrawler, s3Uploader);
+        report = new DefaultFileSystemMigrationReport();
+        bulkCopy.bindMigrationReport(report);
 
         logger.info("commencing upload of shared home");
         try {
-            fsUploader.uploadDirectory(getSharedHomeDir());
+            bulkCopy.copySharedHomeToS3();
 
             logger.info("upload of shared home complete. commencing shared home download");
             report.setStatus(DOWNLOADING);
@@ -159,31 +140,23 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         // We always try to remove scheduled job if the system is in inconsistent state
         migrationRunner.abortJobIfPresesnt(getScheduledJobId());
 
-        if (!isRunning() || fsUploader == null) {
+        if (!isRunning()) {
             throw new InvalidMigrationStageError(
                     String.format("Invalid migration stage when cancelling filesystem migration: %s",
                             migrationService.getCurrentStage()));
         }
 
         logger.warn("Aborting running filesystem migration");
-        fsUploader.abort();
         report.setStatus(FAILED);
+        bulkCopy.abortCopy();
 
         migrationService.error("File system migration was aborted");
     }
 
-    private String getS3Bucket() {
-        return migrationHelperDeploymentService.getMigrationS3BucketName();
-    }
 
     private JobId getScheduledJobId() {
         return JobId.of(S3UploadJobRunner.KEY + migrationService.getCurrentMigration().getID());
     }
 
-    private Path getSharedHomeDir() {
-        if (!OVERRIDE_UPLOAD_DIRECTORY.equals("")) {
-            return Paths.get(OVERRIDE_UPLOAD_DIRECTORY);
-        }
-        return jiraHome.getHome().toPath();
-    }
+
 }

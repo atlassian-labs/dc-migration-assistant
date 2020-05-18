@@ -42,12 +42,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
-public class DefaultAttachmentPathCaptorTest {
+public class DefaultAttachmentSyncManagerTest {
 
     private ActiveObjects ao;
     private EntityManager entityManager;
 
-    private DefaultAttachmentPathCaptor sut;
+    private DefaultAttachmentSyncManager sut;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -59,7 +59,7 @@ public class DefaultAttachmentPathCaptorTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new DefaultAttachmentPathCaptor(ao, migrationService);
+        sut = new DefaultAttachmentSyncManager(ao, migrationService);
         setupEntities();
     }
 

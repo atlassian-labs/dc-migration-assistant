@@ -38,6 +38,14 @@
             }
         };
     </script>
+
+    <!-- Testing hack; Cypress can't mock fetch, so force the installation of a polyfill that falls-back to XHR. -->
+    <script>
+     delete window.fetch;
+    </script>
+    <script src="https://unpkg.com/unfetch/polyfill"></script>
+
+    <sc
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

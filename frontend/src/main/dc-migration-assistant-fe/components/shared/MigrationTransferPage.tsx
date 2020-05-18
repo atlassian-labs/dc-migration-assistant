@@ -110,7 +110,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
-    const [finished, setFinished] = useState<boolean>(true);
+    const [finished, setFinished] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
 
     const updateProgress = (): Promise<void> => {
@@ -118,12 +118,12 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             .then(result => {
                 setProgress(result);
                 setLoading(false);
-                if (progress.completeness === 1) {
+                if (progress?.completeness === 1) {
                     setFinished(true);
                 }
             })
             .catch(err => {
-                setProgressFetchingError(err);
+                setProgressFetchingError(err.message);
                 setLoading(false);
             });
     };
@@ -148,7 +148,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             .then(stage => {
                 if (inProgressStages.includes(stage)) {
                     setStarted(true);
-                    return updateProgress();
+                    updateProgress();
                 }
                 setLoading(false);
             })
@@ -205,7 +205,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                     <TransferContentContainer>
                         {(transferError || progressFetchingError) && (
                             <SectionMessage appearance="error">
-                                {transferError}
+                                {transferError || ''}
                                 <p>
                                     {progressFetchingError || ''}{' '}
                                     <a

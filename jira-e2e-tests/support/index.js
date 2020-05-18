@@ -1,15 +1,27 @@
 /// <reference types="Cypress" />
 
+export const gen_context = (base, context) => {
+    const baseURL = base+context;
+    const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
 
-export const baseURL = 'http://localhost:2990/jira';
-export const welcomeURL = baseURL+'/secure/WelcomeToJIRA.jspa'
-export const loginURL = baseURL+'/login.jsp';
-export const sudoURL = baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa';
-export const migrationBase = baseURL+'/plugins/servlet/dc-migration-assistant';
-export const migrationHome = migrationBase;
+    return {
+        base: base,
+        context: context,
+        baseURL: baseURL,
+        welcomeURL: baseURL+'/secure/WelcomeToJIRA.jspa',
+        loginURL: baseURL+'/login.jsp',
+        sudoURL: baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa',
+        migrationBase: migrationBase,
+        migrationHome: migrationBase+'/home';
+    };
+};
 
-Cypress.Commands.add('jira_login', (uname, passwd) => {
-    cy.visit(loginURL);
+export const amps_context = gen_context('http://localhost:2990', '/jira');
+export const devserver_context = gen_context('http://localhost:3333', '');
+
+
+Cypress.Commands.add('jira_login', (ctx, uname, passwd) => {
+    cy.visit(ctx.loginURL);
 
     cy.get('#login-form-username').type('admin');
     cy.get('#login-form-password').type('admin');
@@ -18,7 +30,7 @@ Cypress.Commands.add('jira_login', (uname, passwd) => {
     cy.get('[class=g-intro]').should('exist');
 
     // Ensure we have full admin access before doing anything
-    cy.visit(sudoURL);
+    cy.visit(ctx.sudoURL);
     cy.get('#login-form-authenticatePassword').type('admin');
     cy.get('#login-form-submit').click();
 })

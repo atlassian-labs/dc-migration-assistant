@@ -29,13 +29,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultAttachmentPathCaptor implements AttachmentSyncManager {
+public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentPathCaptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentSyncManager.class);
     private final ActiveObjects ao;
     private final MigrationService migrationService;
 
-    public DefaultAttachmentPathCaptor(ActiveObjects ao, MigrationService migrationService) {
+    public DefaultAttachmentSyncManager(ActiveObjects ao, MigrationService migrationService) {
         this.ao = ao;
         this.migrationService = migrationService;
     }
@@ -47,7 +47,6 @@ public class DefaultAttachmentPathCaptor implements AttachmentSyncManager {
         FileSyncRecord record = ao.create(FileSyncRecord.class);
 
         record.setFilePath(attachmentPath.toString());
-        // FIXME: Should we cache the migration identifier so we don't hit the DB twice every time we capture a path?
         record.setMigration(migrationService.getCurrentMigration());
 
         record.save();

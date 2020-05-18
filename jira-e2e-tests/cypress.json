@@ -6,5 +6,7 @@
     "screenshotsFolder": "screenshots",
     "supportFile": "support/index.js",
     "testFiles": "**/*.*",
-    "videosFolder": "videos"
+    "videosFolder": "videos",
+    "video": true,
+    "videoCompression": false
 }

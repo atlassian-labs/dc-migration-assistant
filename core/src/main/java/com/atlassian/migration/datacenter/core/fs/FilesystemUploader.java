@@ -21,6 +21,8 @@ import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFail
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +62,10 @@ public class FilesystemUploader {
         } catch (InterruptedException e) {
             throw new FileUploadException("Failed to traverse/upload filesystem: " + dir, e);
         } catch (ExecutionException e) {
+            if (e.getCause().getClass().equals(NoSuchFileException.class)) {
+                NoSuchFileException nsfe = (NoSuchFileException) e.getCause();
+                throw new FileUploadException("Failed to migrate content. File not found: " + nsfe.getFile(), e.getCause());
+            }
             throw new FileUploadException("Failed to traverse/upload filesystem: " + dir, e.getCause());
         }
 

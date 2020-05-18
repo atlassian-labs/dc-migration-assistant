@@ -64,6 +64,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=allowAnyTransition,gaFeature</jvmArgs>
+                    <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=${amps.spring.profiles}</jvmArgs>
+                    <product>jira</product>
                     <enableQuickReload>true</enableQuickReload>
                     <instructions>
                         <Atlassian-Plugin-Key>${atlassian.plugin.key}</Atlassian-Plugin-Key>
@@ -115,5 +117,9 @@
 
         </plugins>
     </build>
+
+    <properties>
+        <amps.spring.profiles>allowAnyTransition,gaFeature</amps.spring.profiles>
+    </properties>
 
 </project>

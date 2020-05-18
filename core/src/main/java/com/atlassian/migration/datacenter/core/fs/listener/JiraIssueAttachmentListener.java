@@ -27,19 +27,20 @@ import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
-public class JiraIssueAttachmentListener implements InitializingBean, DisposableBean {
+public class JiraIssueAttachmentListener implements DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(JiraIssueAttachmentListener.class);
     private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
     private final EventPublisher eventPublisher;
+    private boolean started = false;
     private final AttachmentPathCaptor attachmentPathCaptor;
     private final AttachmentStore attachmentStore;
 
@@ -47,12 +48,6 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
         this.eventPublisher = eventPublisher;
         this.attachmentPathCaptor = attachmentPathCaptor;
         this.attachmentStore = attachmentStore;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        logger.info("registering with event publisher");
-        eventPublisher.register(this);
     }
 
     @EventListener
@@ -72,8 +67,10 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
 
             attachments
                     .stream()
-                    .filter(Attachment::isThumbnailable)
+                    // FIXME: I lie about thumbnailable
+                    //.filter(Attachment::isThumbnailable)
                     .map(attachmentStore::getThumbnailFile)
+                    .filter(Objects::nonNull)
                     .map(File::toPath)
                     .forEach(this.attachmentPathCaptor::captureAttachmentPath);
         }
@@ -83,5 +80,17 @@ public class JiraIssueAttachmentListener implements InitializingBean, Disposable
     public void destroy() throws Exception {
         logger.info("Destroying migration assistant plugin. De-registering with event publisher");
         eventPublisher.unregister(this);
+        started = false;
+    }
+
+    public void start() {
+        if (!started) {
+            started = true;
+            eventPublisher.register(this);
+        }
+    }
+
+    public boolean isStarted() {
+        return started;
     }
 }

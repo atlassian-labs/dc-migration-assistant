@@ -45,7 +45,7 @@ describe('Database Migration page', () => {
 
         // Quickstart page; bare minimum config
         // Note: These names are generated from the QS yaml
-        cy.get('[name=stackName]').type('TestStack-'+testid);
+        cy.get('[name=stackName]').type('teststack-'+testid);
         cy.get('[name=DBMasterUserPassword]').type('LKJLKJLlkjlkjl7987987#');
         cy.get('[name=DBPassword]').type('LKJLKJLlkjlkjl7987987#');
         cy.get('[name=DBMultiAZ]').type('false', {force: true});

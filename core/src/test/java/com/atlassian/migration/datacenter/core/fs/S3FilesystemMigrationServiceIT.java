@@ -20,6 +20,8 @@ import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -53,6 +56,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
@@ -74,6 +78,8 @@ class S3FilesystemMigrationServiceIT {
     MigrationRunner migrationRunner;
     @Mock
     S3SyncFileSystemDownloadManager fileSystemDownloader;
+    @Mock JiraIssueAttachmentListener attachmentListener;
+    S3BulkCopy bulkCopy;
 
     private S3AsyncClient s3AsyncClient;
     private String bucket = "trebuchet-testing";
@@ -99,6 +105,8 @@ class S3FilesystemMigrationServiceIT {
                 .build();
         CreateBucketResponse resp = s3AsyncClient.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
+
+        bulkCopy = new S3BulkCopy(() -> s3AsyncClient, migrationHelperDeploymentService, jiraHome);
     }
 
     private Path genRandFile() throws IOException {
@@ -113,10 +121,12 @@ class S3FilesystemMigrationServiceIT {
         when(jiraHome.getHome()).thenReturn(dir.toFile());
         when(migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
 
+        Environment environment = mock(Environment.class);
+        when(environment.getActiveProfiles()).thenReturn(new String[]{});
+
         Path file = genRandFile();
 
-        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(() -> s3AsyncClient, jiraHome, fileSystemDownloader, migrationService, migrationRunner, migrationHelperDeploymentService);
-        fsService.postConstruct();
+        S3FilesystemMigrationService fsService = new S3FilesystemMigrationService(environment, fileSystemDownloader, migrationService, migrationRunner, attachmentListener, bulkCopy);
 
         fsService.startMigration();
 

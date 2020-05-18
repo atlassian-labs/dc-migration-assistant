@@ -20,11 +20,16 @@ import { MigrationDuration } from './common';
 enum RestApiPathConstants {
     fsStatusRestPath = `migration/fs/report`,
     fsStartRestPath = `migration/fs/start`,
+    fsFinalSyncPath = `migration/fs/final-sync`,
 }
 
 type FailedFile = {
     filePath: string;
     reason: string;
+};
+
+type GetFinalSyncResponse = {
+    files: Array<string>;
 };
 
 export type FileSystemMigrationStatusResponse = {
@@ -72,7 +77,9 @@ export const fs = {
         return Promise.reject(JSON.stringify(result));
     },
 
-    getCapturedFiles: (): Promise<Array<string>> => {
-        return Promise.resolve(['/home/benpar/test', '/home/benpar/fake']);
+    getCapturedFiles: async (): Promise<Array<string>> => {
+        const result = await callAppRest('GET', RestApiPathConstants.fsFinalSyncPath);
+        const capturedFiles = (await result.json()) as GetFinalSyncResponse;
+        return capturedFiles.files || [];
     },
 };
