@@ -52,7 +52,11 @@
             <groupId>jta</groupId>
             <artifactId>jta</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -63,7 +67,6 @@
                 <version>${amps.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=allowAnyTransition,gaFeature</jvmArgs>
                     <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=${amps.spring.profiles}</jvmArgs>
                     <product>jira</product>
                     <enableQuickReload>true</enableQuickReload>
