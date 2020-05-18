@@ -79,8 +79,6 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 @Configuration
-//ComponentScan is required only because IDEA seems to need it.
-@ComponentScan
 public class MigrationAssistantBeanConfiguration {
 
     @Bean
