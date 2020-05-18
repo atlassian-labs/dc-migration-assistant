@@ -108,8 +108,8 @@
                     <products>
                         <product>
                             <id>jira</id>
-                            <version>${jira.version}</version>
-                            <productDataVersion>${jira.version}</productDataVersion>
+                            <version>${amps.jira.version}</version>
+                            <productDataVersion>${amps.jira.version}</productDataVersion>
                         </product>
                     </products>
                 </configuration>
