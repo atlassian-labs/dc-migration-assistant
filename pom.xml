@@ -159,7 +159,7 @@
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>jsr311-api</artifactId>
-                <version>1.1.1</version>
+                <version>${jsr.311.api.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -314,6 +314,7 @@
                 <version>1.11.728</version>
                 <scope>test</scope>
             </dependency>
+            <!-- TODO: Why??-->
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>jsr311-api</artifactId>
@@ -323,7 +324,7 @@
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>java-hamcrest</artifactId>
-                <version>2.0.0.0</version>
+                <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -490,6 +491,7 @@
         <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
         <sal.version>4.0.0</sal.version>
         <spring.version>5.0.10.RELEASE</spring.version>
+        <jsr.311.api.version>1.1.1</jsr.311.api.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
         <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
@@ -504,12 +506,12 @@
         <kotlin.version>1.3.70</kotlin.version>
         <jackson.version>2.10.3</jackson.version>
         <mockk.version>1.9.3</mockk.version>
+        <hamcrest.version>2.0.0.0</hamcrest.version>
         <surefire.version>3.0.0-M4</surefire.version>
         <jira.api.version>7.13.12</jira.api.version>
         <amps.version>8.0.2</amps.version>
         <amps.jira.version>8.5.2</amps.jira.version>
         <amps.jvm.args/>
-
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 </project>
