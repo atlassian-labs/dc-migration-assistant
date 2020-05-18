@@ -1,6 +1,6 @@
 package com.atlassian.migration.datacenter.configuration;
 
-import io.atlassian.util.concurrent.LazyReference;
+import com.atlassian.util.concurrent.LazyReference;
 
 import java.util.function.Supplier;
 
@@ -14,11 +14,15 @@ public class SpringOsgiConfigurationUtil {
      * Works around the Spring Configuration problem when we try to import the class which is not available yet.
      */
     public static <T> Supplier<T> lazyImportOsgiService(Class<T> clazz) {
-        return new LazyReference<T>() {
+        return toSupplier(new LazyReference<T>() {
             @Override
             protected T create() {
                 return importOsgiService(clazz);
             }
-        };
+        });
+    }
+
+    private static <T> Supplier<T> toSupplier(LazyReference<T> lazyReference){
+        return lazyReference::get;
     }
 }

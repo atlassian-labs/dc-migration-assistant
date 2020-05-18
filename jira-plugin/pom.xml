@@ -35,23 +35,34 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.atlassian.activeobjects</groupId>
             <artifactId>activeobjects-plugin</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.atlassian.jira</groupId>
             <artifactId>jira-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.util.concurrent</groupId>
+            <artifactId>atlassian-util-concurrent</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.atlassian.soy</groupId>
             <artifactId>soy-template-renderer-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>jta</groupId>
             <artifactId>jta</artifactId>
+            <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -77,11 +88,12 @@
                         <Import-Package>
                             org.springframework.osgi.*;resolution:="optional",
                             org.eclipse.gemini.blueprint.*;resolution:="optional",
-                            com.atlassian.crowd*;resolution:="optional",
                             com.atlassian.user*;resolution:="optional",
                             com.atlassian.jira.*;resolution:="optional",
                             com.atlassian.analytics.api.annotations;resolution:="optional",
+                            <!-- TODO: why confluence, crowd? -->
                             com.atlassian.confluence.*;resolution:="optional",
+                            com.atlassian.crowd*;resolution:="optional",
                             org.slf4j,
                             !com.sun.activation.*,
                             !com.google.protobuf.*,

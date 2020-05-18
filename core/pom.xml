@@ -81,10 +81,6 @@
             <artifactId>atlassian-util-concurrent</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>io.atlassian.util.concurrent</groupId>
-            <artifactId>atlassian-util-concurrent</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
@@ -141,6 +137,12 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
