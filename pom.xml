@@ -156,10 +156,18 @@
                 <artifactId>javax.annotation-api</artifactId>
                 <version>1.3.2</version>
             </dependency>
+
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>jsr311-api</artifactId>
                 <version>${jsr.311.api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <!-- Is jsr.311 needed or ws.rs-api required? See: https://stackoverflow.com/a/32109009 -->
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${javax.ws.rs-api.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -263,7 +271,7 @@
             <dependency>
                 <groupId>org.apache.wink</groupId>
                 <artifactId>wink-client</artifactId>
-                <version>1.4</version>
+                <version>${apache.wink.client.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -275,7 +283,7 @@
             <dependency>
                 <groupId>org.hsqldb</groupId>
                 <artifactId>hsqldb</artifactId>
-                <version>2.5.0</version>
+                <version>${hsqldb.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -312,13 +320,6 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-s3</artifactId>
                 <version>1.11.728</version>
-                <scope>test</scope>
-            </dependency>
-            <!-- TODO: Why??-->
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>1.1.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -492,6 +493,7 @@
         <sal.version>4.0.0</sal.version>
         <spring.version>5.0.10.RELEASE</spring.version>
         <jsr.311.api.version>1.1.1</jsr.311.api.version>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
         <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
@@ -503,8 +505,10 @@
         <localstack.version>0.2.1</localstack.version>
         <testcontainers.version>1.13.0</testcontainers.version>
         <postgres.driver.version>42.2.10</postgres.driver.version>
+        <hsqldb.version>2.5.0</hsqldb.version>
         <kotlin.version>1.3.70</kotlin.version>
         <jackson.version>2.10.3</jackson.version>
+        <apache.wink.client.version>1.4</apache.wink.client.version>
         <mockk.version>1.9.3</mockk.version>
         <hamcrest.version>2.0.0.0</hamcrest.version>
         <surefire.version>3.0.0-M4</surefire.version>

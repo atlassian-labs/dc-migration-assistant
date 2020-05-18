@@ -97,6 +97,11 @@
             <artifactId>jsr311-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.wink</groupId>
+            <artifactId>wink-client</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
