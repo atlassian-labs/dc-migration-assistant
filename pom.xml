@@ -111,6 +111,7 @@
                 <version>${soy.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <!--Where do we use JTA -->
             <dependency>
                 <groupId>jta</groupId>
                 <artifactId>jta</artifactId>
@@ -136,11 +137,11 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- Provided? -->
             <dependency>
                 <groupId>javax.annotation</groupId>
                 <artifactId>javax.annotation-api</artifactId>
                 <version>${javax.annotation.api.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -167,12 +168,20 @@
                 <scope>provided</scope>
             </dependency>
             <!-- Is jsr.311 needed or ws.rs-api required? See: https://stackoverflow.com/a/32109009 -->
+
             <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>javax.ws.rs-api</artifactId>
-                <version>${javax.ws.rs-api.version}</version>
+                <groupId>com.atlassian.plugins.rest</groupId>
+                <artifactId>atlassian-rest-module</artifactId>
+                <version>6.1.3</version>
                 <scope>provided</scope>
             </dependency>
+
+<!--            <dependency>-->
+<!--                <groupId>javax.ws.rs</groupId>-->
+<!--                <artifactId>javax.ws.rs-api</artifactId>-->
+<!--                <version>${javax.ws.rs-api.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.framework</artifactId>
@@ -495,8 +504,7 @@
         <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
         <apache.wink.client.version>1.4</apache.wink.client.version>
         <ao.version>3.2.2</ao.version>
-        <amps.version>8.0.2</amps.version>
-        <amps.jira.version>8.5.2</amps.jira.version>
+        <amps.version>8.1.0</amps.version>
         <amps.jvm.args/>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>

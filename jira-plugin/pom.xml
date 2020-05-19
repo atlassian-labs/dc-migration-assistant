@@ -62,6 +62,10 @@
             <artifactId>jta</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.atlassian.plugins</groupId>
+            <artifactId>atlassian-plugins-osgi-javaconfig</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -79,7 +83,6 @@
                 <extensions>true</extensions>
                 <configuration>
                     <jvmArgs>${amps.jvm.args} -Dspring.profiles.active=${amps.spring.profiles}</jvmArgs>
-                    <product>jira</product>
                     <enableQuickReload>true</enableQuickReload>
                     <instructions>
                         <Atlassian-Plugin-Key>${atlassian.plugin.key}</Atlassian-Plugin-Key>
@@ -95,6 +98,7 @@
                             com.atlassian.confluence.*;resolution:="optional",
                             com.atlassian.crowd*;resolution:="optional",
                             org.slf4j,
+                            javax.ws.rs*,
                             !com.sun.activation.*,
                             !com.google.protobuf.*,
                             !com.jcraft.jzlib,
@@ -134,6 +138,7 @@
     </build>
 
     <properties>
+        <amps.jira.version>8.5.2</amps.jira.version>
         <amps.spring.profiles>allowAnyTransition,gaFeature</amps.spring.profiles>
     </properties>
 
