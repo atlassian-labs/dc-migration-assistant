@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -97,11 +98,8 @@ public class DefaultAttachmentSyncManagerTest {
         FileSyncRecord anotherRecord = givenFileSyncRecordIsInDB("pathTwo", migration);
 
         Set<FileSyncRecord> records = sut.getCapturedAttachments();
-
-        assertThat(records, contains(
-                record,
-                anotherRecord
-        ));
+        // HashSet does not guarantee iteration order. Evaluate if we really need this or if we require a TreeSet implementation instead?
+        assertThat(records, containsInAnyOrder(record, anotherRecord));
     }
 
     @Test
@@ -115,9 +113,7 @@ public class DefaultAttachmentSyncManagerTest {
         givenFileSyncRecordIsInDB("sadPath", otherMigration);
 
         Set<FileSyncRecord> records = sut.getCapturedAttachments();
-        assertThat(records, contains(
-                record
-        ));
+        assertThat(records, contains(record));
     }
 
     @Test
