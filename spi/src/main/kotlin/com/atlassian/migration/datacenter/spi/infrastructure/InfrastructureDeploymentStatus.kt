@@ -21,4 +21,4 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonAutoDetect
 class InfrastructureDeploymentStatus(@get:JsonProperty("state") val state: InfrastructureDeploymentState, @get:JsonProperty("reason")
-@get:JsonInclude(JsonInclude.Include.NON_NULL) val reason: String) 
+@get:JsonInclude(JsonInclude.Include.NON_NULL) val reason: String?)
