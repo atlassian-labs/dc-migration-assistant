@@ -140,7 +140,7 @@ public class AWSMigrationService implements MigrationService {
     public void error(Throwable e)
     {
         error(e.getMessage());
-        findFirstOrCreateMigration().getStage().setException(Optional.of(e));
+        findFirstOrCreateMigration().getStage().setException(e);
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {

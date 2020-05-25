@@ -71,8 +71,8 @@ internal class CloudFormationEndpointTest {
         val errorMessage = "migration status is FUBAR"
         every {
             deploymentService.deployApplication(
-                provisioningConfig.stackName,
-                provisioningConfig.params
+                provisioningConfig.stackName!!,
+                provisioningConfig.params!!
             )
         } throws InvalidMigrationStageError(errorMessage)
 

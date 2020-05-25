@@ -45,8 +45,8 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
     @Produces(MediaType.APPLICATION_JSON)
     fun provisionInfrastructure(provisioningConfig: ProvisioningConfig): Response {
         return try {
-            val stackName = provisioningConfig.stackName
-            deploymentService.deployApplication(stackName, provisioningConfig.params)
+            val stackName = provisioningConfig.stackName!!
+            deploymentService.deployApplication(stackName, provisioningConfig.params!!)
             //Should be updated to URI location after get stack details Endpoint is built
             Response.status(Response.Status.ACCEPTED).entity(stackName).build()
         } catch (e: InvalidMigrationStageError) {

@@ -23,12 +23,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.stream.Collectors
-import javax.ws.rs.Consumes
-import javax.ws.rs.DELETE
-import javax.ws.rs.GET
-import javax.ws.rs.PUT
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -44,7 +39,7 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
         return if (fsMigrationService.isRunning) {
             Response
                 .status(Response.Status.CONFLICT)
-                .entity(mapOf("status" to fsMigrationService.report.status))
+                .entity(mapOf("status" to fsMigrationService.report!!.status))
                 .build()
         } else try {
             val started = fsMigrationService.scheduleMigration()

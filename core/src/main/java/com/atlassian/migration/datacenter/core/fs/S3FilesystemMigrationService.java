@@ -77,7 +77,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     }
 
     @Override
-    public Boolean scheduleMigration() throws InvalidMigrationStageError {
+    public boolean scheduleMigration() throws InvalidMigrationStageError {
         migrationService.assertCurrentStage(FS_MIGRATION_COPY);
 
         JobId jobId = getScheduledJobId();
