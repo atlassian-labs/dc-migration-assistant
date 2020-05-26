@@ -21,7 +21,7 @@ import { CancelModal } from './CancelModal';
 
 export const cancelButtonStyle = {
     paddingLeft: '5px',
-    marginLeft: '20px',
+    marginLeft: '5px',
 };
 
 export const CancelButton: FunctionComponent = () => {

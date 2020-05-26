@@ -64,7 +64,7 @@ const CheckboxContainer = styled.div`
 
 const nextButtonStyle = {
     padding: '5px',
-    marginRight: '20px',
+    marginRight: '5px',
 };
 
 const LearnMore: FunctionComponent = () => {
