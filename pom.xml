@@ -49,6 +49,7 @@
         <module>jira-plugin</module>
         <module>spi</module>
         <module>func-tests</module>
+        <module>filesystem-processor</module>
     </modules>
 
     <repositories>

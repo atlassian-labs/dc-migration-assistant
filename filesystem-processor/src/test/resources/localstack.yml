@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Jira / Confluence Server to DC (AWS) Helper
+
+Resources:
+  #S3 Bucket for Database Transfer
+  MigrationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'atl-migrationbucket-${AWS::StackName}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+    DeletionPolicy: Delete
+
+  MigrationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      MaximumMessageSize: 262144
+      MessageRetentionPeriod: 864000
+      FifoQueue: true
+      QueueName: !Sub 'atl-migration-queue-${AWS::StackName}.fifo'
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 90
+
+  StackNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /config/migration-helper/cloud.aws.stack.name
+      Type: String
+      Value: !Ref AWS::StackName
+      Description: CloudFormation Stack Name
+
+  JiraFilePathParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /config/migration-helper/app.jira.file.path
+      Type: String
+      Value: "atl-migration-queue-migration-helper"
+      Description: File Path
+
+  VPCIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /config/migration-helper/app.vpc.id
+      Type: String
+      Value: "vpc-02a66f2c3b0b1f599"
+      Description: Helper VPC Id
+
+  RegionParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /config/migration-helper/app.region.id
+      Type: String
+      Value: !Ref AWS::Region
+      Description: Region Name
+

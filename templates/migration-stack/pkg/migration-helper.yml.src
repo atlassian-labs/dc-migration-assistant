@@ -39,6 +39,11 @@ Parameters:
     Default: '11'
     AllowedValues: ['9.6', '10', '11']
     Type: String
+  MigrationFilePath:
+    Type: String
+    Description: 'The directory on the migration helper server to write the files to from S3'
+    Default: '/efs/jira/shared'
+
 Resources:
 
   #S3 Bucket for Database Transfer
@@ -57,161 +62,248 @@ Resources:
           - AbortIncompleteMultipartUpload:
               DaysAfterInitiation: 4
             Status: "Enabled"
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Queue: !GetAtt MigrationQueue.Arn
+            Event: s3:ObjectCreated:*
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
+
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Id: !Sub "MigrationQueue_Policy_${AWS::AccountId}"
+        Version: 2012-10-17
+        Statement:
+          - Sid: "MigrationQueue_SendMessage_Bucket"
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SQS:SendMessage
+            Resource: !GetAtt MigrationQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Join ["", ["arn:aws:s3:::",!Sub 'atl-migrationbucket-${AWS::StackName}']]
+      Queues:
+        - !Ref MigrationQueue
+
+  MigrationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      MaximumMessageSize: 262144
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+        maxReceiveCount: 5
+      MessageRetentionPeriod: 864000
+      QueueName: !Sub 'atl-migration-queue-${AWS::StackName}'
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 43200
+
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      MaximumMessageSize: 262144
+      MessageRetentionPeriod: 864000
+      QueueName: !Sub 'atl-migration-dlq-${AWS::StackName}'
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 43200
+
+  StackNameParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /atlassian/config/migration-helper/cloud.aws.stack.name
+      Type: String
+      Value: !Ref AWS::StackName
+      Description: CloudFormation Stack Name
+
+  JiraFilePathParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /atlassian/config/migration-helper/app.jira.file.path
+      Type: String
+      Value: !Ref MigrationFilePath
+      Description: File Path
+
+  VPCIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /atlassian/config/migration-helper/app.vpc.id
+      Type: String
+      Value: !Ref HelperVpcId
+      Description: Helper VPC Id
+
+  RegionParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /atlassian/config/migration-helper/app.region.id
+      Type: String
+      Value: !Ref AWS::Region
+      Description: Region Name
 
   #EC2 Migration Helper
   HelperLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Metadata:
-        AWS::CloudFormation::Init:
-          configSets:
-            install_prerequisites: [create_efs_script,mount_efs,prepare_efs_sync_script,install_psql_client, create_rds_restore_script]
-          create_efs_script:
-            files:
-              /opt/atlassian/dc-migration-assistant/mount-efs.sh:
-                content: !Sub
-                  - |
-                    #!/bin/bash
+      AWS::CloudFormation::Init:
+        configSets:
+          install_prerequisites: [create_efs_script,mount_efs,create_helper_user,prepare_efs_sync_script,install_psql_client,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
+        create_efs_script:
+          files:
+            /opt/atlassian/dc-migration-assistant/mount-efs.sh:
+              content: !Sub
+                - |
+                  #!/bin/bash
 
-                    EFS_REGION=${AWS::Region}
-                    EFS_MOUNT_DIR=/efs/
-                    EFS_FILE_SYSTEM_ID=${EFSID}
+                  EFS_REGION=${AWS::Region}
+                  EFS_MOUNT_DIR=/efs/
+                  EFS_FILE_SYSTEM_ID=${EFSID}
 
-                    echo "Mounting EFS filesystem $EFS_FILE_SYSTEM_ID to directory $EFS_MOUNT_DIR ..."
+                  echo "Mounting EFS filesystem $EFS_FILE_SYSTEM_ID to directory $EFS_MOUNT_DIR ..."
 
-                    echo 'Stopping NFS ID Mapper...'
-                    service rpcidmapd status &> /dev/null
-                    if [ $? -ne 0 ] ; then
-                        echo 'rpc.idmapd is already stopped!'
-                    else
-                        service rpcidmapd stop
-                        if [ $? -ne 0 ] ; then
-                            echo 'ERROR: Failed to stop NFS ID Mapper!'
-                            exit 1
-                        fi
-                    fi
+                  echo 'Stopping NFS ID Mapper...'
+                  service rpcidmapd status &> /dev/null
+                  if [ $? -ne 0 ] ; then
+                      echo 'rpc.idmapd is already stopped!'
+                  else
+                      service rpcidmapd stop
+                      if [ $? -ne 0 ] ; then
+                          echo 'ERROR: Failed to stop NFS ID Mapper!'
+                          exit 1
+                      fi
+                  fi
 
-                    echo 'Checking if EFS mount directory exists...'
-                    if [ ! -d $EFS_MOUNT_DIR ]; then
-                        echo "Creating directory $EFS_MOUNT_DIR ..."
-                        mkdir -p $EFS_MOUNT_DIR
-                        if [ $? -ne 0 ]; then
-                            echo 'ERROR: Directory creation failed!'
-                            exit 1
-                        fi
-                    else
-                        echo "Directory $EFS_MOUNT_DIR already exists!"
-                    fi
+                  echo 'Checking if EFS mount directory exists...'
+                  if [ ! -d $EFS_MOUNT_DIR ]; then
+                      echo "Creating directory $EFS_MOUNT_DIR ..."
+                      mkdir -p $EFS_MOUNT_DIR
+                      if [ $? -ne 0 ]; then
+                          echo 'ERROR: Directory creation failed!'
+                          exit 1
+                      fi
+                  else
+                      echo "Directory $EFS_MOUNT_DIR already exists!"
+                  fi
 
-                    mountpoint -q $EFS_MOUNT_DIR
-                    if [ $? -ne 0 ]; then
-                        echo "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FILE_SYSTEM_ID.efs.$EFS_REGION.amazonaws.com:/ $EFS_MOUNT_DIR"
-                        mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FILE_SYSTEM_ID.efs.$EFS_REGION.amazonaws.com:/ $EFS_MOUNT_DIR
-                        if [ $? -ne 0 ] ; then
-                            echo 'ERROR: Mount command failed!'
-                            exit 1
-                        fi
-                        chmod 777 $EFS_MOUNT_DIR
-                        runuser -l  ec2-user -c "touch $EFS_MOUNT_DIR/mount_worked"
-                        if [[ $? -ne 0 ]]; then
-                            echo 'ERROR: Permission Error!'
-                            exit 1
-                        else
-                            runuser -l  ec2-user -c "rm -f $EFS_MOUNT_DIR/mount_worked"
-                        fi
-                    else
-                        echo "Directory $EFS_MOUNT_DIR is already a valid mountpoint!"
-                    fi
+                  mountpoint -q $EFS_MOUNT_DIR
+                  if [ $? -ne 0 ]; then
+                      echo "mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FILE_SYSTEM_ID.efs.$EFS_REGION.amazonaws.com:/ $EFS_MOUNT_DIR"
+                      mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_FILE_SYSTEM_ID.efs.$EFS_REGION.amazonaws.com:/ $EFS_MOUNT_DIR
+                      if [ $? -ne 0 ] ; then
+                          echo 'ERROR: Mount command failed!'
+                          exit 1
+                      fi
+                      chmod 777 $EFS_MOUNT_DIR
+                      runuser -l  ec2-user -c "touch $EFS_MOUNT_DIR/mount_worked"
+                      if [[ $? -ne 0 ]]; then
+                          echo 'ERROR: Permission Error!'
+                          exit 1
+                      else
+                          runuser -l  ec2-user -c "rm -f $EFS_MOUNT_DIR/mount_worked"
+                      fi
+                  else
+                      echo "Directory $EFS_MOUNT_DIR is already a valid mountpoint!"
+                  fi
 
                     echo 'EFS mount complete.'
-                  - EFSID: !Ref EFSFileSystemId
-                mode: "000755"
-          mount_efs:
-            commands:
-              01_mount:
-                command: /opt/atlassian/dc-migration-assistant/mount-efs.sh
-          install_psql_client:
-            commands:
-              01_install_psql:
-                command: !Sub
-                  - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
-                  - PSQLClientVersion: !Ref PSQLVersion
-          create_rds_restore_script:
-            files:
-              /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh:
-                content: !Sub
-                  - |
-                    #!/bin/bash
-                    DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
-                    mkdir -p $DATABASE_DOWNLOAD_DIR
-                    DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
-                    SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
-                    if [ $? != 0 ]; then
-                      echo "ERROR: cannot fetch DB password from secret manager"
-                      exit 1
-                    fi
+                - EFSID: !Ref EFSFileSystemId
+              mode: "000755"
+        mount_efs:
+          commands:
+            01_mount:
+              command: /opt/atlassian/dc-migration-assistant/mount-efs.sh
+        create_helper_user:
+          commands:
+            # Default UID from dc-deployments-automation (not set by quick start) https://bitbucket.org/atlassian/dc-deployments-automation/src/81c2bc9fe8bd3fd00f3538f8d5cc7c32d3e24898/group_vars/aws_node_local.yml#lines-18
+            # We need to use useradd because using a cfn-init user gives us a non-interactive user
+            01_create_jira_user:
+              test: "grep -qv jira /etc/passwd"
+              command: "useradd -u 2001 jira"
+              ignoreErrors: false
+        prepare_efs_sync_script:
+          packages:
+            yum:
+              python3: []
+          files:
+            /opt/atlassian/dc-migration-assistant/copy-shared-home.sh:
+              content: !Sub
+                - |
+                  #!/bin/bash
+                  SYNC_LOG_FILE="/var/atlassian/dc-migration-assistant/sync-log.txt"
+                  echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
+                  aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
+                  echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
+                - MigrationBucket: !Ref MigrationBucket
+              mode: "000755"
+            /opt/atlassian/dc-migration-assistant/home-copy-status.py:
+              content: | %{HOME_COPY_SCRIPT}%
+        install_psql_client:
+          commands:
+            01_install_psql:
+              command: !Sub
+                - "amazon-linux-extras install -y postgresql${PSQLClientVersion}"
+                - { PSQLClientVersion: !Ref PSQLVersion }
+        create_rds_restore_script:
+          files:
+            /opt/atlassian/dc-migration-assistant/restore-db-to-rds.sh:
+              content: !Sub
+                - |
+                  #!/bin/bash
+                  DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
+                  mkdir -p $DATABASE_DOWNLOAD_DIR
+                  DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
+                  SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
+                  aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
+                  echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
+                  PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
+                  PG_RESTORE_EXIT_CODE=$?
+                  ERRORS_EXIST=`grep -qiE 'error|warning' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
+                  RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
+                  echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
+                - {
+                  SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
+                  MigrationBucket: !Ref MigrationBucket,
+                  DBHost: !Ref RDSEndpoint,
+                  DBPort: !Ref RDSPort,
+                  DBName: !Ref RDSDbName,
+                  DBUser: "atljira"
+                }
+              mode: "000755"
+        download_java_helper_app:
+          files:
+            /usr/lib/systemd/system/dc-migration-sqs-consumer.service:
+              content:
+                |
+                [Unit]
+                Description=Consumer for SQS queue used for DC Migration Assistant File System Migration
 
-                    aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
-                    if [ ${pipestatus} != 0 ]; then
-                      echo "ERROR: cannot load DB dump from the S3 bucket"
-                      exit 1
-                    fi
+                [Service]
+                WorkingDirectory=/opt/atlassian/dc-migration-assistant
+                ExecStart=/bin/java -jar filesystem-processor-1.0.0.jar --spring.profiles.active=production
+                User=jira
+                Type=simple
+                Restart=on-failure
+                RestartSec=10
 
-                    echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/${DBName}" | tee $DB_DUMP_LOG_FILE
-                    PGPASSWORD=$SECRET_PASSWORD pg_restore --no-owner --no-acl --clean --if-exists -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
-
-                    ERROR_OUTPUT=$(grep -iE 'error|warning' $DB_DUMP_LOG_FILE)
-
-                    if [[ -z "$ERROR_OUTPUT" ]]; then
-                            echo "SUCCESS: Database migration was successful without errors"
-                    else
-                            echo "SQL migration errors:"
-                            echo "$ERROR_OUTPUT"
-                            echo "WARNING: Database migration finished with some errors, please review the log"
-                    fi
-
-                    exit 0
-                  - SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password"
-                    MigrationBucket: !Ref MigrationBucket
-                    DBHost: !Ref RDSEndpoint
-                    DBPort: !Ref RDSPort
-                    DBName: !Ref RDSDbName
-                    DBUser: "atljira"
-                    pipestatus: ${PIPESTATUS[0]}
-                mode: "000755"
-          prepare_efs_sync_script:
-            packages:
-              yum:
-                python3: []
-            files:
-              /opt/atlassian/dc-migration-assistant/copy-shared-home.sh:
-                content: !Sub
-                  - |
-                    #!/bin/bash
-                    SYNC_LOG_FILE="/var/atlassian/dc-migration-assistant/sync-log.txt"
-                    echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
-                    aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
-                    echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
-                  - MigrationBucket: !Ref MigrationBucket
-                mode: "000755"
-              /opt/atlassian/dc-migration-assistant/home-copy-status.py:
-                content: | %{HOME_COPY_SCRIPT}%
-
-            commands:
-              # Default UID from dc-deployments-automation (not set by quick start) https://bitbucket.org/atlassian/dc-deployments-automation/src/81c2bc9fe8bd3fd00f3538f8d5cc7c32d3e24898/group_vars/aws_node_local.yml#lines-18
-              # We need to use useradd because using a cfn-init user gives us a non-interactive user
-              01_create_jira_user:
-                test: "grep -qv jira /etc/passwd"
-                command: "useradd -u 2001 jira"
-                ignoreErrors: false
-              02_create_migration_dirs:
-                test: "test ! -d /var/atlassian/dc-migration-assistant"
-                command: mkdir -p /var/atlassian/dc-migration-assistant
-                ignoreErrors: false
-              03_set_migration_dir_perms:
-                command: chown jira:jira /var/atlassian/dc-migration-assistant
-                ignoreErrors: false
+                [Install]
+                WantedBy=multi-user.target
+              owner: root
+              mode: "000600"
+          packages:
+            yum:
+              java-1.8.0-openjdk: []
+          commands:
+            01_download:
+              command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+            02_ownership:
+              command: "chown -R jira:jira /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+        start_java_helper_app:
+          commands:
+            01_start_app:
+              command: "service dc-migration-sqs-consumer start"
 
     Properties:
       ImageId: !Ref LatestAmiId
@@ -225,6 +317,7 @@ Resources:
           yum install -y aws-cfn-bootstrap
           /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource HelperLaunchConfig --configsets install_prerequisites --region ${AWS::Region}
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource HelperServerGroup --region ${AWS::Region}
+
   HelperServerGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     CreationPolicy:
@@ -287,16 +380,38 @@ Resources:
                   - 'secretsmanager:GetSecretValue'
                 Effect: Allow
                 Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:atl-${AWS::StackName}-app-rds-password-??????"
+        - PolicyName: MigrationFileSystemQueueConsumerAppPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              # For spring cloud configuration
+              - Action:
+                  - 'ssm:GetParameter'
+                  - 'ssm:GetParametersByPath'
+                Effect: Allow
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/atlassian/config*"
+              - Action:
+                  - 'cloudformation:*'
+                Effect: Allow
+                Resource: !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}*"
+              - Action:
+                  - 'cloudformation:Describe*'
+                Effect: Allow
+                Resource: "*"
+              - Action:
+                  - 'autoscaling:DescribeAutoScalingInstances'
+                Effect: Allow
+                Resource: "*"
+              # For consuming from migration queue
+              - Action:
+                  - 'sqs:ListQueues'
+                Effect: Allow
+                Resource: "*"
+              - Action:
+                  - 'sqs:*'
+                Effect: Allow
+                Resource: !GetAtt MigrationQueue.Arn
 
-      # TODO: Reduce this to minimum required perms
-      #   - PolicyName: Administrator
-      #     PolicyDocument:
-      #       Version: 2012-10-17
-      #       Statement:
-      #         - Sid: Administrator
-      #           Action: '*'
-      #           Effect: Allow
-      #           Resource: '*'
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
