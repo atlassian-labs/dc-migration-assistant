@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -32,15 +33,17 @@ import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourc
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse;
 import software.amazon.awssdk.services.cloudformation.model.ListExportsResponse;
+import software.amazon.awssdk.services.cloudformation.model.ListStacksResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
 import software.amazon.awssdk.services.cloudformation.model.StackResource;
-import software.amazon.awssdk.services.cloudformation.model.StackStatus;
+import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -209,5 +212,34 @@ public class CfnApi {
             logger.error("Error getting stack {}", stackName, e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Wrapper for basic AWS `list-stacks` functionality.
+     *
+     * @return List of StackSummary for the current region
+     */
+    public List<StackSummary> listStacks() {
+        ListStacksResponse stacks;
+        try {
+            stacks = getClient().listStacks().join();
+        } catch (CompletionException | CancellationException e) {
+            logger.error("Error getting stacks", e);
+            return Collections.emptyList();
+        }
+
+        return stacks.stackSummaries();
+    }
+
+    /**
+     * Wrapper around AWS `list-stacks` that hydrates the stack details.
+     *
+     * @return List of Stack
+     */
+    public List<Stack> listStacksFull() {
+        return listStacks().stream()
+            .map(summary -> getStack(summary.stackName()).orElse(null))
+            .filter(stack -> stack != null)
+            .collect(Collectors.toList());
     }
 }
