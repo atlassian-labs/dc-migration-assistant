@@ -22,6 +22,7 @@
             <artifactId>atlassian-scheduler-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- Review if this is needed in SPI?       -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
