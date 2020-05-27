@@ -210,7 +210,6 @@
         <dependency>
             <groupId>com.atlassian.activeobjects</groupId>
             <artifactId>activeobjects-test</artifactId>
-            <version>${ao.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
