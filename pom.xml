@@ -87,142 +87,145 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-                <scope>provided</scope>
+                <groupId>com.atlassian.platform</groupId>
+                <artifactId>platform</artifactId>
+                <version>${atlassian.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>com.atlassian.jira</groupId>
-                <artifactId>jira-api</artifactId>
-                <version>7.13.12</version>
-                <scope>provided</scope>
+                <groupId>com.atlassian.platform</groupId>
+                <artifactId>third-party</artifactId>
+                <version>${atlassian.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
+
             <!-- We no longer depend on io.atlassian.util.concurrent.atlassian-util-concurrent to be present on the compile classpath as we use LazyReference from the com.atlassian.util.concurrent library. Additionally, we use the Attachment Store API and have a dependency on com.atlassian.util.concurrent. This will be provided by the system bundle even in the most recent version of jira i.e. 8.8.x at the time of this commit. Scopes are defined in the child modules at the point of usage for readability and atlassian convention.-->
             <!--Revisit this in case this is no longer provided by the jira system bundle-->
             <dependency>
                 <groupId>com.atlassian.util.concurrent</groupId>
                 <artifactId>atlassian-util-concurrent</artifactId>
                 <version>${atlassian.util.concurrent.version}</version>
-                <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>com.atlassian.soy</groupId>
-                <artifactId>soy-template-renderer-api</artifactId>
-                <version>${soy.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <!--Where do we use JTA -->
+            <!--TODO: What module uses JTA?? -->
             <dependency>
                 <groupId>jta</groupId>
                 <artifactId>jta</artifactId>
                 <version>${jta.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.activeobjects</groupId>
-                <artifactId>activeobjects-plugin</artifactId>
-                <version>${ao.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.scheduler</groupId>
-                <artifactId>atlassian-scheduler-api</artifactId>
-                <version>${atlassian.scheduler.api.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.sal</groupId>
-                <artifactId>sal-api</artifactId>
-                <version>${sal.version}</version>
-                <scope>provided</scope>
             </dependency>
 
-            <dependency>
-                <groupId>javax.annotation</groupId>
-                <artifactId>javax.annotation-api</artifactId>
-                <version>${javax.annotation.api.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-xml</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-kotlin</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>${jsr.311.api.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <!-- Is jsr.311 needed or ws.rs-api required? See: https://stackoverflow.com/a/32109009 -->
-
-            <dependency>
-                <groupId>com.atlassian.plugins.rest</groupId>
-                <artifactId>atlassian-rest-module</artifactId>
-                <version>6.1.3</version>
-                <scope>provided</scope>
-            </dependency>
-
+<!--            The below plugins come from platform and thirdparty and will be removed-->
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.activeobjects</groupId>-->
+<!--                <artifactId>activeobjects-plugin</artifactId>-->
+<!--                <version>${ao.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.scheduler</groupId>-->
+<!--                <artifactId>atlassian-scheduler-api</artifactId>-->
+<!--                <version>${atlassian.scheduler.api.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.sal</groupId>-->
+<!--                <artifactId>sal-api</artifactId>-->
+<!--                <version>${sal.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>javax.annotation</groupId>-->
+<!--                <artifactId>javax.annotation-api</artifactId>-->
+<!--                <version>${javax.annotation.api.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>org.slf4j</groupId>-->
+<!--                <artifactId>slf4j-api</artifactId>-->
+<!--                <version>${slf4j.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.soy</groupId>-->
+<!--                <artifactId>soy-template-renderer-api</artifactId>-->
+<!--                <version>${soy.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>javax.ws.rs</groupId>-->
+<!--                <artifactId>jsr311-api</artifactId>-->
+<!--                <version>${jsr.311.api.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            &lt;!&ndash; Is jsr.311 needed or ws.rs-api required? See: https://stackoverflow.com/a/32109009 &ndash;&gt;-->
 <!--            <dependency>-->
 <!--                <groupId>javax.ws.rs</groupId>-->
 <!--                <artifactId>javax.ws.rs-api</artifactId>-->
 <!--                <version>${javax.ws.rs-api.version}</version>-->
 <!--                <scope>provided</scope>-->
 <!--            </dependency>-->
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.framework</artifactId>
-                <version>${apache.felix.framework.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.plugins</groupId>
-                <artifactId>atlassian-plugins-osgi-javaconfig</artifactId>
-                <version>${atlassian.plugins.osgi.javaconfig.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.4</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.plugins</groupId>
-                <artifactId>atlassian-plugins-api</artifactId>
-                <version>${atlassian.plugins.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.atlassian.plugins</groupId>
-                <artifactId>atlassian-plugins-webfragment-api</artifactId>
-                <version>${webfragments.version}</version>
-                <scope>provided</scope>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.plugins.rest</groupId>-->
+<!--                <artifactId>atlassian-rest-module</artifactId>-->
+<!--                <version>6.1.3</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework</groupId>-->
+<!--                <artifactId>spring-beans</artifactId>-->
+<!--                <version>${spring.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework</groupId>-->
+<!--                <artifactId>spring-context</artifactId>-->
+<!--                <version>${spring.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.plugins</groupId>-->
+<!--                <artifactId>atlassian-plugins-api</artifactId>-->
+<!--                <version>${atlassian.plugins.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>com.atlassian.plugins</groupId>-->
+<!--                <artifactId>atlassian-plugins-webfragment-api</artifactId>-->
+<!--                <version>${webfragments.version}</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>javax.servlet</groupId>-->
+<!--                <artifactId>servlet-api</artifactId>-->
+<!--                <version>2.4</version>-->
+<!--                <scope>provided</scope>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>com.fasterxml.woodstox</groupId>
                 <artifactId>woodstox-core</artifactId>
                 <version>${woodstox.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-xml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.framework</artifactId>
+                <version>${apache.felix.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atlassian.jira</groupId>
+                <artifactId>jira-api</artifactId>
+                <version>${jira.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atlassian.plugins</groupId>
+                <artifactId>atlassian-plugins-osgi-javaconfig</artifactId>
+                <version>${atlassian.plugins.osgi.javaconfig.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
@@ -244,8 +247,13 @@
                 <artifactId>kotlin-stdlib-jdk8</artifactId>
                 <version>${kotlin.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-kotlin</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
 
-            <!-- Test Dependencies -->
+            <!-- Test Dependencies. Scope is not required in the dependencyManagement section -->
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
@@ -421,12 +429,16 @@
                     <execution>
                         <id>java-compile</id>
                         <phase>compile</phase>
-                        <goals> <goal>compile</goal> </goals>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
                     </execution>
                     <execution>
                         <id>java-test-compile</id>
                         <phase>test-compile</phase>
-                        <goals> <goal>testCompile</goal> </goals>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -507,12 +519,15 @@
         <yarn.cmd.build.dev>build:dev</yarn.cmd.build.dev>
         <node.modules>${project.basedir}/src/main/dc-migration-assistant-fe/node_modules</node.modules>
         <frontend.working.directory>src/main/dc-migration-assistant-fe</frontend.working.directory>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 
         <apache.felix.framework.version>4.0.0</apache.felix.framework.version>
         <apache.wink.client.version>1.4</apache.wink.client.version>
         <ao.version>3.2.2</ao.version>
-        <amps.version>8.1.0</amps.version>
+        <amps.version>8.0.4</amps.version>
         <amps.jvm.args/>
+        <atlassian.platform.version>5.0.13</atlassian.platform.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
         <atlassian.scheduler.api.version>3.0.0</atlassian.scheduler.api.version>
