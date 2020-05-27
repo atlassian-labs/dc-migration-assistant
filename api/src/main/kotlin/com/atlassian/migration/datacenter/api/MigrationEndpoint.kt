@@ -20,6 +20,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
@@ -94,13 +95,8 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @Path("/ready")
     fun getMigrationReadyStatus(): Response {
         val status = migrationService.readyStatus;
-//        Try not to use jacksonObjectMapper directly here.
         return Response
-                .ok(mapOf(
-                        "dbCompatible" to status.dbCompatible,
-                        "osCompatible" to status.osCompatible,
-                        "fsSizeCompatible" to status.fsSizeCompatible
-                ))
+                .ok(jacksonObjectMapper().writeValueAsString(status))
                 .build();
     }
 
