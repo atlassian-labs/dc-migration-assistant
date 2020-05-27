@@ -23,7 +23,6 @@ import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsE
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * REST API Endpoint for managing in-product DC migrations.
@@ -95,8 +94,13 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @Path("/ready")
     fun getMigrationReadyStatus(): Response {
         val status = migrationService.readyStatus;
+//        Try not to use jacksonObjectMapper directly here.
         return Response
-                .ok(jacksonObjectMapper().writeValueAsString(status))
+                .ok(mapOf(
+                        "dbCompatible" to status.dbCompatible,
+                        "osCompatible" to status.osCompatible,
+                        "fsSizeCompatible" to status.fsSizeCompatible
+                ))
                 .build();
     }
 
