@@ -20,16 +20,25 @@ import { asiConfigurationPath, quickstartPath } from '../../../utils/RoutePaths'
 import { ASIConfiguration } from './asi/ASIConfiguration';
 import { QuickStartDeploy } from './QuickStartDeploy';
 
+export type DeploymentMode = 'with-vpc' | 'standalone';
+
 export const QuickstartRoutes: FunctionComponent = () => {
     const [prefix, setPrefix] = useState<string>();
+    const [deploymentMode, setDeploymentMode] = useState<DeploymentMode>();
 
     return (
         <Switch>
             <Route exact path={asiConfigurationPath}>
-                <ASIConfiguration updateASIPrefix={setPrefix} />
+                <ASIConfiguration
+                    onSelectDeploymentMode={setDeploymentMode}
+                    updateASIPrefix={setPrefix}
+                />
             </Route>
             <Route exact path={quickstartPath}>
-                <QuickStartDeploy ASIPrefix={prefix?.length === 0 ? 'ATL-' : prefix} />
+                <QuickStartDeploy
+                    deploymentMode={deploymentMode}
+                    ASIPrefix={prefix?.length === 0 ? 'ATL-' : prefix}
+                />
             </Route>
         </Switch>
     );

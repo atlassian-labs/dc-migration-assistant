@@ -37,6 +37,7 @@ import {
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 import { quickstartStatusPath } from '../../../utils/RoutePaths';
 import { CancelButton } from '../../shared/CancelButton';
+import { DeploymentMode } from './QuickstartRoutes';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 
@@ -225,6 +226,7 @@ const quickstartParametersTemplateLocation = () => {
 
 type QuickStartDeployProps = {
     ASIPrefix?: string;
+    deploymentMode: DeploymentMode;
 };
 
 export const QuickStartDeploy: FunctionComponent<QuickStartDeployProps> = ({

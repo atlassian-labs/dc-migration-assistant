@@ -24,9 +24,11 @@ import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
 import { provisioning } from '../../../../api/provisioning';
+import { DeploymentMode } from '../QuickstartRoutes';
 
 type ASIConfigurationProps = {
     updateASIPrefix: (prefix: string) => void;
+    onSelectDeploymentMode: (mode: DeploymentMode) => void;
 };
 
 const ContentContainer = styled.div`
