@@ -4,14 +4,10 @@ import argparse
 from cfn_tools import load_yaml, dump_yaml
 
 
-class Parameters:
-    def __init__(self, groups, labels, parameters):
-        self.ParameterGroups = groups
-        self.ParameterLabels = labels
-        self.Parameters = parameters
-
-
 class ParametersGen:
+    def __init__(self):
+        pass
+
     def generate(self, template_path):
         with open(template_path, 'r') as template:
             cfn_yaml = load_yaml(template.read())
@@ -20,7 +16,6 @@ class ParametersGen:
             parameter_labels = cfn_yaml['Metadata']['AWS::CloudFormation::Interface']['ParameterLabels']
             parameters = cfn_yaml['Parameters']
 
-            # print(dump_yaml(Parameters(parameter_groups, parameter_labels, parameters)))
             print(dump_yaml({
                 "ParameterGroups": parameter_groups,
                 "ParameterLabels": parameter_labels,
