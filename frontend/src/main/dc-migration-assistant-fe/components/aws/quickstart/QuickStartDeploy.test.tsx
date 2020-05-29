@@ -82,16 +82,16 @@ window.fetch = mockFetch;
 
 describe('Quick Start Provisioning Screen', () => {
     it('Should render', async () => {
-        await act(async () => {
-            const { getByText } = render(<QuickStartDeploy />);
+        act(async () => {
+            const { getByText } = render(<QuickStartDeploy deploymentMode="with-vpc" />);
 
             const formHeader = await waitForElement(() => getByText(FORM_HEADER_KEY));
             expect(formHeader).toBeTruthy();
         });
     });
     it('Should separate quickstart paramaters into their groups', async () => {
-        await act(async () => {
-            const { getByText } = render(<QuickStartDeploy />);
+        act(async () => {
+            const { getByText } = render(<QuickStartDeploy deploymentMode="with-vpc" />);
 
             const firstGroup = await waitForElement(() => getByText(FIRST_PARAM_GROUP_NAME));
             expect(firstGroup).toBeTruthy();
@@ -109,8 +109,10 @@ describe('Quick Start Provisioning Screen', () => {
         });
     });
     it('Should enforce validation on string parameters with constraints', async () => {
-        await act(async () => {
-            const { getByLabelText, getByText } = render(<QuickStartDeploy />);
+        act(async () => {
+            const { getByLabelText, getByText } = render(
+                <QuickStartDeploy deploymentMode="with-vpc" />
+            );
 
             const validationTestParameter = await waitForElement(() =>
                 getByLabelText(VALIDATION_TEST_PARAMETER_LABEL)
@@ -126,8 +128,10 @@ describe('Quick Start Provisioning Screen', () => {
         });
     });
     it('Should enforce validation on number parameters with constraints', async () => {
-        await act(async () => {
-            const { getByLabelText, getByText } = render(<QuickStartDeploy />);
+        act(async () => {
+            const { getByLabelText, getByText } = render(
+                <QuickStartDeploy deploymentMode="with-vpc" />
+            );
 
             const validationNumberTestParameter = await waitForElement(() =>
                 getByLabelText(VALIDATION_NUMBER_TEST_PARAMETER_LABEL)

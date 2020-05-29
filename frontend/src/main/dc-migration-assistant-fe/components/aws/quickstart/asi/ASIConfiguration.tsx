@@ -50,7 +50,10 @@ const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
 `;
 
-export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ updateASIPrefix }) => {
+export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
+    updateASIPrefix,
+    onSelectDeploymentMode,
+}) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
     const [existingASIPrefixes, setExistingASIPrefixes] = useState<Array<ASIDescription>>([]);

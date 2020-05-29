@@ -23,15 +23,17 @@ import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { DeploymentMode } from '../QuickstartRoutes';
 
+const EXISTING_VPC_OPTION = 'existing';
+const NEW_VPC_OPTION = 'new';
 const radioValues = [
     {
         name: 'deploymentMode',
-        value: 'existing',
+        value: EXISTING_VPC_OPTION,
         label: I18n.getText('atlassian.migration.datacenter.provision.aws.asi.option.existing'),
     },
     {
         name: 'deploymentMode',
-        value: 'new',
+        value: NEW_VPC_OPTION,
         label: I18n.getText('atlassian.migration.datacenter.provision.aws.asi.option.new'),
     },
 ];
@@ -118,6 +120,13 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
     );
 };
 
+const defaultDeploymentOptionIndex = 0;
+const getDefaultDeploymentMode = (): DeploymentMode => {
+    return radioValues[defaultDeploymentOptionIndex].value === EXISTING_VPC_OPTION
+        ? 'standalone'
+        : 'with-vpc';
+};
+
 export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfigurationProps> = ({
     handlePrefixUpdated,
     existingASIs,
@@ -141,9 +150,9 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 defaultValue={radioValues[0].value}
                 onChange={(event): void => {
                     handlePrefixUpdated('');
-                    const selectedExisting = event.currentTarget.value === 'existing';
+                    const selectedExisting = event.currentTarget.value === EXISTING_VPC_OPTION;
                     setUseExisting(selectedExisting);
-                    onSelectDeploymentMode(selectedExisting ? 'standalone' : 'standalone');
+                    onSelectDeploymentMode(selectedExisting ? 'standalone' : 'with-vpc');
                 }}
             />
             <ASISelector
