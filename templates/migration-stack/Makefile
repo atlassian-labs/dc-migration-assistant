@@ -35,4 +35,6 @@ deletestack:
 	aws cloudformation delete-stack --stack-name $(STACK_NAME)
 updatestack:
 	aws cloudformation update-stack --stack-name $(STACK_NAME) --template-body file://migration-helper.yml --parameters $(PARAMS) --capabilities CAPABILITY_IAM
+uploadtemplate: rendertemplate
+	aws s3 cp --acl=public-read migration-helper.yml s3://trebuchet-public-resources/migration-helper.yml
 

@@ -66,6 +66,11 @@ Resources:
         QueueConfigurations:
           - Queue: !GetAtt MigrationQueue.Arn
             Event: s3:ObjectCreated:*
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
 

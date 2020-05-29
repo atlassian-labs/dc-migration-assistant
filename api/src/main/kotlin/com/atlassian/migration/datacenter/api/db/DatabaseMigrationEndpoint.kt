@@ -63,15 +63,19 @@ class DatabaseMigrationEndpoint(
                     .build()
         }
         val started = databaseMigrationService.scheduleMigration()
-        val fsSyncStarted = finalSyncService.scheduleSync()
-        val builder =
-                if (started && fsSyncStarted) Response.status(Response.Status.ACCEPTED) else {
-                    databaseMigrationService.abortMigration()
-                    finalSyncService.abortMigration()
-                    Response.status(
-                            Response.Status.CONFLICT
-                    )
-                }
+        val builder = if (started) {
+            val fsSyncStarted = finalSyncService.scheduleSync()
+            if (fsSyncStarted) Response.status(Response.Status.ACCEPTED) else {
+                databaseMigrationService.abortMigration()
+                Response.status(
+                        Response.Status.CONFLICT
+                )
+            }
+        } else {
+            Response.status(
+                    Response.Status.CONFLICT
+            )
+        }
         return builder
                 .entity(ImmutableMap.of("migrationScheduled", started))
                 .build()
