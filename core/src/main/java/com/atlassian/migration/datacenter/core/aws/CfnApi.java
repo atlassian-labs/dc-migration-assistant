@@ -19,7 +19,6 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -33,11 +32,13 @@ import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourc
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksResponse;
 import software.amazon.awssdk.services.cloudformation.model.ListExportsResponse;
+import software.amazon.awssdk.services.cloudformation.model.ListStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.ListStacksResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
 import software.amazon.awssdk.services.cloudformation.model.StackResource;
+import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 
@@ -222,7 +223,12 @@ public class CfnApi {
     public List<StackSummary> listStacks() {
         ListStacksResponse stacks;
         try {
-            stacks = getClient().listStacks().join();
+            stacks = getClient().listStacks(
+                    ListStacksRequest.builder()
+                            .stackStatusFilters(
+                                    StackStatus.CREATE_COMPLETE,
+                                    StackStatus.UPDATE_COMPLETE)
+                    .build()).join();
         } catch (CompletionException | CancellationException e) {
             logger.error("Error getting stacks", e);
             return Collections.emptyList();
@@ -238,8 +244,8 @@ public class CfnApi {
      */
     public List<Stack> listStacksFull() {
         return listStacks().stream()
-            .map(summary -> getStack(summary.stackName()).orElse(null))
-            .filter(stack -> stack != null)
-            .collect(Collectors.toList());
+                .map(summary -> getStack(summary.stackName()).orElse(null))
+                .filter(stack -> stack != null)
+                .collect(Collectors.toList());
     }
 }

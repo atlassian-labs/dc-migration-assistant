@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs
+package com.atlassian.migration.datacenter.core.fs.captor
 
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
+import com.atlassian.migration.datacenter.core.fs.Uploader
 import com.atlassian.migration.datacenter.core.util.UploadQueue
 import com.atlassian.migration.datacenter.dto.FileSyncRecord
 import io.mockk.every
@@ -24,15 +24,12 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.Optional
-import kotlin.test.assertTrue
 
 @ExtendWith(MockKExtension::class)
 internal class S3FinalFileSyncTest {

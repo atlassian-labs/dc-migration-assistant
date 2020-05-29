@@ -16,7 +16,7 @@
 import { RadioGroup } from '@atlaskit/radio';
 import { HelperMessage } from '@atlaskit/form';
 import SectionMessage from '@atlaskit/section-message';
-import { AsyncSelect, OptionType } from '@atlaskit/select';
+import Select, { OptionType } from '@atlaskit/select';
 import TextField from '@atlaskit/textfield';
 import React, { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
@@ -49,25 +49,40 @@ const ASISelectorContainer = styled.div`
     margin-top: 15px;
 `;
 
-const asyncASIPrefixOptions = (): Promise<Array<OptionType>> =>
-    // FIXME: example options until there is API call to list ASI's
-    Promise.resolve([
-        { label: 'ATL-', value: 'ATL-', key: 'ATL-' },
-        { label: 'BP-', value: 'BP-', key: 'BP-' },
-    ]);
-
 type ExistingASIConfigurationProps = {
-    handleASIPrefixSet: (prefix: string) => void;
+    handlePrefixUpdated: (prefix: string) => void;
+    existingASIs: Array<ASIDescription>;
 };
 
-type ASISelectorProps = {
+export type ASIDescription = {
+    prefix: string;
+    stackName: string;
+};
+
+type ASISelectorPropsBase = {
     useExisting: boolean;
-    handlePrefixUpdated: (prefix: string) => void;
+};
+
+type ASISelectorProps = ASISelectorPropsBase & ExistingASIConfigurationProps;
+
+const ASIPrefixOptionsFromList = (ASIs: Array<ASIDescription>): Array<OptionType> => {
+    if (ASIs.length === 0) return [];
+
+    const asiToOptionValue = (asi: ASIDescription): string =>
+        `${asi.prefix}   (${I18n.getText(
+            'atlassian.migration.datacenter.provision.aws.asi.belongsTo'
+        )}: ${asi.stackName})`;
+    return ASIs.map(asi => ({
+        label: asiToOptionValue(asi),
+        value: asiToOptionValue(asi),
+        key: asi.prefix,
+    }));
 };
 
 export const ASISelector: FunctionComponent<ASISelectorProps> = ({
     useExisting,
     handlePrefixUpdated,
+    existingASIs,
 }) => {
     return (
         <ASISelectorContainer>
@@ -76,11 +91,11 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
                 <RequiredStar>*</RequiredStar>
             </h5>
             {useExisting ? (
-                <AsyncSelect
+                <Select
                     className="asi-select"
                     cacheOptions
                     defaultOptions
-                    loadOptions={asyncASIPrefixOptions}
+                    options={ASIPrefixOptionsFromList(existingASIs)}
                     data-test="asi-select"
                     onChange={(event: OptionType): void =>
                         handlePrefixUpdated(event.value.toString())
@@ -101,7 +116,8 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
 };
 
 export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfigurationProps> = ({
-    handleASIPrefixSet,
+    handlePrefixUpdated,
+    existingASIs,
 }) => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
 
@@ -120,11 +136,15 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 options={radioValues}
                 defaultValue={radioValues[0].value}
                 onChange={(event): void => {
-                    handleASIPrefixSet('');
+                    handlePrefixUpdated('');
                     setUseExisting(event.currentTarget.value === 'existing');
                 }}
             />
-            <ASISelector useExisting={useExisting} handlePrefixUpdated={handleASIPrefixSet} />
+            <ASISelector
+                useExisting={useExisting}
+                handlePrefixUpdated={handlePrefixUpdated}
+                existingASIs={existingASIs}
+            />
         </>
     );
 };

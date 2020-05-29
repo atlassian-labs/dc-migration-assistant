@@ -16,6 +16,7 @@
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { callAppRest } from '../utils/api';
+import { ASIDescription } from '../components/aws/quickstart/asi/ExistingASIConfiguration';
 
 export enum ProvisioningStatus {
     ProvisioningApplicationStack,
@@ -26,6 +27,7 @@ export enum ProvisioningStatus {
 
 enum RestApiPathConstants {
     GetDeploymentStatusPath = 'aws/stack/status',
+    GetASIInfoPath = `/aws/global-infrastructure/asi`,
 }
 
 type InfrastructureDeploymentState =
@@ -46,10 +48,14 @@ type StackStatusErrorResponse = {
     error: string;
 };
 
-type GetProvisioningStatusResponse = StackStatusResponse | StackStatusErrorResponse;
+type ASIInfo = {
+    name: string;
+    id: string;
+    prefix: string;
+};
 
 export const provisioning = {
-    getProvisioningStatus: (): Promise<ProvisioningStatus> => {
+    getProvisioningStatus: async (): Promise<ProvisioningStatus> => {
         return callAppRest('GET', RestApiPathConstants.GetDeploymentStatusPath)
             .then(resp => resp.json())
             .then(resp => {
@@ -96,5 +102,15 @@ export const provisioning = {
                     )
                 );
             });
+    },
+    getASIs: async (): Promise<Array<ASIDescription>> => {
+        const json = await callAppRest('GET', RestApiPathConstants.GetASIInfoPath).then(resp => {
+            if (resp.ok) return resp.json();
+            return Promise.resolve([]);
+        });
+
+        const stackData = json as Array<ASIInfo>;
+
+        return stackData.map(data => ({ prefix: data.prefix, stackName: data.name }));
     },
 };

@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.api.db
 
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
+import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.fasterxml.jackson.annotation.JsonAutoDetect
@@ -36,16 +37,17 @@ import javax.ws.rs.core.Response
 
 @Path("/migration/db")
 class DatabaseMigrationEndpoint(
-    private val databaseMigrationService: DatabaseMigrationService,
-    private val migrationService: MigrationService,
-    private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService
+        private val databaseMigrationService: DatabaseMigrationService,
+        private val migrationService: MigrationService,
+        private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
+        private val finalSyncService: S3FinalSyncService
 ) {
     private val mapper: ObjectMapper = ObjectMapper()
 
     init {
         mapper.setVisibility(
-            PropertyAccessor.ALL,
-            JsonAutoDetect.Visibility.ANY
+                PropertyAccessor.ALL,
+                JsonAutoDetect.Visibility.ANY
         )
     }
 
@@ -56,18 +58,23 @@ class DatabaseMigrationEndpoint(
     fun runMigration(): Response {
         if (migrationService.currentStage.isDBPhase) {
             return Response
-                .status(Response.Status.CONFLICT)
-                .entity(mapOf("status" to migrationService.currentStage))
-                .build()
+                    .status(Response.Status.CONFLICT)
+                    .entity(mapOf("status" to migrationService.currentStage))
+                    .build()
         }
         val started = databaseMigrationService.scheduleMigration()
+        val fsSyncStarted = finalSyncService.scheduleSync()
         val builder =
-            if (started) Response.status(Response.Status.ACCEPTED) else Response.status(
-                Response.Status.CONFLICT
-            )
+                if (started && fsSyncStarted) Response.status(Response.Status.ACCEPTED) else {
+                    databaseMigrationService.abortMigration()
+                    finalSyncService.abortMigration()
+                    Response.status(
+                            Response.Status.CONFLICT
+                    )
+                }
         return builder
-            .entity(ImmutableMap.of("migrationScheduled", started))
-            .build()
+                .entity(ImmutableMap.of("migrationScheduled", started))
+                .build()
     }
 
     @Path("/report")
@@ -75,21 +82,21 @@ class DatabaseMigrationEndpoint(
     @GET
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
-            .orElse(Duration.ZERO)
+                .orElse(Duration.ZERO)
         val dto = DatabaseMigrationStatus(
-            stageToStatus(migrationService.currentStage),
-            elapsed
+                stageToStatus(migrationService.currentStage),
+                elapsed
         )
 
         return try {
             Response
-                .ok(mapper.writeValueAsString(dto))
-                .build()
+                    .ok(mapper.writeValueAsString(dto))
+                    .build()
         } catch (e: JsonProcessingException) {
             Response
-                .serverError()
-                .entity("Unable to get db migration status. Please contact support and show them this error: ${e.message}")
-                .build()
+                    .serverError()
+                    .entity("Unable to get db migration status. Please contact support and show them this error: ${e.message}")
+                    .build()
         }
     }
 
@@ -99,14 +106,15 @@ class DatabaseMigrationEndpoint(
     fun abortMigration(): Response {
         return try {
             databaseMigrationService.abortMigration()
+            finalSyncService.abortMigration()
             Response
-                .ok(mapOf("cancelled" to true))
-                .build()
+                    .ok(mapOf("cancelled" to true))
+                    .build()
         } catch (e: InvalidMigrationStageError) {
             Response
-                .status(Response.Status.CONFLICT)
-                .entity(mapOf("error" to "db migration is not in progress"))
-                .build()
+                    .status(Response.Status.CONFLICT)
+                    .entity(mapOf("error" to "db migration is not in progress"))
+                    .build()
         }
     }
 
@@ -118,7 +126,7 @@ class DatabaseMigrationEndpoint(
             Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandResult()).build()
         } catch (e: SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException) {
             return Response.status(Response.Status.CONFLICT).entity(mapOf("error" to "SSM command wasn't executed"))
-                .build()
+                    .build()
         }
     }
 }

@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
 import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
-import { ExistingASIConfiguration, ASISelector } from './ExistingASIConfiguration';
+import Spinner from '@atlaskit/spinner';
+import { ExistingASIConfiguration, ASISelector, ASIDescription } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
+import { provisioning } from '../../../../api/provisioning';
 
 type ASIConfigurationProps = {
-    ASIExists: boolean;
     updateASIPrefix: (prefix: string) => void;
 };
 
@@ -47,12 +48,21 @@ const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
 `;
 
-export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
-    ASIExists,
-    updateASIPrefix,
-}) => {
+export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ updateASIPrefix }) => {
     const [prefix, setPrefix] = useState<string>('');
     const [readyToTransition, setReadyToTransition] = useState<boolean>(false);
+    const [existingASIPrefixes, setExistingASIPrefixes] = useState<Array<ASIDescription>>([]);
+    const [loadingPrefixes, setLoadingPrefixes] = useState<boolean>(false);
+
+    useEffect(() => {
+        setLoadingPrefixes(true);
+        provisioning
+            .getASIs()
+            .then(asis => {
+                setExistingASIPrefixes(asis);
+            })
+            .finally(() => setLoadingPrefixes(false));
+    }, []);
 
     const handleSubmit = (): void => {
         updateASIPrefix(prefix);
@@ -65,6 +75,17 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
         return <Redirect to={quickstartPath} push />;
     }
 
+    const renderASISelector = (): ReactNode => {
+        return existingASIPrefixes.length !== 0 ? (
+            <ExistingASIConfiguration
+                handlePrefixUpdated={updatePRefix}
+                existingASIs={existingASIPrefixes}
+            />
+        ) : (
+            <ASISelector existingASIs={[]} useExisting={false} handlePrefixUpdated={updatePRefix} />
+        );
+    };
+
     return (
         <ContentContainer>
             <h1>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.title')}</h1>
@@ -75,11 +96,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                 </a>
             </Description>
 
-            {ASIExists ? (
-                <ExistingASIConfiguration handleASIPrefixSet={updatePRefix} />
-            ) : (
-                <ASISelector useExisting={false} handlePrefixUpdated={updatePRefix} />
-            )}
+            {loadingPrefixes ? <Spinner /> : renderASISelector()}
             <ButtonRow>
                 <ButtonGroup>
                     <Button

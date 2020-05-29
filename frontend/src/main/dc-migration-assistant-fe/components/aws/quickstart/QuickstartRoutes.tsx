@@ -26,7 +26,7 @@ export const QuickstartRoutes: FunctionComponent = () => {
     return (
         <Switch>
             <Route exact path={asiConfigurationPath}>
-                <ASIConfiguration ASIExists={true} updateASIPrefix={setPrefix} />
+                <ASIConfiguration updateASIPrefix={setPrefix} />
             </Route>
             <Route exact path={quickstartPath}>
                 <QuickStartDeploy ASIPrefix={prefix?.length === 0 ? 'ATL-' : prefix} />

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs
+package com.atlassian.migration.datacenter.core.fs.captor
 
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
+import com.atlassian.migration.datacenter.core.fs.Uploader
 import com.atlassian.migration.datacenter.core.util.UploadQueue
 import java.nio.file.Path
 import java.nio.file.Paths
