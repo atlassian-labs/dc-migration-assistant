@@ -82,6 +82,7 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({ upd
             <ExistingASIConfiguration
                 handlePrefixUpdated={updatePRefix}
                 existingASIs={existingASIPrefixes}
+                onSelectDeploymentMode={onSelectDeploymentMode}
             />
         ) : (
             <ASISelector existingASIs={[]} useExisting={false} handlePrefixUpdated={updatePRefix} />

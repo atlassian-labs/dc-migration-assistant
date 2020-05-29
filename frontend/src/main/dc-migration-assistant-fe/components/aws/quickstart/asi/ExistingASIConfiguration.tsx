@@ -21,6 +21,7 @@ import TextField from '@atlaskit/textfield';
 import React, { FunctionComponent, useState } from 'react';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { DeploymentMode } from '../QuickstartRoutes';
 
 const radioValues = [
     {
@@ -49,21 +50,23 @@ const ASISelectorContainer = styled.div`
     margin-top: 15px;
 `;
 
-type ExistingASIConfigurationProps = {
+type ExistingASIPrefixManagementProps = {
     handlePrefixUpdated: (prefix: string) => void;
     existingASIs: Array<ASIDescription>;
 };
+
+type ExistingASIConfigurationProps = {
+    onSelectDeploymentMode: (mode: DeploymentMode) => void;
+} & ExistingASIPrefixManagementProps;
 
 export type ASIDescription = {
     prefix: string;
     stackName: string;
 };
 
-type ASISelectorPropsBase = {
+type ASISelectorProps = {
     useExisting: boolean;
-};
-
-type ASISelectorProps = ASISelectorPropsBase & ExistingASIConfigurationProps;
+} & ExistingASIPrefixManagementProps;
 
 const ASIPrefixOptionsFromList = (ASIs: Array<ASIDescription>): Array<OptionType> => {
     if (ASIs.length === 0) return [];
@@ -118,6 +121,7 @@ export const ASISelector: FunctionComponent<ASISelectorProps> = ({
 export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfigurationProps> = ({
     handlePrefixUpdated,
     existingASIs,
+    onSelectDeploymentMode,
 }) => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
 
@@ -137,7 +141,9 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
                 defaultValue={radioValues[0].value}
                 onChange={(event): void => {
                     handlePrefixUpdated('');
-                    setUseExisting(event.currentTarget.value === 'existing');
+                    const selectedExisting = event.currentTarget.value === 'existing';
+                    setUseExisting(selectedExisting);
+                    onSelectDeploymentMode(selectedExisting ? 'standalone' : 'standalone');
                 }}
             />
             <ASISelector
