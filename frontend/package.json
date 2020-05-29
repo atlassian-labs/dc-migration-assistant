@@ -35,6 +35,7 @@
         "@reduxjs/toolkit": "^1.0.4",
         "@testing-library/react": "^9.3.2",
         "@testing-library/user-event": "^8.1.0",
+        "@types/js-yaml": "^3.12.4",
         "@types/react": "^16.9.19",
         "@types/react-router-dom": "^5.1.3",
         "@types/when-dom-ready": "^1.2.0",
@@ -66,7 +67,8 @@
         "webpack-sources": "^1.4.3",
         "when-dom-ready": "^1.2.12",
         "write-file-webpack-plugin": "^4.5.1",
-        "yaml": "^1.7.2"
+        "yaml": "^1.7.2",
+        "yaml-cfn": "^0.2.3"
     },
     "devDependencies": {
         "@atlassian/i18n-properties-loader": "^0.7.3",

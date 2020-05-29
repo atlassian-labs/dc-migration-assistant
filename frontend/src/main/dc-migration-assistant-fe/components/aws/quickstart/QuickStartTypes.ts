@@ -50,3 +50,9 @@ export type QuickstartParameter = {
     paramLabel: string;
     paramProperties: QuickstartParameterProperties;
 };
+
+export type QuickstartTemplateForm = {
+    Parameters: Record<string, QuickStartParameterYamlNode>;
+    ParameterLabels: Record<string, QuickstartParamLabelYamlNode>;
+    ParameterGroups: Array<QuickstartParamGroupYamlNode>;
+};

@@ -34,28 +34,30 @@ const VALIDATION_NUMBER_TEST_PARAMETER_MAX = 3;
 const VALIDATION_NUMBER_TEST_PARAMETER_ERROR_MESSAGE = `must be between ${VALIDATION_NUMBER_TEST_PARAMETER_MIN} and ${VALIDATION_NUMBER_TEST_PARAMETER_MAX}`;
 
 const mockCfnYaml = `
-ParameterGroups:
-  - Label:
-      default: ${FIRST_PARAM_GROUP_NAME}
-    Parameters:
-      - ParamOne
-      - ParamTwo
-  - Label:
-      default: ${SECOND_PARAM_GROUP_NAME}
-    Parameters:
-      - ParamThree
-      - ParamFour
-
-ParameterLabels:
-  ParamOne:
-    default: Param One
-  ParamTwo:
-    default: Param Two
-  ParamThree:
-    default: ${VALIDATION_NUMBER_TEST_PARAMETER_LABEL}
-  ParamFour:
-    default: ${VALIDATION_TEST_PARAMETER_LABEL}
-
+AWSTemplateFormatVersion: 2010-09-09
+Description: Atlassian Jira Data Center QS(0035)
+Metadata:
+    AWS::CloudFormation::Interface:
+        ParameterGroups:
+          - Label:
+              default: ${FIRST_PARAM_GROUP_NAME}
+            Parameters:
+              - ParamOne
+              - ParamTwo
+          - Label:
+              default: ${SECOND_PARAM_GROUP_NAME}
+            Parameters:
+              - ParamThree
+              - ParamFour
+        ParameterLabels:
+          ParamOne:
+            default: Param One
+          ParamTwo:
+            default: Param Two
+          ParamThree:
+            default: ${VALIDATION_NUMBER_TEST_PARAMETER_LABEL}
+          ParamFour:
+            default: ${VALIDATION_TEST_PARAMETER_LABEL}
 Parameters:
   ParamOne:
     Type: String

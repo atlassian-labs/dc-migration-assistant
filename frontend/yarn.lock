@@ -2215,6 +2215,11 @@
     jest-diff "^25.2.1"
     pretty-format "^25.2.1"
 
+"@types/js-yaml@^3.12.4":
+  version "3.12.4"
+  resolved "https://registry.yarnpkg.com/@types/js-yaml/-/js-yaml-3.12.4.tgz#7d3b534ec35a0585128e2d332db1403ebe057e25"
+  integrity sha512-fYMgzN+9e28R81weVN49inn/u798ruU91En1ZnGvSZzCRc5jXx9B2EDhlRaWmcO1RIxFHL8AajRXzxDuJu93+A==
+
 "@types/json-schema@^7.0.3":
   version "7.0.4"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/@types/json-schema/-/json-schema-7.0.4.tgz#38fd73ddfd9b55abb1e1b2ed578cb55bd7b7d339"
@@ -8414,6 +8419,14 @@ js-tokens@^3.0.2:
   resolved "https://packages.atlassian.com/api/npm/npm-remote/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
   integrity sha1-mGbfOVECEw449/mWvOtlRDIJwls=
 
+js-yaml@^3.10.0:
+  version "3.14.0"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.0.tgz#a7a34170f26a21bb162424d8adacb4113a69e482"
+  integrity sha512-/4IbIeHcD9VMHFqDR/gQ7EdZdLimOvW2DdcxFjdyyZ9NsbS+ccrXqVWDtab/lRl5AlUqmpBx8EhPaWR+OtY17A==
+  dependencies:
+    argparse "^1.0.7"
+    esprima "^4.0.0"
+
 js-yaml@^3.13.0, js-yaml@^3.13.1:
   version "3.13.1"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/js-yaml/-/js-yaml-3.13.1.tgz#aff151b30bfdfa8e49e05da22e7415e9dfa37847"
@@ -14115,6 +14128,13 @@ yallist@^4.0.0:
   version "4.0.0"
   resolved "https://packages.atlassian.com/api/npm/npm-remote/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha1-m7knkNnA7/7GO+c1GeEaNQGaOnI=
+
+yaml-cfn@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/yaml-cfn/-/yaml-cfn-0.2.3.tgz#2f528d79a971970bf74e8386408eb324fe330f6d"
+  integrity sha512-cCeX3mGhQdQJR1gdq2hJloXMh+Fkeq86Q0hyPs7UjBhaXwHYJJ+S+CbW+Fkm1FHXGhtUhcavnA+RM9ulLn6lOg==
+  dependencies:
+    js-yaml "^3.10.0"
 
 yaml@^1.7.2:
   version "1.8.3"
