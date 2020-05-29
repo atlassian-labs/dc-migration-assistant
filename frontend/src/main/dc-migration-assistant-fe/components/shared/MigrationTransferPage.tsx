@@ -52,6 +52,10 @@ export type MigrationTransferProps = {
     /**
      * @see MigrationProgressProps
      */
+    startButtonText?: string;
+    /**
+     * @see MigrationProgressProps
+     */
     startMoment?: moment.Moment;
     /**
      * The MigrationStages where this transfer is "in progress"
@@ -100,6 +104,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     heading,
     nextText,
     nextRoute,
+    startButtonText,
     startMoment,
     getProgress,
     inProgressStages,
@@ -235,6 +240,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                         <MigrationTransferActions
                             finished={finished}
                             nextText={nextText}
+                            startButtonText={startButtonText}
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}
                             onRefresh={updateProgress}
