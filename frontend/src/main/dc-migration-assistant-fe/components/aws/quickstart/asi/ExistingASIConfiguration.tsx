@@ -18,7 +18,7 @@ import { HelperMessage } from '@atlaskit/form';
 import SectionMessage from '@atlaskit/section-message';
 import Select, { OptionType } from '@atlaskit/select';
 import TextField from '@atlaskit/textfield';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { DeploymentMode } from '../QuickstartRoutes';
@@ -133,6 +133,11 @@ export const ExistingASIConfiguration: FunctionComponent<ExistingASIConfiguratio
     onSelectDeploymentMode,
 }) => {
     const [useExisting, setUseExisting] = useState<boolean>(true);
+
+    useEffect(() => {
+        // The default value of the radio button is existing VPC so we need to update the deployment mode based on that when first rendered
+        onSelectDeploymentMode(getDefaultDeploymentMode());
+    }, []);
 
     return (
         <>
