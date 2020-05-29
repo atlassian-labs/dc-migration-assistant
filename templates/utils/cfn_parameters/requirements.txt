@@ -1,0 +1,2 @@
+cfn-flip==1.2.3
+cfn-tools==0.1.6
