@@ -79,6 +79,7 @@ const props: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.db.title'),
     description: I18n.getText('atlassian.migration.datacenter.db.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
+    startButtonText: I18n.getText('atlassian.migration.datacenter.db.startButton'),
     startMigrationPhase: startDbMigration,
     inProgressStages: dbMigrationInProgressStages,
     getProgress: getProgressFromStatus,

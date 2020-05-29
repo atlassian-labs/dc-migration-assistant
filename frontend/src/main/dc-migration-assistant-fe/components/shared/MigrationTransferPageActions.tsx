@@ -33,6 +33,10 @@ export type MigrationTransferActionsProps = {
      */
     nextText: string;
     /**
+     * The text to display on the start button that initiates the migration transfer. Defaults to `Start`
+     */
+    startButtonText?: string;
+    /**
      * The path to take the user to whent hey click the "next" action button
      */
     nextRoute: string;
@@ -62,6 +66,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     finished,
     nextText,
     nextRoute,
+    startButtonText,
     startMigrationPhase,
     onRefresh: updateTransferProgress,
     started,
@@ -83,7 +88,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
             appearance="primary"
             onClick={startMigrationPhase}
         >
-            Start
+            {startButtonText ?? 'Start'}
         </Button>
     );
 

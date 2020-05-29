@@ -50,6 +50,10 @@ export type MigrationTransferProps = {
      */
     nextRoute: string;
     /**
+     * @see MigrationTransferActionsProps
+     */
+    startButtonText?: string;
+    /**
      * @see MigrationProgressProps
      */
     startMoment?: moment.Moment;
@@ -100,6 +104,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     heading,
     nextText,
     nextRoute,
+    startButtonText,
     startMoment,
     getProgress,
     inProgressStages,
@@ -235,6 +240,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                         <MigrationTransferActions
                             finished={finished}
                             nextText={nextText}
+                            startButtonText={startButtonText}
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}
                             onRefresh={updateProgress}
