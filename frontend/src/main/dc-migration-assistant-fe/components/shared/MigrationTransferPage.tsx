@@ -50,7 +50,7 @@ export type MigrationTransferProps = {
      */
     nextRoute: string;
     /**
-     * @see MigrationProgressProps
+     * @see MigrationTransferActionsProps
      */
     startButtonText?: string;
     /**
