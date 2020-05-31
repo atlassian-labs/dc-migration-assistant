@@ -79,7 +79,7 @@ const ASIPrefixOptionsFromList = (ASIs: Array<ASIDescription>): Array<OptionType
         )}: ${asi.stackName})`;
     return ASIs.map(asi => ({
         label: asiToOptionValue(asi),
-        value: asiToOptionValue(asi),
+        value: asi.prefix,
         key: asi.prefix,
     }));
 };

@@ -27,7 +27,7 @@ export enum ProvisioningStatus {
 
 enum RestApiPathConstants {
     GetDeploymentStatusPath = 'aws/stack/status',
-    GetASIInfoPath = `/aws/global-infrastructure/asi`,
+    GetASIInfoPath = `aws/global-infrastructure/asi`,
 }
 
 type InfrastructureDeploymentState =

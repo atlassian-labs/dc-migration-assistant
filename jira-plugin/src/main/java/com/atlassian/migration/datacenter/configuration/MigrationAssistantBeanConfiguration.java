@@ -53,9 +53,12 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
+import com.atlassian.migration.datacenter.core.fs.S3UploadJobRunner;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
+import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
+import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -284,5 +287,15 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public AtlassianInfrastructureService atlassianInfrastructureService(CfnApi cfnApi) {
         return new AtlassianInfrastructureService(cfnApi);
+    }
+
+    @Bean
+    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService);
+    }
+
+    @Bean
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService) {
+        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService);
     }
 }
