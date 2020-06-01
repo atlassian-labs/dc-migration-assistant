@@ -30,4 +30,7 @@ interface MigrationInfrastructureDeploymentService : DeploymentService {
      */
     @Throws(InvalidMigrationStageError::class)
     fun deployMigrationInfrastructure(params: Map<String, String>)
+
+    fun getDeadLetterQueueResource() : String
+    fun getQueueResource() : String
 }

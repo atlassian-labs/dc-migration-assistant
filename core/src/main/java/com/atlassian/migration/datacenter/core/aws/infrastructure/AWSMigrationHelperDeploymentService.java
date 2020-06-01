@@ -31,12 +31,14 @@ import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
 import software.amazon.awssdk.services.autoscaling.model.Instance;
+import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackResource;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -47,17 +49,24 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     private static final Logger logger = LoggerFactory.getLogger(AWSMigrationHelperDeploymentService.class);
     private static final String MIGRATION_HELPER_TEMPLATE_URL = "https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml";
+    static final String STACK_RESOURCE_QUEUE_NAME = "MigrationQueue";
+    static final String STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME = "DeadLetterQueue";
 
     private static final String templateUrl = System.getProperty("migration_helper.template.url", MIGRATION_HELPER_TEMPLATE_URL);
 
-    private final Supplier<AutoScalingClient> autoscalingClientFactory;
+    private final Supplier<AutoScalingClient> autoScalingClientFactory;
     private final MigrationService migrationService;
     private final CfnApi cfnApi;
+
+
+    //    TODO: CHET443-Store in context and not in variables
     private String fsRestoreDocument;
     private String fsRestoreStatusDocument;
     private String rdsRestoreDocument;
     private String migrationStackASG;
     private String migrationBucket;
+    private String queueName;
+    private String deadLetterQueueName;
 
     public AWSMigrationHelperDeploymentService(CfnApi cfnApi, Supplier<AutoScalingClient> autoScalingClientFactory, MigrationService migrationService) {
         this(cfnApi, autoScalingClientFactory, migrationService, 30);
@@ -67,7 +76,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         super(cfnApi, pollIntervalSeconds);
         this.migrationService = migrationService;
         this.cfnApi = cfnApi;
-        this.autoscalingClientFactory = autoScalingClientFactory;
+        this.autoScalingClientFactory = autoScalingClientFactory;
     }
 
     /**
@@ -81,23 +90,13 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
         migrationService.assertCurrentStage(MigrationStage.PROVISION_MIGRATION_STACK);
 
-        String applicationDeploymentId = migrationService.getCurrentContext().getApplicationDeploymentId();
-        String migrationStackDeploymentId = applicationDeploymentId + "-migration";
+        String migrationStackDeploymentId = constructMigrationStackDeploymentIdentifier();
         super.deployCloudformationStack(templateUrl, migrationStackDeploymentId, params);
         migrationService.transition(MigrationStage.PROVISION_MIGRATION_STACK_WAIT);
 
-        final MigrationContext context = migrationService.getCurrentContext();
-        context.setHelperStackDeploymentId(migrationStackDeploymentId);
-        context.save();
+        storeMigrationStackDetailsInContext(migrationStackDeploymentId);
     }
 
-    private void resetStackOutputs() {
-        fsRestoreDocument = "";
-        fsRestoreStatusDocument = "";
-        rdsRestoreDocument = "";
-        migrationStackASG = "";
-        migrationBucket = "";
-    }
 
     @Override
     protected void handleSuccessfulDeployment() {
@@ -109,16 +108,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
         Stack stack = maybeStack.get();
 
-        Map<String, String> outputsMap = new HashMap<>();
-        stack.outputs().forEach(output -> {
-            outputsMap.put(output.outputKey(), output.outputValue());
-        });
+        Map<String, String> stackOutputs = stack
+                .outputs()
+                .stream()
+                .collect(Collectors.toMap(Output::outputKey, Output::outputValue, (a, b) -> b));
 
-        fsRestoreDocument = outputsMap.get("DownloadSSMDocument");
-        fsRestoreStatusDocument = outputsMap.get("DownloadStatusSSMDocument");
-        rdsRestoreDocument = outputsMap.get("RdsRestoreSSMDocument");
-        migrationStackASG = outputsMap.get("ServerGroup");
-        migrationBucket = outputsMap.get("MigrationBucket");
+        Map<String, StackResource> migrationStackResources = cfnApi.getStackResources(stackId);
+
+        persistStackDetails(stackId, stackOutputs, migrationStackResources);
 
         try {
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY);
@@ -126,6 +123,16 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
             logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment", invalidMigrationStageError);
             migrationService.error(invalidMigrationStageError.getMessage());
         }
+    }
+
+    private void persistStackDetails(String stackId, Map<String, String> outputsMap, Map<String, StackResource> resources) {
+        fsRestoreDocument = outputsMap.get("DownloadSSMDocument");
+        fsRestoreStatusDocument = outputsMap.get("DownloadStatusSSMDocument");
+        rdsRestoreDocument = outputsMap.get("RdsRestoreSSMDocument");
+        migrationStackASG = outputsMap.get("ServerGroup");
+        migrationBucket = outputsMap.get("MigrationBucket");
+        queueName = resources.get("MigrationQueue").physicalResourceId();
+        deadLetterQueueName = resources.get("DeadLetterQueue").physicalResourceId();
     }
 
     @Override
@@ -138,7 +145,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     public String getFsRestoreStatusDocument() {
-        return getMigrationStackPropertyOrOverride(fsRestoreStatusDocument, "com.atlassian.migration.s3sync.statusDocmentName");
+        return getMigrationStackPropertyOrOverride(fsRestoreStatusDocument, "com.atlassian.migration.s3sync.statusDocumentName");
     }
 
     public String getDbRestoreDocument() {
@@ -149,6 +156,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         return getMigrationStackPropertyOrOverride(migrationBucket, "S3_TARGET_BUCKET_NAME");
     }
 
+    public String getQueueResource() {
+        return getMigrationStackPropertyOrOverride(queueName, "com.atlassian.migration.queue.migrationQueueName");
+    }
+
+    public String getDeadLetterQueueResource() {
+        return getMigrationStackPropertyOrOverride(deadLetterQueueName, "com.atlassian.migration.queue.deadLetterQueueName");
+    }
+
     public String getMigrationHostInstanceId() {
         final String documentOverride = System.getProperty("com.atlassian.migration.instanceId");
         if (documentOverride != null) {
@@ -156,7 +171,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         } else {
             ensureStackOutputsAreSet();
 
-            AutoScalingClient client = autoscalingClientFactory.get();
+            AutoScalingClient client = autoScalingClientFactory.get();
             DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
                     DescribeAutoScalingGroupsRequest.builder()
                             .autoScalingGroupNames(migrationStackASG)
@@ -171,21 +186,24 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     private String getMigrationStackPropertyOrOverride(String migrationStackProperty, String migrationStackPropertySystemOverrideKey) {
         final String documentOverride = System.getProperty(migrationStackPropertySystemOverrideKey);
+
         if (documentOverride != null) {
             return documentOverride;
-        } else {
-            ensureStackOutputsAreSet();
-            return migrationStackProperty;
         }
+
+        ensureStackOutputsAreSet();
+        return migrationStackProperty;
     }
 
     private void ensureStackOutputsAreSet() {
         final Stream<String> stackOutputs = Stream.of(
-                this.fsRestoreDocument,
+                fsRestoreDocument,
                 fsRestoreStatusDocument,
                 rdsRestoreDocument,
                 migrationBucket,
-                migrationStackASG);
+                migrationStackASG,
+                queueName,
+                deadLetterQueueName);
         if (stackOutputs.anyMatch(output -> output == null || output.equals(""))) {
             throw new InfrastructureDeploymentError("migration stack outputs are not set");
         }
@@ -194,5 +212,26 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     @Override
     public InfrastructureDeploymentStatus getDeploymentStatus() {
         return super.getDeploymentStatus(migrationService.getCurrentContext().getHelperStackDeploymentId());
+    }
+
+    private String constructMigrationStackDeploymentIdentifier() {
+        return String.format("%s-migration", migrationService.getCurrentContext().getApplicationDeploymentId());
+    }
+
+    protected void storeMigrationStackDetailsInContext(String migrationStackDeploymentId) {
+        final MigrationContext context = migrationService.getCurrentContext();
+        context.setHelperStackDeploymentId(migrationStackDeploymentId);
+        context.save();
+    }
+
+    //TODO: CHET443-Store in context and no longer needed to do this?
+    private void resetStackOutputs() {
+        fsRestoreDocument = "";
+        fsRestoreStatusDocument = "";
+        rdsRestoreDocument = "";
+        migrationStackASG = "";
+        migrationBucket = "";
+        queueName = "";
+        deadLetterQueueName = "";
     }
 }

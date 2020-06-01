@@ -19,8 +19,8 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,13 +36,16 @@ import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGrou
 import software.amazon.awssdk.services.autoscaling.model.Instance;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
-import software.amazon.awssdk.services.cloudformation.model.StackStatus;
+import software.amazon.awssdk.services.cloudformation.model.StackResource;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME;
+import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_QUEUE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -64,6 +67,8 @@ class AWSMigrationHelperDeploymentServiceTest {
     static final String MIGRATION_BUCKET = "migration-bucket";
     static final String MIGRATION_HOST_INSTANCE_ID = "i-12345";
     public static final String DEPLOYMENT_FAILURE_MESSAGE = "it broke";
+    public static final String QUEUE_PHYSICAL_RESOURCE_ID = "https://sqs.someRegion.amazonaws.com/accountId/queue-name";
+    public static final String DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID = "https://sqs.someRegion.amazonaws.com/accountId/dead-letter-queue-name";
 
     @Mock
     CfnApi mockCfn;
@@ -132,7 +137,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldReturnErrorWhenCloudformationDeploymentFails() throws InterruptedException {
+    void shouldReturnErrorWhenCloudFormationDeploymentFails() throws InterruptedException {
         givenMigrationStackDeploymentWillFail();
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
@@ -145,7 +150,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shoudGatherResourcesRequiredForMigration() throws InterruptedException {
+    void shouldGatherResourcesRequiredForMigration() throws InterruptedException {
         givenMigrationStackDeploymentWillCompleteSuccessfully();
         givenMigrationStackHasStartedDeploying();
 
@@ -183,6 +188,8 @@ class AWSMigrationHelperDeploymentServiceTest {
         assertEquals(DB_RESTORE_DOC, sut.getDbRestoreDocument());
         assertEquals(MIGRATION_BUCKET, sut.getMigrationS3BucketName());
         assertEquals(MIGRATION_HOST_INSTANCE_ID, sut.getMigrationHostInstanceId());
+        assertEquals(QUEUE_PHYSICAL_RESOURCE_ID, sut.getQueueResource());
+        assertEquals(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID, sut.getDeadLetterQueueResource());
     }
 
     private void givenMigrationStackHasStartedDeploying() {
@@ -230,6 +237,11 @@ class AWSMigrationHelperDeploymentServiceTest {
                                         ).build()
                         ).build()
         );
+
+        when(mockCfn.getStackResources(DEPLOYMENT_ID)).thenReturn(new HashMap<String, StackResource>() {{
+            put(STACK_RESOURCE_QUEUE_NAME, StackResource.builder().physicalResourceId(QUEUE_PHYSICAL_RESOURCE_ID).build());
+            put(STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME, StackResource.builder().physicalResourceId(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID).build());
+        }});
     }
 
     private void givenMigrationStackDeploymentWillFail() {
