@@ -26,7 +26,7 @@ class ProvisioningConfigTest {
     fun shouldBeDeserialisable() {
         val jiraProductJSONKey = "JiraProduct"
         val jiraProductJSONValue = "Software"
-        val stackName = "bpartridge-treb-20"
+        val stackName = "treb-20"
         val instanceCountKey = "instanceCount"
         val instanceCountValue = "2"
         val json = """
