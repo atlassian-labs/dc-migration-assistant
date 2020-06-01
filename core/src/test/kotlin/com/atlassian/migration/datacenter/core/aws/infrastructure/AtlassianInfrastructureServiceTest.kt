@@ -59,8 +59,7 @@ internal class AtlassianInfrastructureServiceTest {
                         .parameters(export)
                         .build()
         )
-        val asis = service.findASIs()
-        assertEquals(asis.count(), 1)
+        assertEquals(1, service.findASIs().count())
     }
 
     @Test
@@ -68,8 +67,7 @@ internal class AtlassianInfrastructureServiceTest {
         every { cfnApi.listStacksFull() } returns listOf(
                 Stack.builder().outputs(vpcid, privatesn).build()
         )
-        val asis = service.findASIs()
-        assertEquals(asis.count(), 0)
+        assertEquals(0, service.findASIs().count())
     }
 
     @Test
@@ -79,8 +77,7 @@ internal class AtlassianInfrastructureServiceTest {
                 Stack.builder().outputs(vpcid, privatesn, publicsn).parameters(export).build(),
                 Stack.builder().outputs(vpcid, privatesn, dummy2).build()
         )
-        val asis = service.findASIs()
-        assertEquals(asis.count(), 1)
+        assertEquals(1, service.findASIs().count())
     }
 
 }
