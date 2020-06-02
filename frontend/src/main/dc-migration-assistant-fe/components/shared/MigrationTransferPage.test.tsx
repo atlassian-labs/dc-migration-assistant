@@ -36,10 +36,12 @@ const props: MigrationTransferProps = {
     getProgress: () => {
         return new Promise(resolve => {
             setTimeout(() => {
-                resolve({
-                    completeness: 0.5,
-                    phase: 'uploading files...',
-                });
+                resolve([
+                    {
+                        completeness: 0.5,
+                        phase: 'uploading files...',
+                    },
+                ]);
             }, 500);
         });
     },

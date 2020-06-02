@@ -117,7 +117,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     startMigrationPhase,
     getDetails: getCommandresult,
 }) => {
-    const [progressList, setProgressList] = useState<Array<Progress>>();
+    const [progressList, setProgressList] = useState<Array<Progress>>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
@@ -197,9 +197,11 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return <Redirect to={migrationErrorPath} push />;
     }
 
-    const transferError = progressList.map(progress => {
-        return <p key={progress.phase}>{progress?.errorMessage}</p>;
-    });
+    const transferError = progressList
+        .filter(progress => progress?.errorMessage)
+        .map(progress => {
+            return <p key={progress.phase}>{progress?.errorMessage}</p>;
+        });
 
     const LearnMoreLink =
         'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
@@ -215,9 +217,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             ) : (
                 <>
                     <TransferContentContainer>
-                        {(transferError || progressFetchingError) && (
+                        {(transferError.length !== 0 || progressFetchingError) && (
                             <SectionMessage appearance="error">
-                                {transferError || ''}
+                                {...transferError}
                                 <p>
                                     {progressFetchingError || ''}{' '}
                                     <a
