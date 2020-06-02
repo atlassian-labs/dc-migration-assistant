@@ -60,25 +60,23 @@ const toProgress = (status: DatabaseMigrationStatus): Progress => {
     return builder.build();
 };
 
-const fetchDBMigrationStatus = (): Promise<DatabaseMigrationStatus> => {
+const fetchDBMigrationStatus = async (): Promise<DatabaseMigrationStatus> => {
     return callAppRest('GET', dbStatusReportEndpoint)
         .then((result: Response) => result.json())
-        .then((result: FinalSyncStatus) => {
-            const dbStatus = result.db;
-            console.log(dbStatus);
-            return dbStatus;
-        });
+        .then((result: FinalSyncStatus) => result.db);
 };
 
-const startDbMigration = (): Promise<void> => {
+const startDbMigration = async (): Promise<void> => {
     return callAppRest('PUT', dbStartEndpoint).then(result => result.json());
 };
 
-const getProgressFromStatus = (): Promise<Progress> => {
-    return fetchDBMigrationStatus().then(toProgress);
+const getProgressFromStatus: ProgressCallback = async () => {
+    return fetchDBMigrationStatus()
+        .then(toProgress)
+        .then(progress => [progress]);
 };
 
-const fetchDBMigrationLogs = (): Promise<CommandDetails> => {
+const fetchDBMigrationLogs = async (): Promise<CommandDetails> => {
     return callAppRest('GET', dbLogsEndpoint).then(result => result.json());
 };
 
