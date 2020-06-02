@@ -1,9 +1,5 @@
 version: '3.5'
 
-configs:
-  sql:
-    file: "jira.dump"
-
 services:
 
   postgresql:
@@ -16,9 +12,12 @@ services:
       - 'POSTGRES_ENCODING=UNICODE'
       - 'POSTGRES_COLLATE=C'
       - 'POSTGRES_COLLATE_TYPE=C'
+      - "LANG=C"
 
   jira:
-    image: atlassian/jira-software
+    build:
+      context: ./jira
+    #image: atlassian/jira-software
     depends_on:
       - postgresql
     ports:
@@ -31,4 +30,4 @@ services:
       - 'ATL_DB_TYPE=postgres72'
       - 'ATL_TOMCAT_CONTEXTPATH=/jira'
       - 'JVM_SUPPORT_RECOMMENDED_ARGS=-Dspring.profiles.active=allowAnyTransition'
-    command: bash -c 'sleep 5 && /entrypoint.py'
+    command: bash -c 'waitport postgresql 5432 && chown -R jira.jira  /var/atlassian/application-data/jira/ && /entrypoint.py'
