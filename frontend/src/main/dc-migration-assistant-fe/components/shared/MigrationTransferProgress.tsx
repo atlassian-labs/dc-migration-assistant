@@ -78,7 +78,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                     {progress.completeness === undefined &&
                         ` (${I18n.getText('atlassian.migration.datacenter.common.estimating')}...)`}
                 </h4>
-                {progress.completeness ? (
+                {progress.completeness !== undefined ? (
                     <SuccessProgressBar value={progress.completeness} />
                 ) : (
                     <ProgressBar isIndeterminate />
