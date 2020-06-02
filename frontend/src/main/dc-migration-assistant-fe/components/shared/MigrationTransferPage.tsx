@@ -117,7 +117,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     startMigrationPhase,
     getDetails: getCommandresult,
 }) => {
-    const [progress, setProgress] = useState<Progress>();
+    const [progressList, setProgressList] = useState<Array<Progress>>();
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
@@ -127,11 +127,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const updateProgress = (): Promise<void> => {
         return getProgress()
             .then(result => {
-                setProgress(result);
+                setProgressList(result);
                 setLoading(false);
-                if (progress?.completeness === 1) {
-                    setFinished(true);
-                }
+                setFinished(progressList.every(progress => progress?.completeness === 1));
             })
             .catch(err => {
                 setProgressFetchingError(err.message);
@@ -195,11 +193,13 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return (): void => undefined;
     }, [started]);
 
-    if (progress?.failed) {
+    if (progressList.some(progress => progress?.failed)) {
         return <Redirect to={migrationErrorPath} push />;
     }
 
-    const transferError = progress?.errorMessage;
+    const transferError = progressList.map(progress => {
+        return <p key={progress.phase}>{progress?.errorMessage}</p>;
+    });
 
     const LearnMoreLink =
         'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
@@ -232,13 +232,15 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 </p>
                             </SectionMessage>
                         )}
-                        {started && (
-                            <MigrationProgress
-                                progress={progress}
-                                loading={loading}
-                                startedMoment={startMoment}
-                            />
-                        )}
+                        {started &&
+                            progressList.map(progress => (
+                                <MigrationProgress
+                                    key={progress.phase}
+                                    progress={progress}
+                                    loading={loading}
+                                    startedMoment={startMoment}
+                                />
+                            ))}
                         {commandResult?.errorMessage && (
                             <MigrationErrorSection result={commandResult} />
                         )}
