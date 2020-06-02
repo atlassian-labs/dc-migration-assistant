@@ -1,8 +1,11 @@
 package com.atlassian.migration.datacenter.core.aws
 
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueApiUnsuccessfulResponse
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueConnectionException
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,7 +15,6 @@ import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE
-import java.lang.Exception
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.function.Supplier
@@ -43,8 +45,8 @@ internal class SqsApiImplTest {
                 GetQueueAttributesResponse
                         .builder()
                         .attributes(
-                                mapOf(APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE to "20",
-                                        APPROXIMATE_NUMBER_OF_MESSAGES to "22")
+                                mapOf(APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE to "2",
+                                        APPROXIMATE_NUMBER_OF_MESSAGES to "40")
                         )
                         .build()
         )
@@ -97,10 +99,27 @@ internal class SqsApiImplTest {
     }
 
     @Test
-    fun shouldBeNullWhenQueueAttributesCannotBeRetrieved() {
+    fun shouldRaiseExceptionWhenQueueAttributesCannotBeRetrieved() {
+        val queueUrl = "https://sqs/bar"
+
+        every {
+            sqsAsyncClient.getQueueAttributes(
+                    GetQueueAttributesRequest.builder()
+                            .queueUrl(queueUrl)
+                            .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES, APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE)
+                            .build())
+        } returns completedFuture(GetQueueAttributesResponse.builder().build())
+
+
+        Assertions.assertThrows(AwsQueueApiUnsuccessfulResponse::class.java) { sqs.getQueueLength(queueUrl) }
+    }
+
+
+    @Test
+    fun shouldRaiseExceptionWhenQueueSQSApiCompletesExceptionally() {
         val queueUrl = "https://sqs/bar"
         val errorCompletableFuture = CompletableFuture<GetQueueAttributesResponse>()
-        errorCompletableFuture.completeExceptionally(Exception("Cf error"))
+        errorCompletableFuture.cancel(true)
 
         every {
             sqsAsyncClient.getQueueAttributes(
@@ -109,8 +128,7 @@ internal class SqsApiImplTest {
                             .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES, APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE)
                             .build())
         } returns errorCompletableFuture
-        val queueLength = sqs.getQueueLength(queueUrl)
-        assertEquals(null, queueLength)
-    }
 
+        Assertions.assertThrows(AwsQueueConnectionException::class.java) { sqs.getQueueLength(queueUrl) }
+    }
 }

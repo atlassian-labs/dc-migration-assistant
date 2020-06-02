@@ -1,5 +1,8 @@
 package com.atlassian.migration.datacenter.core.aws
 
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError
+
 interface SqsApi {
-    fun getQueueLength(queueName: String) : Int?
+    @Throws(AwsQueueError::class)
+    fun getQueueLength(queueUrl: String) : Int?
 }

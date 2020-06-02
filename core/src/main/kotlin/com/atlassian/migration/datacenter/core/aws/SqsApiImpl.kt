@@ -1,10 +1,12 @@
 package com.atlassian.migration.datacenter.core.aws
 
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueApiUnsuccessfulResponse
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueConnectionException
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName.*
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE
 import java.util.function.Supplier
 
 class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsApi {
@@ -13,11 +15,11 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
         private val logger = LoggerFactory.getLogger(SqsApiImpl::class.java)
     }
 
-    override fun getQueueLength(queueName: String): Int? {
+    override fun getQueueLength(queueUrl: String): Int? {
         val sqsAsyncClient = this.sqsClientSupplier.get()
         val request = GetQueueAttributesRequest
                 .builder()
-                .queueUrl(queueName)
+                .queueUrl(queueUrl)
                 .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES, APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE)
                 .build()
 
@@ -32,9 +34,10 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
                 return (messageCountInQueue?.toIntOrNull() ?: 0) + (messageCountInFlight?.toIntOrNull() ?: 0)
             }
         } catch (ex: Exception) {
-            logger.error("Error while trying to query SQS API", ex)
-            return null
+            val errorMessage = "Error while trying to query SQS API"
+            logger.error(errorMessage, ex)
+            throw AwsQueueConnectionException(errorMessage, ex)
         }
-        return null
+        throw AwsQueueApiUnsuccessfulResponse("Unable to retrieve queue attributes from SQS")
     }
 }
