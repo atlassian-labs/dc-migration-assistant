@@ -29,6 +29,7 @@ import {
     DBMigrationStatus,
     CommandDetails,
     FinalSyncStatus,
+    FinalFileSyncStatus,
 } from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
@@ -42,7 +43,7 @@ const dbMigrationInProgressStages = [
     MigrationStage.DB_MIGRATION_UPLOAD_WAIT,
 ];
 
-const toProgress = (status: DatabaseMigrationStatus): Progress => {
+const dbStatusToProgress = (status: DatabaseMigrationStatus): Progress => {
     const builder = new ProgressBuilder();
 
     builder.setPhase(statusToI18nString(status.status));
@@ -60,10 +61,31 @@ const toProgress = (status: DatabaseMigrationStatus): Progress => {
     return builder.build();
 };
 
-const fetchDBMigrationStatus = async (): Promise<DatabaseMigrationStatus> => {
-    return callAppRest('GET', dbStatusReportEndpoint)
-        .then((result: Response) => result.json())
-        .then((result: FinalSyncStatus) => result.db);
+const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
+    const { fs, db } = status;
+    const { downloaded, uploaded } = fs;
+    const builder = new ProgressBuilder();
+    builder.setPhase(I18n.getText('atlassian.migration.datacenter.sync.fs.phase'));
+    // FIXME: This time will be wrong when one of the components of final sync completes
+    builder.setElapsedSeconds(db.elapsedTime.seconds);
+    builder.setCompleteness(uploaded === 0 ? 0 : downloaded / uploaded);
+
+    if (downloaded === uploaded) {
+        builder.setCompleteMessage(
+            I18n.getText(
+                'atlassian.migration.datacenter.sync.fs.completeMessage.boldPrefix',
+                downloaded,
+                uploaded
+            ),
+            I18n.getText('atlassian.migration.datacenter.sync.fs.completeMessage.message')
+        );
+    }
+
+    return builder.build();
+};
+
+const fetchFinalSyncStatus = async (): Promise<FinalSyncStatus> => {
+    return callAppRest('GET', dbStatusReportEndpoint).then((result: Response) => result.json());
 };
 
 const startDbMigration = async (): Promise<void> => {
@@ -71,9 +93,9 @@ const startDbMigration = async (): Promise<void> => {
 };
 
 const getProgressFromStatus: ProgressCallback = async () => {
-    return fetchDBMigrationStatus()
-        .then(toProgress)
-        .then(progress => [progress]);
+    return fetchFinalSyncStatus().then(result => {
+        return [dbStatusToProgress(result.db), fsSyncStatusToProgress(result)];
+    });
 };
 
 const fetchDBMigrationLogs = async (): Promise<CommandDetails> => {
