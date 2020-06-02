@@ -124,12 +124,14 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const [finished, setFinished] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
 
-    const updateProgress = (): Promise<void> => {
+    const updateProgress = async (): Promise<void> => {
         return getProgress()
             .then(result => {
                 setProgressList(result);
                 setLoading(false);
-                setFinished(progressList.every(progress => progress?.completeness === 1));
+                const allFinished =
+                    result.length > 0 && result.every(progress => progress?.completeness === 1);
+                setFinished(allFinished);
             })
             .catch(err => {
                 setProgressFetchingError(err.message);
@@ -137,7 +139,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             });
     };
 
-    const startMigration = (): Promise<void> => {
+    const startMigration = async (): Promise<void> => {
         setLoading(true);
         setProgressFetchingError('');
         return startMigrationPhase()
