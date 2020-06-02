@@ -16,6 +16,8 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
+import com.atlassian.migration.datacenter.core.aws.EmptyQueueSqsApi;
+import com.atlassian.migration.datacenter.core.aws.SqsApi;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 
 import org.springframework.context.annotation.Bean;
@@ -30,6 +32,13 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Primary
     public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
         return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome);
+    }
+
+    @Bean
+    @Profile("emptySqs")
+    @Primary
+    public SqsApi emptyQueueSqsApi() {
+        return new EmptyQueueSqsApi();
     }
 
 }
