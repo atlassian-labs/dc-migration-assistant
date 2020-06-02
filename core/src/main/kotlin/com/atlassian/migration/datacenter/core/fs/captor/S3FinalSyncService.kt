@@ -49,7 +49,16 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
         migrationService.error("Aborted final file sync")
     }
 
+
+    fun getFinalSyncStatus() : FinalSyncStatus {
+        return FinalSyncStatus(0,0)
+    }
+
     private fun getScheduledJobId(): JobId {
         return JobId.of(DatabaseMigrationJobRunner.KEY + migrationService.currentMigration.id)
     }
+}
+
+class FinalSyncStatus(private val uploadedFileCount: Int, private val enqueuedFileCount: Int) {
+
 }
