@@ -68,5 +68,4 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
     }
 }
 
-
 class FinalFileSyncStatus(val uploadedFileCount: Int, val enqueuedFileCount: Int)
