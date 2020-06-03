@@ -17,10 +17,10 @@
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationDuration } from './common';
 
-const dbAPIBase = 'migration/final-sync';
-export const dbStatusReportEndpoint = `${dbAPIBase}/status`;
-export const dbStartEndpoint = `${dbAPIBase}/start`;
-export const dbLogsEndpoint = `${dbAPIBase}/db-logs`;
+const finalSyncAPIBase = 'migration/final-sync';
+export const finalSyncStatusEndpoint = `${finalSyncAPIBase}/status`;
+export const finalSyncStartEndpoint = `${finalSyncAPIBase}/start`;
+export const dbLogsEndpoint = `${finalSyncAPIBase}/db-logs`;
 
 export enum DBMigrationStatus {
     NOT_STARTED = 'NOT_STARTED',
@@ -50,7 +50,7 @@ export const statusToI18nString = (status: DBMigrationStatus): string => {
 };
 
 export type FinalSyncStatus = {
-    db: DatabaseMigrationStatus;
+    db: DatabaseMigrationStatusResult;
     fs: FinalFileSyncStatus;
 };
 
@@ -60,7 +60,7 @@ export type FinalFileSyncStatus = {
 };
 
 // See DatabaseMigrationProgress.kt
-export type DatabaseMigrationStatus = {
+export type DatabaseMigrationStatusResult = {
     status: DBMigrationStatus;
     elapsedTime: MigrationDuration;
 };

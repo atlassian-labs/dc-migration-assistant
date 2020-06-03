@@ -21,7 +21,7 @@ import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import Panel from '@atlaskit/panel';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
-import { Progress, ProgressBuilder } from '../shared/Progress';
+import { ProgressBuilder, ProgressCallback } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { migration, MigrationStage } from '../../api/migration';
 import { warningPath } from '../../utils/RoutePaths';
@@ -91,7 +91,7 @@ const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string =
     }
 };
 
-const getFsMigrationProgress = (): Promise<Progress> => {
+const getFsMigrationProgress: ProgressCallback = async () => {
     return fs
         .getFsMigrationStatus()
         .then(result => {
@@ -128,7 +128,8 @@ const getFsMigrationProgress = (): Promise<Progress> => {
                 phase: I18n.getText('atlassian.migration.datacenter.generic.error'),
                 error: error.message,
             };
-        });
+        })
+        .then(progress => [progress]);
 };
 
 const fsMigrationTranferPageProps: MigrationTransferProps = {

@@ -36,19 +36,19 @@ export const getPathForStage = (stage: MigrationStage): string => {
         case 'fs_migration_copy_wait':
             return paths.fsPath;
         case 'offline_warning':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'db_migration_export':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'db_migration_export_wait':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'db_migration_upload':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'db_migration_upload_wait':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'data_migration_import':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'data_migration_import_wait':
-            return paths.dbPath;
+            return paths.finalSyncPath;
         case 'validate':
             return paths.validationPath;
         case 'cutover':

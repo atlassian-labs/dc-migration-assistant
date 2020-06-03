@@ -23,7 +23,7 @@ import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
 import { fsPath } from '../../../utils/RoutePaths';
 
-const getDeploymentProgress: ProgressCallback = () => {
+const getDeploymentProgress: ProgressCallback = async () => {
     return provisioning
         .getProvisioningStatus()
         .then(result => {
@@ -62,7 +62,8 @@ const getDeploymentProgress: ProgressCallback = () => {
             builder.setCompleteness(0);
             builder.setFailed(true);
             return builder.build();
-        });
+        })
+        .then(progress => [progress]);
 };
 
 const inProgressStages = [

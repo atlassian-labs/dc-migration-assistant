@@ -19,26 +19,30 @@ import { enableFetchMocks } from 'jest-fetch-mock';
 enableFetchMocks();
 
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-import { DatabaseTransferPage } from './DatabaseMigration';
+import { FinalSyncPage } from './FinalSync';
 
 describe('Database Migration page', () => {
     beforeEach(() => {
-        fetchMock.resetMocks()
+        fetchMock.resetMocks();
     });
 
     it('should render', () => {
-        fetchMock.mockResponseOnce(JSON.stringify({ status: "NOT_STARTED", elapsedTime: { seconds: 1, nanos: 2} }))
-
-        const { getByText } = render(
-            <Router>
-                <DatabaseTransferPage />
-            </Router>
+        fetchMock.mockResponseOnce(
+            JSON.stringify({ status: 'NOT_STARTED', elapsedTime: { seconds: 1, nanos: 2 } })
         );
 
-        expect(getByText('atlassian.migration.datacenter.db.title')).toBeTruthy();
-        expect(getByText('atlassian.migration.datacenter.db.description')).toBeTruthy();
+        act(async () => {
+            const { getByText } = render(
+                <Router>
+                    <FinalSyncPage />
+                </Router>
+            );
+
+            expect(getByText('atlassian.migration.datacenter.finalSync.title')).toBeTruthy();
+            expect(getByText('atlassian.migration.datacenter.finalSync.description')).toBeTruthy();
+        });
     });
 });

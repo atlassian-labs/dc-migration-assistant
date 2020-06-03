@@ -104,6 +104,13 @@ const TransferActionsContainer = styled.div`
 
     margin-top: 20px;
 `;
+
+const Divider = styled.div`
+    margin-top: 30px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgb(223, 225, 230);
+`;
+
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     infoLink,
@@ -117,21 +124,21 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     startMigrationPhase,
     getDetails: getCommandresult,
 }) => {
-    const [progress, setProgress] = useState<Progress>();
+    const [progressList, setProgressList] = useState<Array<Progress>>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
     const [finished, setFinished] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
 
-    const updateProgress = (): Promise<void> => {
+    const updateProgress = async (): Promise<void> => {
         return getProgress()
             .then(result => {
-                setProgress(result);
+                setProgressList(result);
                 setLoading(false);
-                if (progress?.completeness === 1) {
-                    setFinished(true);
-                }
+                const allFinished =
+                    result.length > 0 && result.every(progress => progress?.completeness === 1);
+                setFinished(allFinished);
             })
             .catch(err => {
                 setProgressFetchingError(err.message);
@@ -139,7 +146,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             });
     };
 
-    const startMigration = (): Promise<void> => {
+    const startMigration = async (): Promise<void> => {
         setLoading(true);
         setProgressFetchingError('');
         return startMigrationPhase()
@@ -195,11 +202,15 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         return (): void => undefined;
     }, [started]);
 
-    if (progress?.failed) {
+    if (progressList.some(progress => progress?.failed)) {
         return <Redirect to={migrationErrorPath} push />;
     }
 
-    const transferError = progress?.errorMessage;
+    const transferError = progressList
+        .filter(progress => progress?.errorMessage)
+        .map(progress => {
+            return <p key={progress.phase}>{progress?.errorMessage}</p>;
+        });
 
     const LearnMoreLink =
         'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
@@ -215,9 +226,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             ) : (
                 <>
                     <TransferContentContainer>
-                        {(transferError || progressFetchingError) && (
+                        {(transferError.length !== 0 || progressFetchingError) && (
                             <SectionMessage appearance="error">
-                                {transferError || ''}
+                                {...transferError}
                                 <p>
                                     {progressFetchingError || ''}{' '}
                                     <a
@@ -232,13 +243,18 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 </p>
                             </SectionMessage>
                         )}
-                        {started && (
-                            <MigrationProgress
-                                progress={progress}
-                                loading={loading}
-                                startedMoment={startMoment}
-                            />
-                        )}
+                        {started &&
+                            progressList.map((progress, index) => (
+                                <>
+                                    <MigrationProgress
+                                        key={progress.phase}
+                                        progress={progress}
+                                        loading={loading}
+                                        startedMoment={startMoment}
+                                    />
+                                    {index !== progressList.length - 1 && <Divider />}
+                                </>
+                            ))}
                         {commandResult?.errorMessage && (
                             <MigrationErrorSection result={commandResult} />
                         )}

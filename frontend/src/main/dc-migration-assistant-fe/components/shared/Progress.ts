@@ -116,5 +116,6 @@ export class ProgressBuilder {
 }
 
 export interface ProgressCallback {
-    (): Promise<Progress>;
+    // We return an array of progress because multiple transfers can occur on one page
+    (): Promise<Array<Progress>>;
 }
