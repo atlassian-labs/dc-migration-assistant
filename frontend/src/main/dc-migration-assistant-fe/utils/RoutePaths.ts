@@ -37,7 +37,7 @@ export const quickstartStatusPath = `${awsBasePath}/provision/status`;
 export const awsAuthPath = `${awsBasePath}/auth`;
 
 export const fsPath = `${routePrefix}/fs`;
-export const dbPath = `${routePrefix}/db`;
+export const finalSyncPath = `${routePrefix}/final-sync`;
 
 export const warningPath = `${routePrefix}/warning`;
 

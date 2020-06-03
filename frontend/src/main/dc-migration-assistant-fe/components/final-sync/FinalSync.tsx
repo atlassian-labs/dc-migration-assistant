@@ -21,20 +21,19 @@ import { MigrationTransferProps, MigrationTransferPage } from '../shared/Migrati
 import { Progress, ProgressBuilder, ProgressCallback } from '../shared/Progress';
 import { callAppRest } from '../../utils/api';
 import {
-    dbStatusReportEndpoint,
-    dbStartEndpoint,
-    DatabaseMigrationStatus,
+    finalSyncStatusEndpoint,
+    finalSyncStartEndpoint,
+    DatabaseMigrationStatusResult,
     statusToI18nString,
     dbLogsEndpoint,
     DBMigrationStatus,
     CommandDetails,
     FinalSyncStatus,
-    FinalFileSyncStatus,
 } from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
 
-const dbMigrationInProgressStages = [
+const finalSyncInProgressStages = [
     MigrationStage.DATA_MIGRATION_IMPORT,
     MigrationStage.DATA_MIGRATION_IMPORT_WAIT,
     MigrationStage.DB_MIGRATION_EXPORT,
@@ -43,7 +42,7 @@ const dbMigrationInProgressStages = [
     MigrationStage.DB_MIGRATION_UPLOAD_WAIT,
 ];
 
-const dbStatusToProgress = (status: DatabaseMigrationStatus): Progress => {
+const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => {
     const builder = new ProgressBuilder();
 
     builder.setPhase(statusToI18nString(status.status));
@@ -85,11 +84,11 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
 };
 
 const fetchFinalSyncStatus = async (): Promise<FinalSyncStatus> => {
-    return callAppRest('GET', dbStatusReportEndpoint).then((result: Response) => result.json());
+    return callAppRest('GET', finalSyncStatusEndpoint).then((result: Response) => result.json());
 };
 
-const startDbMigration = async (): Promise<void> => {
-    return callAppRest('PUT', dbStartEndpoint).then(result => result.json());
+const startFinalSync = async (): Promise<void> => {
+    return callAppRest('PUT', finalSyncStartEndpoint).then(result => result.json());
 };
 
 const getProgressFromStatus: ProgressCallback = async () => {
@@ -103,17 +102,17 @@ const fetchDBMigrationLogs = async (): Promise<CommandDetails> => {
 };
 
 const props: MigrationTransferProps = {
-    heading: I18n.getText('atlassian.migration.datacenter.db.title'),
-    description: I18n.getText('atlassian.migration.datacenter.db.description'),
+    heading: I18n.getText('atlassian.migration.datacenter.finalSync.title'),
+    description: I18n.getText('atlassian.migration.datacenter.finalSync.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    startButtonText: I18n.getText('atlassian.migration.datacenter.db.startButton'),
-    startMigrationPhase: startDbMigration,
-    inProgressStages: dbMigrationInProgressStages,
+    startButtonText: I18n.getText('atlassian.migration.datacenter.finalSync.startButton'),
+    startMigrationPhase: startFinalSync,
+    inProgressStages: finalSyncInProgressStages,
     getProgress: getProgressFromStatus,
     nextRoute: validationPath,
     getDetails: fetchDBMigrationLogs,
 };
 
-export const DatabaseTransferPage: FunctionComponent = () => {
+export const FinalSyncPage: FunctionComponent = () => {
     return <MigrationTransferPage {...props} />;
 };

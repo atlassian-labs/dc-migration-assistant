@@ -19,7 +19,7 @@ import SectionMessage from '@atlaskit/section-message';
 import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
 import styled from 'styled-components';
-import { dbPath } from '../../utils/RoutePaths';
+import { finalSyncPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
 import { CapturedFiles } from './CapturedFiles';
@@ -88,7 +88,12 @@ export const WarningStagePage: FunctionComponent = () => {
     };
 
     const NextButton = (
-        <Button href={dbPath} isDisabled={!agreed} appearance="primary" style={nextButtonStyle}>
+        <Button
+            href={finalSyncPath}
+            isDisabled={!agreed}
+            appearance="primary"
+            style={nextButtonStyle}
+        >
             {I18n.getText('atlassian.migration.datacenter.generic.next')}
         </Button>
     );
