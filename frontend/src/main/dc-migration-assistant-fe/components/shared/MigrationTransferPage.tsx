@@ -82,11 +82,10 @@ export type MigrationTransferProps = {
 const TransferPageContainer = styled.div`
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: 80%;
     margin-right: auto;
     margin-bottom: auto;
     padding-left: 15px;
-    max-width: 920px;
 `;
 
 const TransferContentContainer = styled.div`
@@ -104,6 +103,13 @@ const TransferActionsContainer = styled.div`
 
     margin-top: 20px;
 `;
+
+const Divider = styled.div`
+    margin-top: 30px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgb(223, 225, 230);
+`;
+
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
     infoLink,
@@ -237,13 +243,16 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                             </SectionMessage>
                         )}
                         {started &&
-                            progressList.map(progress => (
-                                <MigrationProgress
-                                    key={progress.phase}
-                                    progress={progress}
-                                    loading={loading}
-                                    startedMoment={startMoment}
-                                />
+                            progressList.map((progress, index) => (
+                                <>
+                                    <MigrationProgress
+                                        key={progress.phase}
+                                        progress={progress}
+                                        loading={loading}
+                                        startedMoment={startMoment}
+                                    />
+                                    {index !== progressList.length - 1 && <Divider />}
+                                </>
                             ))}
                         {commandResult?.errorMessage && (
                             <MigrationErrorSection result={commandResult} />
