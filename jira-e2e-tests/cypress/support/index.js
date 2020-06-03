@@ -11,6 +11,7 @@ export const gen_context = (base, context) => {
         welcomeURL: baseURL+'/secure/WelcomeToJIRA.jspa',
         loginURL: baseURL+'/login.jsp',
         sudoURL: baseURL+'/secure/admin/WebSudoAuthenticate!default.jspa',
+        upmURL: baseURL+'/plugins/servlet/upm',
         migrationBase: migrationBase,
         migrationHome: migrationBase+'/home';
     };
@@ -18,6 +19,7 @@ export const gen_context = (base, context) => {
 
 export const amps_context = gen_context('http://localhost:2990', '/jira');
 export const devserver_context = gen_context('http://localhost:3333', '');
+export const compose_context = gen_context('http://jira:2990', '/jira');
 
 
 Cypress.Commands.add('jira_login', (ctx, uname, passwd) => {
@@ -27,7 +29,7 @@ Cypress.Commands.add('jira_login', (ctx, uname, passwd) => {
     cy.get('#login-form-password').type('admin');
     cy.get('#login-form-submit').click();
     // Force wait for dashboard to avoid flakiness.
-    cy.get('[class=g-intro]').should('exist');
+    //cy.get('[class=g-intro]').should('exist');
 
     // Ensure we have full admin access before doing anything
     cy.visit(ctx.sudoURL);
