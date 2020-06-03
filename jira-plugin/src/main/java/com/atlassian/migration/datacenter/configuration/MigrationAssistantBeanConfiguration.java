@@ -80,6 +80,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 @Configuration
@@ -112,6 +113,13 @@ public class MigrationAssistantBeanConfiguration {
     @Bean Supplier<AutoScalingClient> autoScalingClient(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
         return () -> AutoScalingClient.builder()
                 .credentialsProvider(credentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+
+    @Bean Supplier<SqsAsyncClient> sqsAsyncClient(AwsCredentialsProvider awsCredentialsProvider, RegionService regionService){
+        return () -> SqsAsyncClient.builder()
+                .credentialsProvider(awsCredentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
     }

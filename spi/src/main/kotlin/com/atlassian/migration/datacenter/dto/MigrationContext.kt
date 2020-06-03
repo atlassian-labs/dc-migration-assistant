@@ -23,4 +23,14 @@ interface MigrationContext : Entity {
     var helperStackDeploymentId: String
     var serviceUrl: String
     var errorMessage: String
+
+    var rdsRestoreSsmDocument: String
+    var fsRestoreSsmDocument: String
+    var fsRestoreStatusSsmDocument: String
+
+    var migrationStackAsgIdentifier: String
+    var migrationBucketName: String
+
+    var migrationQueueUrl: String
+    var migrationDeadLetterQueueUrl: String
 }
