@@ -15,17 +15,10 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
 
     companion object {
         private val logger = LoggerFactory.getLogger(SqsApiImpl::class.java)
-        private var _sqsAsyncClient: SqsAsyncClient? = null
     }
 
-    private val sqsAsyncClient: SqsAsyncClient
-        get() {
-            val sqsAsyncClient: SqsAsyncClient? = _sqsAsyncClient ?: sqsClientSupplier.get()
-            return sqsAsyncClient!!
-        }
-
     @Throws(AwsQueueError::class)
-    override fun getQueueLength(queueUrl: String): Int? {
+    override fun getQueueLength(queueUrl: String): Int {
         when {
             queueUrl.isNullOrBlank() -> {
                 throw AwsQueueBadRequestError("Expected Queue URL to be specified")
@@ -39,7 +32,7 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
 
                 try {
 
-                    val response = sqsAsyncClient.getQueueAttributes(request).get()
+                    val response = sqsClientSupplier.get().getQueueAttributes(request).get()
 
                     if (response.hasAttributes()) {
                         val attributes = response.attributes()

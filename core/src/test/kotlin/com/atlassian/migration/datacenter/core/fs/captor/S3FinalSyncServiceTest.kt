@@ -33,13 +33,10 @@ internal class S3FinalSyncServiceTest {
     @Test
     fun shouldGetFinalSyncStatus() {
         val queueUrl = "https://sqs/account/queues/foo"
-        val deadLetterQueueUrl = "https://sqs/account/queues/foo-dl"
 
         every { migrationService.currentContext } returns migrationContext
         every { migrationContext.migrationQueueUrl } returns queueUrl
-        every { migrationContext.migrationDLQueueUrl } returns deadLetterQueueUrl
-        every {  sqsApi.getQueueLength(queueUrl) } returns 40
-        every {  sqsApi.getQueueLength(deadLetterQueueUrl) } returns 2
+        every {  sqsApi.getQueueLength(queueUrl) } returns 42
 
         val finalSyncStatus = sut.getFinalSyncStatus()
 
@@ -48,7 +45,6 @@ internal class S3FinalSyncServiceTest {
 
         verify {
             sqsApi.getQueueLength(queueUrl)
-            sqsApi.getQueueLength(deadLetterQueueUrl)
         }
     }
 }

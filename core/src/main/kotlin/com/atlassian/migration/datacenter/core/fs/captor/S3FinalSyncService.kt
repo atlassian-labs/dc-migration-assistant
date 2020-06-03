@@ -55,12 +55,10 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
     fun getFinalSyncStatus() : FinalFileSyncStatus {
         val currentContext = migrationService.currentContext
         val migrationQueueUrl = currentContext.migrationQueueUrl
-        val migrationDLQueueUrl = currentContext.migrationDLQueueUrl
 
         val itemsInQueue = sqsApi.getQueueLength(migrationQueueUrl)
-        val itemsInDlQueue = sqsApi.getQueueLength(migrationDLQueueUrl)
 
-        return FinalFileSyncStatus(0, itemsInDlQueue!! + itemsInQueue!!)
+        return FinalFileSyncStatus(0, itemsInQueue)
     }
 
     private fun getScheduledJobId(): JobId {
