@@ -62,7 +62,6 @@ public class DefaultFileSystemMigrationReport implements FileSystemMigrationRepo
         } else if (isEndingMigration(status)) {
             completeTime = Instant.now(clock);
         }
-
         this.currentStatus = status;
     }
 

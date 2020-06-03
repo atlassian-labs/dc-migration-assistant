@@ -24,19 +24,9 @@ import org.slf4j.LoggerFactory
 
 class S3FinalSyncService(private val migrationRunner: MigrationRunner,
                          private val s3FinalSyncRunner: S3FinalSyncRunner,
-                         private val migrationService: MigrationService) {
-
-    constructor(
-            migrationRunner: MigrationRunner,
-            s3FinalSyncRunner: S3FinalSyncRunner,
-            migrationService: MigrationService,
-            sqsApi: SqsApi
-    ) : this(migrationRunner, s3FinalSyncRunner, migrationService) {
-        this.sqsApi = sqsApi
-    }
-
-    lateinit var sqsApi: SqsApi
-
+                         private val migrationService: MigrationService,
+                         private val sqsApi: SqsApi
+) {
     companion object {
         private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
     }
