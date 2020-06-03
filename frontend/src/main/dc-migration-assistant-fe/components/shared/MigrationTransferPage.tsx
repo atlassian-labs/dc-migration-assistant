@@ -82,10 +82,11 @@ export type MigrationTransferProps = {
 const TransferPageContainer = styled.div`
     display: flex;
     flex-direction: column;
-    width: 80%;
+    width: 100%;
     margin-right: auto;
     margin-bottom: auto;
     padding-left: 15px;
+    max-width: 920px;
 `;
 
 const TransferContentContainer = styled.div`
