@@ -127,7 +127,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         currentContext.setMigrationBucketName(outputsMap.get("MigrationBucket"));
 
         currentContext.setMigrationQueueUrl(resources.get("MigrationQueue").physicalResourceId());
-        currentContext.setMigrationDeadLetterQueueUrl(resources.get("DeadLetterQueue").physicalResourceId());
+        currentContext.setMigrationDLQueueUrl(resources.get("DeadLetterQueue").physicalResourceId());
 
         currentContext.save();
     }
@@ -158,7 +158,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     public String getDeadLetterQueueResource() {
-        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationDeadLetterQueueUrl(), "com.atlassian.migration.queue.deadLetterQueueName");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationDLQueueUrl(), "com.atlassian.migration.queue.deadLetterQueueName");
     }
 
     //TODO: Why not store this once in the migration context?
@@ -206,7 +206,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
                 currentContext.getMigrationBucketName(),
                 currentContext.getMigrationStackAsgIdentifier(),
                 currentContext.getMigrationQueueUrl(),
-                currentContext.getMigrationDeadLetterQueueUrl());
+                currentContext.getMigrationDLQueueUrl());
         if (stackOutputs.anyMatch(output -> output == null || output.equals(""))) {
             throw new InfrastructureDeploymentError("migration stack outputs are not set");
         }
@@ -238,7 +238,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         currentContext.setMigrationBucketName("");
 
         currentContext.setMigrationQueueUrl("");
-        currentContext.setMigrationDeadLetterQueueUrl("");
+        currentContext.setMigrationDLQueueUrl("");
 
         currentContext.save();
     }

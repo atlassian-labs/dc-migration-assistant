@@ -275,9 +275,9 @@ class AWSMigrationHelperDeploymentServiceTest {
         doNothing().when(mockContext).setMigrationQueueUrl(QUEUE_PHYSICAL_RESOURCE_ID);
         lenient().when(mockContext.getMigrationQueueUrl()).thenReturn(QUEUE_PHYSICAL_RESOURCE_ID);
 
-        doNothing().when(mockContext).setMigrationDeadLetterQueueUrl("");
-        doNothing().when(mockContext).setMigrationDeadLetterQueueUrl(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
-        lenient().when(mockContext.getMigrationDeadLetterQueueUrl()).thenReturn(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
+        doNothing().when(mockContext).setMigrationDLQueueUrl("");
+        doNothing().when(mockContext).setMigrationDLQueueUrl(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
+        lenient().when(mockContext.getMigrationDLQueueUrl()).thenReturn(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
 
         lenient().doNothing().when(mockContext).save();
     }
