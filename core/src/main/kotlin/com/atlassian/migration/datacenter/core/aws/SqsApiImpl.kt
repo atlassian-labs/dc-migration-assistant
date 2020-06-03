@@ -3,6 +3,7 @@ package com.atlassian.migration.datacenter.core.aws
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueApiUnsuccessfulResponse
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueBadRequestError
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueConnectionException
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
@@ -14,17 +15,16 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
 
     companion object {
         private val logger = LoggerFactory.getLogger(SqsApiImpl::class.java)
+        private var _sqsAsyncClient: SqsAsyncClient? = null
     }
 
-    @Throws(AwsQueueBadRequestError::class)
+    @Throws(AwsQueueError::class)
     override fun getQueueLength(queueUrl: String): Int? {
         when {
             queueUrl.isNullOrBlank() -> {
                 throw AwsQueueBadRequestError("Expected Queue URL to be specified")
             }
             else -> {
-                val sqsAsyncClient = this.sqsClientSupplier.get()
-
                 val request = GetQueueAttributesRequest
                         .builder()
                         .queueUrl(queueUrl)
@@ -32,7 +32,8 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
                         .build()
 
                 try {
-                    val response = sqsAsyncClient.getQueueAttributes(request).get()
+
+                    val response = getSqsAsyncClient().getQueueAttributes(request).get()
 
                     if (response.hasAttributes()) {
                         val attributes = response.attributes()
@@ -49,5 +50,10 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
                 throw AwsQueueApiUnsuccessfulResponse("Unable to retrieve queue attributes from SQS")
             }
         }
+    }
+
+    private fun getSqsAsyncClient(): SqsAsyncClient {
+        val sqsAsyncClient: SqsAsyncClient? = _sqsAsyncClient ?: sqsClientSupplier.get()
+        return sqsAsyncClient!!
     }
 }
