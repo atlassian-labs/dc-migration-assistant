@@ -47,7 +47,7 @@ jobs:
       - name: Test with maven
         run: mvn -B clean verify -P ${{ matrix.profile}}
       - name: Upload
-        if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11
+        if: matrix.profile == '!integration' && matrix.java == 11
         uses: actions/upload-artifact@v1
         with:
           name: plugin-jar
