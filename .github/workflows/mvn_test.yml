@@ -53,6 +53,24 @@ jobs:
           name: plugin-jar
           path: jira-plugin/target/jira-plugin-1.0.0.jar
 
+  jira_e2e:
+    name: Run Jira integration/e2e tests
+    runs-on: ubuntu-latest
+    needs: run_tests
+    steps:
+      - name: Download plugin jar file from the previous job
+        if: github.ref == env.DOGFOODING_REF
+        uses: actions/download-artifact@v1
+        with:
+          name: plugin-jar
+      - name: Configure smoketest containers
+        run: |
+          cp plugins/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+          cd jira-e2e-tests
+          ./postgres/inject-license
+      - name: Run smoketests
+        run: |
+          docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
 
   deploy:
     name: Deploy to dogfooding instance
