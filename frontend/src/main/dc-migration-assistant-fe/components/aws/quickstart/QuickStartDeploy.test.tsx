@@ -84,7 +84,7 @@ window.fetch = mockFetch;
 
 describe('Quick Start Provisioning Screen', () => {
     it('Should render', async () => {
-        act(async () => {
+        await act(async () => {
             const { getByText } = render(<QuickStartDeploy deploymentMode="with-vpc" />);
 
             const formHeader = await waitForElement(() => getByText(FORM_HEADER_KEY));
@@ -92,7 +92,7 @@ describe('Quick Start Provisioning Screen', () => {
         });
     });
     it('Should separate quickstart paramaters into their groups', async () => {
-        act(async () => {
+        await act(async () => {
             const { getByText } = render(<QuickStartDeploy deploymentMode="with-vpc" />);
 
             const firstGroup = await waitForElement(() => getByText(FIRST_PARAM_GROUP_NAME));
@@ -111,7 +111,7 @@ describe('Quick Start Provisioning Screen', () => {
         });
     });
     it('Should enforce validation on string parameters with constraints', async () => {
-        act(async () => {
+        await act(async () => {
             const { getByLabelText, getByText } = render(
                 <QuickStartDeploy deploymentMode="with-vpc" />
             );
@@ -130,7 +130,7 @@ describe('Quick Start Provisioning Screen', () => {
         });
     });
     it('Should enforce validation on number parameters with constraints', async () => {
-        act(async () => {
+        await act(async () => {
             const { getByLabelText, getByText } = render(
                 <QuickStartDeploy deploymentMode="with-vpc" />
             );

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, useEffect, useState, FunctionComponent } from 'react';
+import React, { ReactElement, useEffect, useState, FunctionComponent, ReactNode } from 'react';
 import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
@@ -105,7 +105,7 @@ const MigrationActionSection: FunctionComponent<ActionSectionProps> = ({ startBu
 
 export const ReadyStatus: FunctionComponent = () => {
     const [ready, setReady] = useState<MigrationReadyStatus>();
-    const readyString = (state: boolean | undefined) => {
+    const readyString = (state: boolean | undefined): ReactNode => {
         return state === undefined ? (
             <Spinner size="small" />
         ) : state ? (
