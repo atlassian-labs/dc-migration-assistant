@@ -21,16 +21,12 @@ import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.attachment.Attachment;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,17 +42,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JiraIssueAttachmentListenerTest {
-    private static final String A_MOCK_ATTACHMENT_PATH = "a/mock/attachment";
-    private static final String ANOTHER_MOCK_ATTACHMENT_PATH = "another/mock/attachment";
-
-    private static final String A_MOCK_ATTACHMENT_THUMBNAIL_PATH = "a/mock/thumb/attachment";
-    private static final String ANOTHER_MOCK_ATTACHMENT_THUMBNAIL_PATH = "another/mock/thumb/attachment";
-
     @Mock
     EventPublisher mockPublisher;
-
-    @Mock
-    AttachmentStore attachmentStore;
 
     JiraIssueAttachmentListener sut;
 
@@ -69,29 +56,35 @@ class JiraIssueAttachmentListenerTest {
     @Mock
     Attachment anotherMockAttachment;
 
-    private List<Path> capturedPaths = new LinkedList<>();
+    private List<Attachment> capturedAttachments = new LinkedList<>();
 
     @BeforeEach
     void setUp() {
-        sut = new JiraIssueAttachmentListener(mockPublisher, this::captureAttachment, attachmentStore);
+        sut = new JiraIssueAttachmentListener(mockPublisher, attachment -> capturedAttachments.add(attachment));
     }
 
     @Test
     void shouldCaptureAttachmentInIssueCreatedEvent() {
-        setupAttachmentMocks(false);
+        when(mockIssue.getAttachments()).thenReturn(new ArrayList<Attachment>() {{
+            add(aMockAttachment);
+            add(anotherMockAttachment);
+        }});
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_CREATED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedPaths, contains(Paths.get(A_MOCK_ATTACHMENT_PATH), Paths.get((ANOTHER_MOCK_ATTACHMENT_PATH))));
+        assertThat(capturedAttachments, contains(aMockAttachment, anotherMockAttachment));
     }
 
     @Test
     void shouldCaptureAttachmentInIssueUpdatedEvent() {
-        setupAttachmentMocks(false);
+        when(mockIssue.getAttachments()).thenReturn(new ArrayList<Attachment>() {{
+            add(aMockAttachment);
+            add(anotherMockAttachment);
+        }});
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_UPDATED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedPaths, contains(Paths.get(A_MOCK_ATTACHMENT_PATH), Paths.get((ANOTHER_MOCK_ATTACHMENT_PATH))));
+        assertThat(capturedAttachments, contains(aMockAttachment, anotherMockAttachment));
     }
 
     @Test
@@ -99,23 +92,8 @@ class JiraIssueAttachmentListenerTest {
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_COMMENT_EDITED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedPaths.size(), is(0));
+        assertThat(capturedAttachments.size(), is(0));
         verify(mockIssue, never()).getAttachments();
-    }
-
-    @Test
-    void shouldCaptureAttachmentAndThumbnailsInIssueCreatedEvent() {
-        setupAttachmentMocks(true);
-        IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_CREATED_ID);
-
-        sut.onIssueEvent(mockEvent);
-
-        assertThat(capturedPaths, contains(
-                Paths.get(A_MOCK_ATTACHMENT_PATH),
-                Paths.get(ANOTHER_MOCK_ATTACHMENT_PATH),
-                Paths.get(A_MOCK_ATTACHMENT_THUMBNAIL_PATH),
-                Paths.get(ANOTHER_MOCK_ATTACHMENT_THUMBNAIL_PATH)
-        ));
     }
 
     @Test
@@ -136,27 +114,5 @@ class JiraIssueAttachmentListenerTest {
         sut.start();
 
         verify(mockPublisher, times(1)).register(sut);
-    }
-
-    private void captureAttachment(Path path) {
-        capturedPaths.add(path);
-    }
-
-    private void setupAttachmentMocks(boolean includeThumbnails) {
-        when(mockIssue.getAttachments()).thenReturn(new ArrayList<Attachment>() {{
-            add(aMockAttachment);
-            add(anotherMockAttachment);
-        }});
-
-        when(this.attachmentStore.getAttachmentFile(aMockAttachment)).thenReturn(new File(A_MOCK_ATTACHMENT_PATH));
-        when(this.attachmentStore.getAttachmentFile(anotherMockAttachment)).thenReturn(new File(ANOTHER_MOCK_ATTACHMENT_PATH));
-
-//        when(aMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
-//        when(anotherMockAttachment.isThumbnailable()).thenReturn(includeThumbnails);
-
-        if (includeThumbnails) {
-            when(this.attachmentStore.getThumbnailFile(aMockAttachment)).thenReturn(new File(A_MOCK_ATTACHMENT_THUMBNAIL_PATH));
-            when(this.attachmentStore.getThumbnailFile(anotherMockAttachment)).thenReturn(new File(ANOTHER_MOCK_ATTACHMENT_THUMBNAIL_PATH));
-        }
     }
 }

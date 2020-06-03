@@ -17,10 +17,10 @@
 package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
-import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -72,7 +72,10 @@ class S3FilesystemMigrationServiceTest {
 
     @BeforeEach
     void setUp() {
-        attachmentListener = new JiraIssueAttachmentListener(mock(EventPublisher.class), mock(AttachmentPathCaptor.class), null);
+        attachmentListener = new JiraIssueAttachmentListener(
+                mock(EventPublisher.class),
+                mock(AttachmentCaptor.class)
+        );
         fsService = new S3FilesystemMigrationService(mockEnv, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
     }
 

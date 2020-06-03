@@ -21,18 +21,13 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
-import com.atlassian.jira.issue.attachment.Attachment;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentPathCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
-import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 public class JiraIssueAttachmentListener implements DisposableBean {
 
@@ -40,39 +35,22 @@ public class JiraIssueAttachmentListener implements DisposableBean {
     private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
     private final EventPublisher eventPublisher;
+    private AttachmentCaptor attachmentCaptor;
     private boolean started = false;
-    private final AttachmentPathCaptor attachmentPathCaptor;
-    private final AttachmentStore attachmentStore;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentPathCaptor attachmentPathCaptor, AttachmentStore attachmentStore) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
         this.eventPublisher = eventPublisher;
-        this.attachmentPathCaptor = attachmentPathCaptor;
-        this.attachmentStore = attachmentStore;
+        this.attachmentCaptor = attachmentCaptor;
     }
 
     @EventListener
     public void onIssueEvent(IssueEvent issueEvent) {
         logger.trace("received jira event with type {}", issueEvent.getEventTypeId());
         if (ISSUE_EVENT_TYPES_TO_LISTEN.contains(issueEvent.getEventTypeId())) {
-
-            Collection<Attachment> attachments = issueEvent
+            issueEvent
                     .getIssue()
-                    .getAttachments();
-
-            attachments
-                    .stream()
-                    .map(this.attachmentStore::getAttachmentFile)
-                    .map(File::toPath)
-                    .forEach(this.attachmentPathCaptor::captureAttachmentPath);
-
-            attachments
-                    .stream()
-                    // FIXME: I lie about thumbnailable
-                    //.filter(Attachment::isThumbnailable)
-                    .map(attachmentStore::getThumbnailFile)
-                    .filter(Objects::nonNull)
-                    .map(File::toPath)
-                    .forEach(this.attachmentPathCaptor::captureAttachmentPath);
+                    .getAttachments()
+                    .forEach(this.attachmentCaptor::captureAttachment);
         }
     }
 

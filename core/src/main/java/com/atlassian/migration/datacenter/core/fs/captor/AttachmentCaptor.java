@@ -16,10 +16,10 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor;
 
-import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 
-import java.util.Set;
+import com.atlassian.jira.issue.attachment.Attachment;
 
-public interface AttachmentSyncManager extends AttachmentCaptor {
-    Set<FileSyncRecord> getCapturedAttachments();
+@FunctionalInterface
+public interface AttachmentCaptor {
+    void captureAttachment(Attachment attachment);
 }
