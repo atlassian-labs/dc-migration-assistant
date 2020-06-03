@@ -61,9 +61,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Download plugin jar file from the previous job
-       uses: actions/download-artifact@v1
-       with:
-         name: plugin-jar
+        uses: actions/download-artifact@v1
+        with:
+          name: plugin-jar
 
       - name: Configure smoketest containers
         env:
