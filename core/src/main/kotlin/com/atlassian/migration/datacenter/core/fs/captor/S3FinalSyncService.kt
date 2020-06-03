@@ -16,13 +16,26 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor
 
-import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner
+import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.scheduler.config.JobId
 import org.slf4j.LoggerFactory
 
-class S3FinalSyncService(private val migrationRunner: MigrationRunner, private val jobRunner: S3FinalSyncRunner, private val migrationService: MigrationService) {
+class S3FinalSyncService(private val migrationRunner: MigrationRunner,
+                         private val s3FinalSyncRunner: S3FinalSyncRunner,
+                         private val migrationService: MigrationService) {
+
+    constructor(
+            migrationRunner: MigrationRunner,
+            s3FinalSyncRunner: S3FinalSyncRunner,
+            migrationService: MigrationService,
+            sqsApi: SqsApi
+    ) : this(migrationRunner, s3FinalSyncRunner, migrationService) {
+        this.sqsApi = sqsApi
+    }
+
+    lateinit var sqsApi: SqsApi
 
     companion object {
         private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
@@ -32,7 +45,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
 
         val jobId = getScheduledJobId()
 
-        val result = migrationRunner.runMigration(jobId, jobRunner)
+        val result = migrationRunner.runMigration(jobId, s3FinalSyncRunner)
 
         if (!result) {
             logger.error("Unable to start s3 final sync migration job.")
@@ -50,11 +63,18 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
     }
 
     fun getFinalSyncStatus() : FinalFileSyncStatus {
-        return FinalFileSyncStatus(0,0)
+        val currentContext = migrationService.currentContext
+        val migrationQueueUrl = currentContext.migrationQueueUrl
+        val migrationDLQueueUrl = currentContext.migrationDLQueueUrl
+
+        val itemsInQueue = sqsApi.getQueueLength(migrationQueueUrl)
+        val itemsInDlQueue = sqsApi.getQueueLength(migrationDLQueueUrl)
+
+        return FinalFileSyncStatus(0, itemsInDlQueue!! + itemsInQueue!!)
     }
 
     private fun getScheduledJobId(): JobId {
-        return JobId.of(jobRunner.key + migrationService.currentMigration.id)
+        return JobId.of(s3FinalSyncRunner.key + migrationService.currentMigration.id)
     }
 }
 
