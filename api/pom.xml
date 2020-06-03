@@ -82,5 +82,10 @@
             <artifactId>kotlin-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.atlassian.scheduler</groupId>
+            <artifactId>atlassian-scheduler-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

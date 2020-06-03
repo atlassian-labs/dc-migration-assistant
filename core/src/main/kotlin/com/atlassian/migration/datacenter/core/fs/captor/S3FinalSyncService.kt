@@ -35,7 +35,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
         val result = migrationRunner.runMigration(jobId, jobRunner)
 
         if (!result) {
-            logger.error("Unable to start database migration job.")
+            logger.error("Unable to start s3 final sync migration job.")
         }
         return result
     }
@@ -44,18 +44,19 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner, private v
         // We always try to remove scheduled job if the system is in inconsistent state
         migrationRunner.abortJobIfPresesnt(getScheduledJobId())
 
-        logger.warn("Aborting running filesystem migration")
+        logger.warn("Aborting running final file sync")
 
         migrationService.error("Aborted final file sync")
     }
 
-    fun getFinalSyncStatus() : FinalSyncStatus {
-        return FinalSyncStatus(0,0)
+    fun getFinalSyncStatus() : FinalFileSyncStatus {
+        return FinalFileSyncStatus(0,0)
     }
 
     private fun getScheduledJobId(): JobId {
-        return JobId.of(DatabaseMigrationJobRunner.KEY + migrationService.currentMigration.id)
+        return JobId.of(jobRunner.key + migrationService.currentMigration.id)
     }
 }
 
-class FinalSyncStatus(private val uploadedFileCount: Int, private val enqueuedFileCount: Int)
+
+class FinalFileSyncStatus(val uploadedFileCount: Int, val enqueuedFileCount: Int)

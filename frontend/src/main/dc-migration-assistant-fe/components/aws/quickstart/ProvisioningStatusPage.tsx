@@ -72,7 +72,11 @@ const inProgressStages = [
     MigrationStage.PROVISION_MIGRATION_STACK_WAIT,
 ];
 
-export const ProvisioningStatusPage: FunctionComponent = () => {
+type DeploymentMode = {
+    deploymentMode: string;
+};
+
+export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ deploymentMode }) => {
     /*
      * Pages that are navigated to from long content pages
      * stay scrolled down. Scroll the window up after render.
@@ -80,12 +84,27 @@ export const ProvisioningStatusPage: FunctionComponent = () => {
     useEffect(() => {
         window.scrollTo(0, 0);
     });
+    const migrationTransferPageDescription =
+        deploymentMode === 'with-vpc'
+            ? I18n.getText('atlassian.migration.datacenter.provision.aws.wait.description.with.vpc')
+            : I18n.getText(
+                  'atlassian.migration.datacenter.provision.aws.wait.description.without.vpc'
+              );
 
     return (
         <MigrationTransferPage
-            description={I18n.getText(
-                'atlassian.migration.datacenter.provision.aws.wait.description'
-            )}
+            description={migrationTransferPageDescription}
+            infoLink={
+                <a
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    href="https://console.aws.amazon.com/cloudformation"
+                >
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.provision.aws.wait.description.link'
+                    )}
+                </a>
+            }
             getProgress={getDeploymentProgress}
             inProgressStages={inProgressStages}
             heading={I18n.getText('atlassian.migration.datacenter.provision.aws.title')}

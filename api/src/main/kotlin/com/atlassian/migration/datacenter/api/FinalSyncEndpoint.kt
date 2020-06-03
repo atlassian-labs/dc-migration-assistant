@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atlassian.migration.datacenter.api.db
+package com.atlassian.migration.datacenter.api
 
+import com.atlassian.migration.datacenter.api.db.DatabaseMigrationStatus
+import com.atlassian.migration.datacenter.api.db.stageToStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.collect.ImmutableMap
 import java.time.Duration
 import javax.ws.rs.Consumes
@@ -35,14 +38,14 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
-@Path("/migration/db")
-class DatabaseMigrationEndpoint(
+@Path("/migration/final-sync")
+class FinalSyncEndpoint(
         private val databaseMigrationService: DatabaseMigrationService,
         private val migrationService: MigrationService,
         private val ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService,
         private val finalSyncService: S3FinalSyncService
 ) {
-    private val mapper: ObjectMapper = ObjectMapper()
+    private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
     init {
         mapper.setVisibility(
@@ -50,6 +53,9 @@ class DatabaseMigrationEndpoint(
                 JsonAutoDetect.Visibility.ANY
         )
     }
+
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int)
+    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -81,25 +87,28 @@ class DatabaseMigrationEndpoint(
                 .build()
     }
 
-    @Path("/report")
+    @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
                 .orElse(Duration.ZERO)
-        val dto = DatabaseMigrationStatus(
+        val db = DatabaseMigrationStatus(
                 stageToStatus(migrationService.currentStage),
                 elapsed
         )
+        val fsSyncStatus = finalSyncService.getFinalSyncStatus()
+        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount)
+        val status = FinalSyncStatus(db, fs)
 
         return try {
             Response
-                    .ok(mapper.writeValueAsString(dto))
+                    .ok(mapper.writeValueAsString(status))
                     .build()
         } catch (e: JsonProcessingException) {
             Response
                     .serverError()
-                    .entity("Unable to get db migration status. Please contact support and show them this error: ${e.message}")
+                    .entity("Unable to get sync status. Please contact support and show them this error: ${e.message}")
                     .build()
         }
     }
@@ -110,21 +119,22 @@ class DatabaseMigrationEndpoint(
     fun abortMigration(): Response {
         return try {
             databaseMigrationService.abortMigration()
-            finalSyncService.abortMigration()
             Response
                     .ok(mapOf("cancelled" to true))
                     .build()
         } catch (e: InvalidMigrationStageError) {
             Response
                     .status(Response.Status.CONFLICT)
-                    .entity(mapOf("error" to "db migration is not in progress"))
+                    .entity(mapOf("error" to "sync is not in progress"))
                     .build()
+        } finally {
+            finalSyncService.abortMigration()
         }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/logs")
+    @Path("/db-logs")
     fun getCommandOutputs(): Response {
         return try {
             Response.ok(ssmPsqlDatabaseRestoreService.fetchCommandResult()).build()

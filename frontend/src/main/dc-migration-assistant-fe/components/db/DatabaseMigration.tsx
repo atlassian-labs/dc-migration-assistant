@@ -28,7 +28,8 @@ import {
     dbLogsEndpoint,
     DBMigrationStatus,
     CommandDetails,
-} from '../../api/db';
+    FinalSyncStatus,
+} from '../../api/final-sync';
 import { MigrationStage } from '../../api/migration';
 import { validationPath } from '../../utils/RoutePaths';
 
@@ -60,7 +61,13 @@ const toProgress = (status: DatabaseMigrationStatus): Progress => {
 };
 
 const fetchDBMigrationStatus = (): Promise<DatabaseMigrationStatus> => {
-    return callAppRest('GET', dbStatusReportEndpoint).then((result: any) => result.json());
+    return callAppRest('GET', dbStatusReportEndpoint)
+        .then((result: Response) => result.json())
+        .then((result: FinalSyncStatus) => {
+            const dbStatus = result.db;
+            console.log(dbStatus);
+            return dbStatus;
+        });
 };
 
 const startDbMigration = (): Promise<void> => {

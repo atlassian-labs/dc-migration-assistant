@@ -49,9 +49,6 @@ const saveAWSCredentials: CredSubmitFun = creds => {
 
 export const AWSRoutes: FunctionComponent = () => (
     <Switch>
-        <Route exact path={quickstartStatusPath}>
-            <ProvisioningStatusPage />
-        </Route>
         <Route exact path={awsAuthPath}>
             <AuthenticateAWS getRegions={getRegions} onSubmitCreds={saveAWSCredentials} />
         </Route>

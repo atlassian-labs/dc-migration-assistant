@@ -134,13 +134,13 @@ public class DatabaseMigrationService {
 
         if (!migrationService.getCurrentStage().isDBPhase() || s3UploadService == null) {
             throw new InvalidMigrationStageError(
-                    String.format("Invalid migration stage when cancelling filesystem migration: %s",
+                    String.format("Invalid migration stage when cancelling db migration: %s",
                             migrationService.getCurrentStage()));
         }
 
-        logger.warn("Aborting running filesystem migration");
+        logger.warn("Aborting running DB migration");
 
-        migrationService.error("File system migration was aborted");
+        migrationService.error("DB migration was aborted");
     }
 
     private JobId getScheduledJobId() {

@@ -18,7 +18,7 @@ import React, { FunctionComponent } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 
-import { CommandDetails as CommandResult } from '../../api/db';
+import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 
 const ErrorFragment = styled.div`

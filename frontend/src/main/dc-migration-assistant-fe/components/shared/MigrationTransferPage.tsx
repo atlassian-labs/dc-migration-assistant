@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect } from 'react';
+import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
@@ -27,7 +27,7 @@ import { ProgressCallback, Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
-import { CommandDetails as CommandResult } from '../../api/db';
+import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 
 const POLL_INTERVAL_MILLIS = 3000;
@@ -41,6 +41,11 @@ export type MigrationTransferProps = {
      * A description for what the current transfer does. Will be rendered below the title
      */
     description: string;
+
+    /**
+     * An optional hyperlink that can be used to direct the user to more detail
+     */
+    infoLink?: ReactNode;
     /**
      * @see MigrationTransferActionsProps
      */
@@ -101,6 +106,7 @@ const TransferActionsContainer = styled.div`
 `;
 export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = ({
     description,
+    infoLink,
     heading,
     nextText,
     nextRoute,
@@ -202,6 +208,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             <TransferContentContainer>
                 <h1>{heading}</h1>
                 <p>{description}</p>
+                {infoLink}
             </TransferContentContainer>
             {loading ? (
                 <Spinner />

@@ -16,9 +16,14 @@
 
 import React, { FunctionComponent, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { asiConfigurationPath, quickstartPath } from '../../../utils/RoutePaths';
+import {
+    asiConfigurationPath,
+    quickstartPath,
+    quickstartStatusPath,
+} from '../../../utils/RoutePaths';
 import { ASIConfiguration } from './asi/ASIConfiguration';
 import { QuickStartDeploy } from './QuickStartDeploy';
+import { ProvisioningStatusPage } from './ProvisioningStatusPage';
 
 export type DeploymentMode = 'with-vpc' | 'standalone';
 
@@ -39,6 +44,9 @@ export const QuickstartRoutes: FunctionComponent = () => {
                     deploymentMode={deploymentMode}
                     ASIPrefix={prefix?.length === 0 ? 'ATL-' : prefix}
                 />
+            </Route>
+            <Route exact path={quickstartStatusPath}>
+                <ProvisioningStatusPage deploymentMode={deploymentMode} />
             </Route>
         </Switch>
     );
