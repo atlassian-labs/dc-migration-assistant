@@ -18,6 +18,12 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
         private var _sqsAsyncClient: SqsAsyncClient? = null
     }
 
+    private val sqsAsyncClient: SqsAsyncClient
+        get() {
+            val sqsAsyncClient: SqsAsyncClient? = _sqsAsyncClient ?: sqsClientSupplier.get()
+            return sqsAsyncClient!!
+        }
+
     @Throws(AwsQueueError::class)
     override fun getQueueLength(queueUrl: String): Int? {
         when {
@@ -33,7 +39,7 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
 
                 try {
 
-                    val response = getSqsAsyncClient().getQueueAttributes(request).get()
+                    val response = sqsAsyncClient.getQueueAttributes(request).get()
 
                     if (response.hasAttributes()) {
                         val attributes = response.attributes()
@@ -50,10 +56,5 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
                 throw AwsQueueApiUnsuccessfulResponse("Unable to retrieve queue attributes from SQS")
             }
         }
-    }
-
-    private fun getSqsAsyncClient(): SqsAsyncClient {
-        val sqsAsyncClient: SqsAsyncClient? = _sqsAsyncClient ?: sqsClientSupplier.get()
-        return sqsAsyncClient!!
     }
 }
