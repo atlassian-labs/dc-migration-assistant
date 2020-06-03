@@ -37,6 +37,13 @@ services:
           /entrypoint.py
       '
 
-  testing:
-    image: cypress/browsers
-    
+  cypress:
+    build:
+      context: ./cypress
+    command: >
+      bash -c '
+          cd /opt/cypress &&
+          yarn install &&
+          jira-wait http://jira:8080/jira/ &&
+          yarn test --spec integration/smoketest.ts
+      '

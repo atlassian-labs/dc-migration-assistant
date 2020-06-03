@@ -19,7 +19,7 @@ export const gen_context = (base, context) => {
 
 export const amps_context = gen_context('http://localhost:2990', '/jira');
 export const devserver_context = gen_context('http://localhost:3333', '');
-export const compose_context = gen_context('http://jira:2990', '/jira');
+export const compose_context = gen_context('http://jira:8080', '/jira');
 
 
 Cypress.Commands.add('jira_login', (ctx, uname, passwd) => {

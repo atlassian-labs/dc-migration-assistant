@@ -1,0 +1,22 @@
+#!/bin/bash
+
+url=$1
+max=300
+
+echo "Waiting for Jira to come up at $url..."
+
+for i in `seq $max`; do
+    # Jira emits `302` during startup, `200` when ready:
+    status=`curl -s -o /dev/null -w "%{http_code}" $url`
+    if [[ $status == "200" ]]; then
+	echo OK
+	exit 0
+    fi
+
+    echo Jira returned $status
+    /bin/sleep 1
+
+done
+
+echo FAILED
+exit -1

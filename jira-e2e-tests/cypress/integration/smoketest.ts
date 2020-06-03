@@ -3,7 +3,7 @@ import * as jira from '../support';
 import * as scenarios from '../support/scenarios';
 
 describe('Plugin installation smoke tests', () => {
-    const ctx = jira.amps_context;
+    const ctx = jira.compose_context;
 
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
@@ -26,4 +26,3 @@ describe('Plugin installation smoke tests', () => {
     });
 
 });
-
