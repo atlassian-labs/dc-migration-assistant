@@ -71,6 +71,7 @@ jobs:
           ./postgres/inject-license
       - name: Run smoketests
         run: |
+          cd jira-e2e-tests
           docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
 
   deploy:
