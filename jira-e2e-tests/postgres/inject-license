@@ -1,4 +1,5 @@
 #!/bin/bash
 
 # See Github Actions secrets
+JIRA_E2E_LICENSE=`echo ${JIRA_E2E_LICENSE} | tr -d '\n \t'`
 sed "s~INJECT_LICENSE_HERE~${JIRA_E2E_LICENSE}~" postgres/jira.sql.tmpl > postgres/jira.sql
