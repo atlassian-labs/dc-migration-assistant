@@ -58,6 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: run_tests
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: Download plugin jar file from the previous job
         uses: actions/download-artifact@v1
         with:
