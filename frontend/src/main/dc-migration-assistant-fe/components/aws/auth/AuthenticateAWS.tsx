@@ -155,6 +155,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             {({ fieldProps }: any): ReactElement => (
                                 <TextField
                                     autocomplete="off"
+                                    type="password"
                                     width="xlarge"
                                     data-test="aws-auth-key"
                                     {...fieldProps}
@@ -172,6 +173,7 @@ export const AuthenticateAWS: FunctionComponent<AuthenticateAWSProps> = ({
                             {({ fieldProps }: any): ReactElement => (
                                 <TextField
                                     autocomplete="off"
+                                    type="password"
                                     width="xlarge"
                                     data-test="aws-auth-secret"
                                     {...fieldProps}
