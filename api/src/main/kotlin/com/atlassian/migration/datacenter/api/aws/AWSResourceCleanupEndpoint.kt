@@ -38,7 +38,7 @@ class AWSResourceCleanupEndpoint(private val cleanupService: MigrationInfrastruc
     @Produces(APPLICATION_JSON)
     fun cleanupMigrationInfrastructure(): Response {
         val builder = try {
-            val started = cleanupService.scheduleMigrationInfrastructureCleanup()
+            val started = cleanupService.startMigrationInfrastructureCleanup()
 
             if (started) {
                 Response.status(Response.Status.ACCEPTED)

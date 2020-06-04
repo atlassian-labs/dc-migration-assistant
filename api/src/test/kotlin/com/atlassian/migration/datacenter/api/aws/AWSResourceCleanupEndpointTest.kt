@@ -40,7 +40,7 @@ internal class AWSResourceCleanupEndpointTest {
 
     @Test
     fun shouldReturnAcceptedWhenCleanupStarts() {
-        every { cleanupService.scheduleMigrationInfrastructureCleanup() } returns true
+        every { cleanupService.startMigrationInfrastructureCleanup() } returns true
 
         val resp = sut.cleanupMigrationInfrastructure()
 
@@ -49,7 +49,7 @@ internal class AWSResourceCleanupEndpointTest {
 
     @Test
     fun shouldReturnConflictWhenCleanupDoesntStart() {
-        every { cleanupService.scheduleMigrationInfrastructureCleanup() } returns false
+        every { cleanupService.startMigrationInfrastructureCleanup() } returns false
 
         val resp = sut.cleanupMigrationInfrastructure()
 
@@ -58,7 +58,7 @@ internal class AWSResourceCleanupEndpointTest {
 
     @Test
     fun shouldReturnServerErrorWhenCleanupErrors() {
-        every { cleanupService.scheduleMigrationInfrastructureCleanup() } throws Exception()
+        every { cleanupService.startMigrationInfrastructureCleanup() } throws Exception()
 
         val resp = sut.cleanupMigrationInfrastructure()
 

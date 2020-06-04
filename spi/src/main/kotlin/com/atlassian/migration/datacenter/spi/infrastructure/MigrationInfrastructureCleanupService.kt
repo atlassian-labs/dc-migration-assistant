@@ -19,12 +19,15 @@ package com.atlassian.migration.datacenter.spi.infrastructure
 interface MigrationInfrastructureCleanupService {
 
     /**
-     * Schedules the cleanup of any infrastructure that is not required
+     * Starts the cleanup of any infrastructure that is not required
      * after the migration has been completed or failed
+     *
+     * This is an asynchronous operation and can be monitored using the see method:
+     * @see MigrationInfrastructureCleanupService.getMigrationInfrastructureCleanupStatus
      *
      * @return true if the cleanup was scheduled successfully and false otherwise
      */
-    fun scheduleMigrationInfrastructureCleanup(): Boolean
+    fun startMigrationInfrastructureCleanup(): Boolean
 
     fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus
 }

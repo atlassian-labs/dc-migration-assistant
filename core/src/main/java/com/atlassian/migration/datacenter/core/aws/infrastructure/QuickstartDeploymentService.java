@@ -28,9 +28,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeplo
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
-import software.amazon.awssdk.services.cloudformation.model.StackResource;
 
 import java.util.HashMap;
 import java.util.Map;
