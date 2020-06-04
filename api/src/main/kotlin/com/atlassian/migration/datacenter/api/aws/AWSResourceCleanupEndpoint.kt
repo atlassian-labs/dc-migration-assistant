@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.api.aws
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
 import org.slf4j.LoggerFactory
 import javax.ws.rs.DELETE
+import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
@@ -51,5 +52,11 @@ class AWSResourceCleanupEndpoint(private val cleanupService: MigrationInfrastruc
         }
 
         return builder.build()
+    }
+
+    @GET
+    @Produces(APPLICATION_JSON)
+    fun getCleanupStatus(): Response {
+        return Response.ok(cleanupService.getMigrationInfrastructureCleanupStatus()).build()
     }
 }

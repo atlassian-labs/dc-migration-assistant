@@ -51,10 +51,16 @@ class DatabaseSecretCleanupService(
                             .secretId(secretName)
                             .forceDeleteWithoutRecovery(true)
                             .build())
-            res.sdkHttpResponse().isSuccessful
+            val result = res.sdkHttpResponse().isSuccessful
+            if (!result) {
+                logger.error("unable to delete database secret")
+            }
+            result
         } catch (e: ResourceNotFoundException) {
+            logger.info("database secret does not exist, no need to delete")
             true
         } catch (e: SdkException) {
+            logger.error("error when deleting database secret", e)
             false
         }
     }
@@ -64,6 +70,8 @@ class DatabaseSecretCleanupService(
 
         val secretName = targetDbCredentialsStorageService.secretName
 
+        logger.info("getting status of database secret $secretName cleanup")
+
         return try {
             val res = client.describeSecret(DescribeSecretRequest.builder().secretId(secretName).build())
             when {
@@ -72,9 +80,11 @@ class DatabaseSecretCleanupService(
                 else -> InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
             }
         } catch (e: ResourceNotFoundException) {
+            logger.info("secret does not exist, cleanup must have completed")
             InfrastructureCleanupStatus.CLEANUP_COMPLETE
         } catch (e: Exception) {
             // Assume cleanup is not started until we can get a successful result
+            logger.error("error getting secret cleanup status", e)
             InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
         }
     }
