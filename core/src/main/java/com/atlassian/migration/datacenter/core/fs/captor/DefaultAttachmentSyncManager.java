@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -31,11 +30,11 @@ import java.util.Set;
 
 public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
     private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentSyncManager.class);
-    private final ActiveObjects ao;
+    private final ActiveObjects activeObjects;
     private final MigrationService migrationService;
 
-    public DefaultAttachmentSyncManager(ActiveObjects ao, MigrationService migrationService) {
-        this.ao = ao;
+    public DefaultAttachmentSyncManager(ActiveObjects activeObjects, MigrationService migrationService) {
+        this.activeObjects = activeObjects;
         this.migrationService = migrationService;
     }
 
@@ -48,7 +47,7 @@ public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
             return Collections.emptySet();
         }
 
-        final FileSyncRecord[] recordsForCurrentMigration = ao.find(
+        final FileSyncRecord[] recordsForCurrentMigration = activeObjects.find(
                 FileSyncRecord.class,
                 Query.select().where("migration_id = ?", migration.getID()));
 
