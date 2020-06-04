@@ -16,10 +16,14 @@
 
 package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
+import com.atlassian.core.util.DateUtils
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.jfree.data.time.Second
+import org.joda.time.Seconds
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -30,8 +34,15 @@ import software.amazon.awssdk.http.SdkHttpResponse
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretResponse
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.TemporalAmount
+import java.time.temporal.TemporalUnit
 import java.util.function.Supplier
+import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
 internal class DatabaseSecretCleanupServiceTest {
@@ -95,6 +106,62 @@ internal class DatabaseSecretCleanupServiceTest {
         } throws SdkException.builder().build()
 
         assertFalse(sut.startMigrationInfrastructureCleanup())
+    }
+
+    @Test
+    fun shouldReturnCompleteWhenDeleteDateIsInThePast() {
+        every {
+            secretsManagerClient.describeSecret(
+                    DescribeSecretRequest
+                            .builder()
+                            .secretId(mySecret)
+                            .build()
+            )
+        } returns DescribeSecretResponse.builder().deletedDate(Instant.now().minusSeconds(20L )).build()
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_COMPLETE, sut.getMigrationInfrastructureCleanupStatus())
+    }
+
+    @Test
+    fun shouldReturnInProgressWhenDeletionDateIsInTheFuture() {
+        every {
+            secretsManagerClient.describeSecret(
+                    DescribeSecretRequest
+                            .builder()
+                            .secretId(mySecret)
+                            .build()
+            )
+        } returns DescribeSecretResponse.builder().deletedDate(Instant.now().plusSeconds(20L )).build()
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS, sut.getMigrationInfrastructureCleanupStatus())
+    }
+
+    @Test
+    fun shouldReturnNotStartedWhenNoDeletionDate() {
+        every {
+            secretsManagerClient.describeSecret(
+                    DescribeSecretRequest
+                            .builder()
+                            .secretId(mySecret)
+                            .build()
+            )
+        } returns DescribeSecretResponse.builder().deletedDate(null).build()
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_NOT_STARTED, sut.getMigrationInfrastructureCleanupStatus())
+    }
+
+    @Test
+    fun shouldReturnCompleteWhenSecretDoesntExist() {
+        every {
+            secretsManagerClient.describeSecret(
+                    DescribeSecretRequest
+                            .builder()
+                            .secretId(mySecret)
+                            .build()
+            )
+        } throws ResourceNotFoundException.builder().build()
+
+        assertEquals(InfrastructureCleanupStatus.CLEANUP_COMPLETE, sut.getMigrationInfrastructureCleanupStatus())
     }
 
     private fun givenDeleteRequestCompletesWithStatus(status: Boolean) {

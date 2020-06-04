@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException
+import java.time.Instant
 import java.util.function.Supplier
 
 class DatabaseSecretCleanupService(
@@ -58,6 +60,22 @@ class DatabaseSecretCleanupService(
     }
 
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val client = secretsManagerClient.get()
+
+        val secretName = targetDbCredentialsStorageService.secretName
+
+        return try {
+            val res = client.describeSecret(DescribeSecretRequest.builder().secretId(secretName).build())
+            when {
+                res.deletedDate() <= Instant.now() -> InfrastructureCleanupStatus.CLEANUP_COMPLETE
+                res.deletedDate() > Instant.now() -> InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
+                else -> InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
+            }
+        } catch (e: ResourceNotFoundException) {
+            InfrastructureCleanupStatus.CLEANUP_COMPLETE
+        } catch (e: Exception) {
+            // Assume cleanup is not started until we can get a successful result
+            InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
+        }
     }
 }
