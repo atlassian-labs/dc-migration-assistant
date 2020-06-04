@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws.infrastructure
+package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
@@ -33,7 +33,7 @@ class AWSMigrationInfrastructureCleanupService : MigrationInfrastructureCleanupS
         return InfrastructureCleanupStatus.CLEANUP_COMPLETE
     }
 
-    override fun scheduleMigrationInfrastructureCleanup(): Boolean {
+    override fun startMigrationInfrastructureCleanup(): Boolean {
         logger.info("cleaning up AWS migration infrastructure")
         return true
     }
