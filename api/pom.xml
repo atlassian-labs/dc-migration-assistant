@@ -87,11 +87,5 @@
             <artifactId>atlassian-scheduler-api</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Needed to mock attachment sync manager.Not ideal, but.. -->
-        <dependency>
-            <groupId>com.atlassian.jira</groupId>
-            <artifactId>jira-api</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

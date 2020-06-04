@@ -20,6 +20,6 @@ import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 
 import java.util.Set;
 
-public interface AttachmentSyncManager extends AttachmentCaptor {
+public interface AttachmentSyncManager {
     Set<FileSyncRecord> getCapturedAttachments();
 }

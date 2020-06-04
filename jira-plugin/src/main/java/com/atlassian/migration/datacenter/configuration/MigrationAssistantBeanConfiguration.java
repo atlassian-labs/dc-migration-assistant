@@ -50,7 +50,6 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
-import com.atlassian.migration.datacenter.core.fs.captor.AttachmentCaptor;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
@@ -58,7 +57,9 @@ import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -276,8 +277,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentSyncManager attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
-        return new DefaultAttachmentSyncManager(activeObjects, migrationService, attachmentStore);
+    public AttachmentSyncManager attachmentSyncManager(ActiveObjects activeObjects, MigrationService migrationService) {
+        return new DefaultAttachmentSyncManager(activeObjects, migrationService);
+    }
+
+    @Bean
+    public AttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
+        return new DefaultAttachmentCaptor(activeObjects, migrationService, attachmentStore);
     }
 
     @Bean

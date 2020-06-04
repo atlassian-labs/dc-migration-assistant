@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.jira.issue.attachment.Attachment;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -26,24 +25,18 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
-
     private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentSyncManager.class);
     private final ActiveObjects ao;
     private final MigrationService migrationService;
-    private AttachmentStore attachmentStore;
 
-    public DefaultAttachmentSyncManager(ActiveObjects ao, MigrationService migrationService, AttachmentStore
-            attachmentStore) {
+    public DefaultAttachmentSyncManager(ActiveObjects ao, MigrationService migrationService) {
         this.ao = ao;
         this.migrationService = migrationService;
-        this.attachmentStore = attachmentStore;
     }
 
     @Override
@@ -62,35 +55,5 @@ public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
         Collections.addAll(records, recordsForCurrentMigration);
 
         return records;
-    }
-
-    @Override
-    public void captureAttachment(Attachment attachment) {
-        File attachmentFile = this.attachmentStore.getAttachmentFile(attachment);
-
-        captureAttachmentFile(attachmentFile);
-
-        //Thumbnails may not be present. However, attachment.isThumbnailable isn't very predictable, so we check if the thumbnail file exists for all attachments
-        File thumbnailFile = this.attachmentStore.getThumbnailFile(attachment);
-        captureAttachmentFile(thumbnailFile);
-    }
-
-    private void captureAttachmentFile(File attachmentFile) {
-        if (attachmentFile != null && attachmentFile.exists()) {
-            Path attachmentPath = attachmentFile.toPath();
-            logger.debug("Recording file path - {} ", attachmentPath);
-            this.captureAttachmentPath(attachmentPath);
-        }
-    }
-
-    private void captureAttachmentPath(Path attachmentPath) {
-        logger.debug("captured attachment for final sync: {}", attachmentPath.toString());
-
-        FileSyncRecord record = ao.create(FileSyncRecord.class);
-
-        record.setFilePath(attachmentPath.toString());
-        record.setMigration(migrationService.getCurrentMigration());
-
-        record.save();
     }
 }
