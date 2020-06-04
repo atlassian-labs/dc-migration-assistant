@@ -36,6 +36,6 @@ class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val mi
     }
 
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
-        val status =
+        TODO("not implemented yet")
     }
 }
