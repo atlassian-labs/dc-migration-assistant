@@ -55,8 +55,6 @@ public class TargetDbCredentialsStorageService {
     public void storeCredentials(String password) {
         requireNonNull(password);
 
-        MigrationContext context = migrationService.getCurrentContext();
-
         SecretsManagerClient client = clientFactory.get();
         CreateSecretRequest request = CreateSecretRequest.builder()
                 /*
@@ -66,7 +64,7 @@ public class TargetDbCredentialsStorageService {
                 (see AWSMigrationHelperDeploymentService#deployMigrationInfrastructure) so we use it here even though
                 it hasn't been deployed yet.
                 */
-                .name(String.format("atl-%s-migration-app-rds-password", context.getApplicationDeploymentId()))
+                .name(getSecretName())
                 .secretString(password)
                 .description("password for the application user in you new AWS deployment")
                 .build();
@@ -80,5 +78,10 @@ public class TargetDbCredentialsStorageService {
             }
             throw new DatabaseMigrationFailure(errorMessage);
         }
+    }
+
+    public String getSecretName() {
+        MigrationContext context = migrationService.getCurrentContext();
+        return String.format("atl-%s-migration-app-rds-password", context.getApplicationDeploymentId());
     }
 }
