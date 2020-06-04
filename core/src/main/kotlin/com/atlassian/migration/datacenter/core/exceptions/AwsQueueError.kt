@@ -9,3 +9,4 @@ open class AwsQueueError : Exception {
 
 class AwsQueueConnectionException(message: String, cause: Throwable) : AwsQueueError(message, cause)
 class AwsQueueApiUnsuccessfulResponse(message: String) : AwsQueueError(message)
+class AwsQueueBadRequestError(message: String) : AwsQueueError(message)

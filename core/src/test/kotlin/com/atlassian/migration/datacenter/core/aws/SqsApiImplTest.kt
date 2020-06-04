@@ -1,6 +1,7 @@
 package com.atlassian.migration.datacenter.core.aws
 
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueApiUnsuccessfulResponse
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueBadRequestError
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueConnectionException
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -114,6 +115,10 @@ internal class SqsApiImplTest {
         Assertions.assertThrows(AwsQueueApiUnsuccessfulResponse::class.java) { sqs.getQueueLength(queueUrl) }
     }
 
+    @Test
+    fun shouldRaiseExceptionWhenQueueUrlIsEmpty() {
+        Assertions.assertThrows(AwsQueueBadRequestError::class.java) { sqs.getQueueLength("") }
+    }
 
     @Test
     fun shouldRaiseExceptionWhenQueueSQSApiCompletesExceptionally() {

@@ -23,4 +23,15 @@ interface MigrationContext : Entity {
     var helperStackDeploymentId: String
     var serviceUrl: String
     var errorMessage: String
+
+    var rdsRestoreSsmDocument: String
+    var fsRestoreSsmDocument: String
+    var fsRestoreStatusSsmDocument: String
+
+    var migrationStackAsgIdentifier: String
+    var migrationBucketName: String
+
+    var migrationQueueUrl: String
+    // AO mandates that generated field names of properties should be no longer than 30 chars.
+    var migrationDLQueueUrl: String
 }

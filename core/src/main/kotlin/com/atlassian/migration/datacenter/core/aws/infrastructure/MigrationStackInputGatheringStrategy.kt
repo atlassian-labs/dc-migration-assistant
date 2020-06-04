@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws
+package com.atlassian.migration.datacenter.core.aws.infrastructure
 
-import java.util.Optional
+import software.amazon.awssdk.services.cloudformation.model.Stack
 
-class EmptyQueueSqsApi : SqsApi {
-    override fun getQueueLength(queueUrl: String): Int? {
-        return 0
-    }
+interface MigrationStackInputGatheringStrategy {
+
+    fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String>
+
 }

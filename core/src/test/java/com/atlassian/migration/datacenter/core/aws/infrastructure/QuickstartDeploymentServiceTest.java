@@ -119,7 +119,7 @@ class QuickstartDeploymentServiceTest {
         }).when(dbCredentialsStorageService).storeCredentials(anyString());
         when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
 
-        lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().outputs(MOCK_OUTPUTS).build()));
+        lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().stackName(STACK_NAME).outputs(MOCK_OUTPUTS).build()));
         lenient().when(mockCfnApi.getExports()).thenReturn(MOCK_EXPORTS);
         lenient().when(mockCfnApi.getStackResources(STACK_NAME)).thenReturn(MOCK_ROOT_RESOURCES);
         lenient().when(mockCfnApi.getStackResources(TEST_JIRA)).thenReturn(MOCK_JIRA_RESOURCES);

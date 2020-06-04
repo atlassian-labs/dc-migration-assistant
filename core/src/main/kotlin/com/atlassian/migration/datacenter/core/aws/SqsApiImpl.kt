@@ -1,7 +1,9 @@
 package com.atlassian.migration.datacenter.core.aws
 
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueApiUnsuccessfulResponse
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueBadRequestError
 import com.atlassian.migration.datacenter.core.exceptions.AwsQueueConnectionException
+import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
@@ -15,29 +17,37 @@ class SqsApiImpl(private val sqsClientSupplier: Supplier<SqsAsyncClient>) : SqsA
         private val logger = LoggerFactory.getLogger(SqsApiImpl::class.java)
     }
 
-    override fun getQueueLength(queueUrl: String): Int? {
-        val sqsAsyncClient = this.sqsClientSupplier.get()
-        val request = GetQueueAttributesRequest
-                .builder()
-                .queueUrl(queueUrl)
-                .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES, APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE)
-                .build()
-
-        try {
-            val response = sqsAsyncClient.getQueueAttributes(request).get()
-
-            if (response.hasAttributes()) {
-                val attributes = response.attributes()
-                val messageCountInQueue = attributes[APPROXIMATE_NUMBER_OF_MESSAGES]
-                val messageCountInFlight = attributes[APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE]
-
-                return (messageCountInQueue?.toIntOrNull() ?: 0) + (messageCountInFlight?.toIntOrNull() ?: 0)
+    @Throws(AwsQueueError::class)
+    override fun getQueueLength(queueUrl: String): Int {
+        when {
+            queueUrl.isNullOrBlank() -> {
+                throw AwsQueueBadRequestError("Expected Queue URL to be specified")
             }
-        } catch (ex: Exception) {
-            val errorMessage = "Error while trying to query SQS API"
-            logger.error(errorMessage, ex)
-            throw AwsQueueConnectionException(errorMessage, ex)
+            else -> {
+                val request = GetQueueAttributesRequest
+                        .builder()
+                        .queueUrl(queueUrl)
+                        .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES, APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE)
+                        .build()
+
+                try {
+
+                    val response = sqsClientSupplier.get().getQueueAttributes(request).get()
+
+                    if (response.hasAttributes()) {
+                        val attributes = response.attributes()
+                        val messageCountInQueue = attributes[APPROXIMATE_NUMBER_OF_MESSAGES]
+                        val messageCountInFlight = attributes[APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE]
+
+                        return (messageCountInQueue?.toIntOrNull() ?: 0) + (messageCountInFlight?.toIntOrNull() ?: 0)
+                    }
+                } catch (ex: Exception) {
+                    val errorMessage = "Error while trying to query SQS API"
+                    logger.error(errorMessage, ex)
+                    throw AwsQueueConnectionException(errorMessage, ex)
+                }
+                throw AwsQueueApiUnsuccessfulResponse("Unable to retrieve queue attributes from SQS")
+            }
         }
-        throw AwsQueueApiUnsuccessfulResponse("Unable to retrieve queue attributes from SQS")
     }
 }

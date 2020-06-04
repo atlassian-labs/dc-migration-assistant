@@ -58,16 +58,6 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     private final MigrationService migrationService;
     private final CfnApi cfnApi;
 
-
-    //    TODO: CHET443-Store in context and not in variables
-    private String fsRestoreDocument;
-    private String fsRestoreStatusDocument;
-    private String rdsRestoreDocument;
-    private String migrationStackASG;
-    private String migrationBucket;
-    private String queueName;
-    private String deadLetterQueueName;
-
     public AWSMigrationHelperDeploymentService(CfnApi cfnApi, Supplier<AutoScalingClient> autoScalingClientFactory, MigrationService migrationService) {
         this(cfnApi, autoScalingClientFactory, migrationService, 30);
     }
@@ -100,7 +90,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     protected void handleSuccessfulDeployment() {
-        String stackId = System.getProperty("com.atlassian.migration.migrationStack.id", migrationService.getCurrentContext().getHelperStackDeploymentId());
+        String stackId = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getHelperStackDeploymentId(),"com.atlassian.migration.migrationStack.id");
+
         Optional<Stack> maybeStack = cfnApi.getStack(stackId);
         if (!maybeStack.isPresent()) {
             throw new InfrastructureDeploymentError("stack was not found by DescribeStack even though it succeeded");
@@ -115,7 +106,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
         Map<String, StackResource> migrationStackResources = cfnApi.getStackResources(stackId);
 
-        persistStackDetails(stackId, stackOutputs, migrationStackResources);
+        persistStackDetails(stackOutputs, migrationStackResources);
 
         try {
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY);
@@ -125,14 +116,20 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         }
     }
 
-    private void persistStackDetails(String stackId, Map<String, String> outputsMap, Map<String, StackResource> resources) {
-        fsRestoreDocument = outputsMap.get("DownloadSSMDocument");
-        fsRestoreStatusDocument = outputsMap.get("DownloadStatusSSMDocument");
-        rdsRestoreDocument = outputsMap.get("RdsRestoreSSMDocument");
-        migrationStackASG = outputsMap.get("ServerGroup");
-        migrationBucket = outputsMap.get("MigrationBucket");
-        queueName = resources.get("MigrationQueue").physicalResourceId();
-        deadLetterQueueName = resources.get("DeadLetterQueue").physicalResourceId();
+    private void persistStackDetails(Map<String, String> outputsMap, Map<String, StackResource> resources) {
+        MigrationContext currentContext = migrationService.getCurrentContext();
+
+        currentContext.setFsRestoreSsmDocument(outputsMap.get("DownloadSSMDocument"));
+        currentContext.setFsRestoreStatusSsmDocument(outputsMap.get("DownloadStatusSSMDocument"));
+        currentContext.setRdsRestoreSsmDocument(outputsMap.get("RdsRestoreSSMDocument"));
+
+        currentContext.setMigrationStackAsgIdentifier(outputsMap.get("ServerGroup"));
+        currentContext.setMigrationBucketName(outputsMap.get("MigrationBucket"));
+
+        currentContext.setMigrationQueueUrl(resources.get("MigrationQueue").physicalResourceId());
+        currentContext.setMigrationDLQueueUrl(resources.get("DeadLetterQueue").physicalResourceId());
+
+        currentContext.save();
     }
 
     @Override
@@ -141,29 +138,30 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     public String getFsRestoreDocument() {
-        return getMigrationStackPropertyOrOverride(fsRestoreDocument, "com.atlassian.migration.s3sync.documentName");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getFsRestoreSsmDocument(), "com.atlassian.migration.s3sync.documentName");
     }
 
     public String getFsRestoreStatusDocument() {
-        return getMigrationStackPropertyOrOverride(fsRestoreStatusDocument, "com.atlassian.migration.s3sync.statusDocumentName");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getFsRestoreStatusSsmDocument(), "com.atlassian.migration.s3sync.statusDocumentName");
     }
 
     public String getDbRestoreDocument() {
-        return getMigrationStackPropertyOrOverride(rdsRestoreDocument, "com.atlassian.migration.psql.documentName");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getRdsRestoreSsmDocument(), "com.atlassian.migration.psql.documentName");
     }
 
     public String getMigrationS3BucketName() {
-        return getMigrationStackPropertyOrOverride(migrationBucket, "S3_TARGET_BUCKET_NAME");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationBucketName(), "S3_TARGET_BUCKET_NAME");
     }
 
     public String getQueueResource() {
-        return getMigrationStackPropertyOrOverride(queueName, "com.atlassian.migration.queue.migrationQueueName");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationQueueUrl(), "com.atlassian.migration.queue.migrationQueueName");
     }
 
     public String getDeadLetterQueueResource() {
-        return getMigrationStackPropertyOrOverride(deadLetterQueueName, "com.atlassian.migration.queue.deadLetterQueueName");
+        return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationDLQueueUrl(), "com.atlassian.migration.queue.deadLetterQueueName");
     }
 
+    //TODO: Why not store this once in the migration context?
     public String getMigrationHostInstanceId() {
         final String documentOverride = System.getProperty("com.atlassian.migration.instanceId");
         if (documentOverride != null) {
@@ -171,11 +169,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         } else {
             ensureStackOutputsAreSet();
 
+            String migrationStackAsg = migrationService.getCurrentContext().getMigrationStackAsgIdentifier();
             AutoScalingClient client = autoScalingClientFactory.get();
             DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
-                    DescribeAutoScalingGroupsRequest.builder()
-                            .autoScalingGroupNames(migrationStackASG)
-                            .build());
+                    DescribeAutoScalingGroupsRequest
+                            .builder()
+                            .autoScalingGroupNames(migrationStackAsg)
+                            .build()
+            );
 
             AutoScalingGroup migrationStackGroup = response.autoScalingGroups().get(0);
             Instance migrationInstance = migrationStackGroup.instances().get(0);
@@ -184,7 +185,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         }
     }
 
-    private String getMigrationStackPropertyOrOverride(String migrationStackProperty, String migrationStackPropertySystemOverrideKey) {
+    private String getMigrationStackPropertyOrOverride(Supplier<String> supplier, String migrationStackPropertySystemOverrideKey) {
         final String documentOverride = System.getProperty(migrationStackPropertySystemOverrideKey);
 
         if (documentOverride != null) {
@@ -192,18 +193,20 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         }
 
         ensureStackOutputsAreSet();
-        return migrationStackProperty;
+        return supplier.get();
     }
 
+    //Do we need to be defensive here?
     private void ensureStackOutputsAreSet() {
+        MigrationContext currentContext = migrationService.getCurrentContext();
         final Stream<String> stackOutputs = Stream.of(
-                fsRestoreDocument,
-                fsRestoreStatusDocument,
-                rdsRestoreDocument,
-                migrationBucket,
-                migrationStackASG,
-                queueName,
-                deadLetterQueueName);
+                currentContext.getFsRestoreSsmDocument(),
+                currentContext.getFsRestoreStatusSsmDocument(),
+                currentContext.getRdsRestoreSsmDocument(),
+                currentContext.getMigrationBucketName(),
+                currentContext.getMigrationStackAsgIdentifier(),
+                currentContext.getMigrationQueueUrl(),
+                currentContext.getMigrationDLQueueUrl());
         if (stackOutputs.anyMatch(output -> output == null || output.equals(""))) {
             throw new InfrastructureDeploymentError("migration stack outputs are not set");
         }
@@ -224,14 +227,19 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         context.save();
     }
 
-    //TODO: CHET443-Store in context and no longer needed to do this?
+    //Probably useful when we retry a specific migration stage (In which case we can make every retryable an interface that removes a specific part of the context? or we can remove the migration context when we restart a quickstart deployment, in which case, this can be removed)
     private void resetStackOutputs() {
-        fsRestoreDocument = "";
-        fsRestoreStatusDocument = "";
-        rdsRestoreDocument = "";
-        migrationStackASG = "";
-        migrationBucket = "";
-        queueName = "";
-        deadLetterQueueName = "";
+        MigrationContext currentContext = migrationService.getCurrentContext();
+        currentContext.setFsRestoreSsmDocument("");
+        currentContext.setFsRestoreStatusSsmDocument("");
+        currentContext.setRdsRestoreSsmDocument("");
+
+        currentContext.setMigrationStackAsgIdentifier("");
+        currentContext.setMigrationBucketName("");
+
+        currentContext.setMigrationQueueUrl("");
+        currentContext.setMigrationDLQueueUrl("");
+
+        currentContext.save();
     }
 }

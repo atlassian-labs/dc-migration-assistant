@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -110,7 +111,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldProvisionCloudformationStack() {
+    void shouldProvisionCloudFormationStack() {
         givenMigrationStackHasStartedDeploying();
 
         verify(mockCfn).provisionStack("https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
@@ -126,7 +127,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldReturnCompleteWhenCloudformationDeploymentSucceeds() throws InterruptedException {
+    void shouldReturnCompleteWhenCloudFormationDeploymentSucceeds() throws InterruptedException {
         givenMigrationStackDeploymentWillCompleteSuccessfully();
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
@@ -176,6 +177,8 @@ class AWSMigrationHelperDeploymentServiceTest {
         outputGetters.add(sut::getFsRestoreDocument);
         outputGetters.add(sut::getFsRestoreStatusDocument);
         outputGetters.add(sut::getMigrationHostInstanceId);
+        outputGetters.add(sut::getDeadLetterQueueResource);
+        outputGetters.add(sut::getQueueResource);
 
         for (Executable outputGetter : outputGetters) {
             assertThrows(InfrastructureDeploymentError.class, outputGetter);
@@ -220,7 +223,7 @@ class AWSMigrationHelperDeploymentServiceTest {
                         Output.builder().outputKey("RdsRestoreSSMDocument").outputValue(DB_RESTORE_DOC).build(),
                         Output.builder().outputKey("ServerGroup").outputValue(MIGRATION_ASG).build(),
                         Output.builder().outputKey("MigrationBucket").outputValue(MIGRATION_BUCKET).build()
-                        ).build();
+                ).build();
 
         when(mockCfn.getStack(DEPLOYMENT_ID)).thenReturn(Optional.of(completedStack));
         lenient().when(mockAutoscaling.describeAutoScalingGroups(
@@ -242,6 +245,41 @@ class AWSMigrationHelperDeploymentServiceTest {
             put(STACK_RESOURCE_QUEUE_NAME, StackResource.builder().physicalResourceId(QUEUE_PHYSICAL_RESOURCE_ID).build());
             put(STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME, StackResource.builder().physicalResourceId(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID).build());
         }});
+
+        expectStackDetailsToBePersistedInMigrationContext();
+    }
+
+    //Migration context stub object/data-class may make this test simpler
+    private void expectStackDetailsToBePersistedInMigrationContext() {
+        doNothing().when(mockContext).setFsRestoreSsmDocument("");
+        doNothing().when(mockContext).setFsRestoreSsmDocument(FS_DOWNLOAD_DOC);
+        lenient().when(mockContext.getFsRestoreSsmDocument()).thenReturn(FS_DOWNLOAD_DOC);
+
+        doNothing().when(mockContext).setFsRestoreStatusSsmDocument("");
+        doNothing().when(mockContext).setFsRestoreStatusSsmDocument(FS_DOWNLOAD_STATUS_DOC);
+        lenient().when(mockContext.getFsRestoreStatusSsmDocument()).thenReturn(FS_DOWNLOAD_STATUS_DOC);
+
+        doNothing().when(mockContext).setRdsRestoreSsmDocument("");
+        doNothing().when(mockContext).setRdsRestoreSsmDocument(DB_RESTORE_DOC);
+        lenient().when(mockContext.getRdsRestoreSsmDocument()).thenReturn(DB_RESTORE_DOC);
+
+        doNothing().when(mockContext).setMigrationStackAsgIdentifier("");
+        doNothing().when(mockContext).setMigrationStackAsgIdentifier(MIGRATION_ASG);
+        lenient().when(mockContext.getMigrationStackAsgIdentifier()).thenReturn(MIGRATION_ASG);
+
+        doNothing().when(mockContext).setMigrationBucketName("");
+        doNothing().when(mockContext).setMigrationBucketName(MIGRATION_BUCKET);
+        lenient().when(mockContext.getMigrationBucketName()).thenReturn(MIGRATION_BUCKET);
+
+        doNothing().when(mockContext).setMigrationQueueUrl("");
+        doNothing().when(mockContext).setMigrationQueueUrl(QUEUE_PHYSICAL_RESOURCE_ID);
+        lenient().when(mockContext.getMigrationQueueUrl()).thenReturn(QUEUE_PHYSICAL_RESOURCE_ID);
+
+        doNothing().when(mockContext).setMigrationDLQueueUrl("");
+        doNothing().when(mockContext).setMigrationDLQueueUrl(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
+        lenient().when(mockContext.getMigrationDLQueueUrl()).thenReturn(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
+
+        lenient().doNothing().when(mockContext).save();
     }
 
     private void givenMigrationStackDeploymentWillFail() {
