@@ -17,19 +17,30 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
-import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
+import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
-import java.util.function.Supplier
+import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
 
 class DatabaseSecretCleanupService(
         private val secretsManagerClient: () -> SecretsManagerClient,
-        private val migrationService: MigrationService,
         private val targetDbCredentialsStorageService: TargetDbCredentialsStorageService
 ) : MigrationInfrastructureCleanupService {
     override fun startMigrationInfrastructureCleanup(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val client = secretsManagerClient.invoke()
+
+        return try {
+            val res = client.deleteSecret(
+                DeleteSecretRequest
+                        .builder()
+                        .secretId(targetDbCredentialsStorageService.secretName)
+                        .forceDeleteWithoutRecovery(true)
+                .build())
+            res.sdkHttpResponse().isSuccessful
+        } catch (e: SdkException) {
+            false
+        }
     }
 
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
