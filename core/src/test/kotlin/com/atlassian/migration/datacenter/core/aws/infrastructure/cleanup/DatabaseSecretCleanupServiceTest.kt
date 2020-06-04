@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.http.SdkHttpResponse
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
@@ -80,6 +81,19 @@ internal class DatabaseSecretCleanupServiceTest {
         } throws ResourceNotFoundException.builder().build()
 
         assertTrue(sut.startMigrationInfrastructureCleanup())
+    }
+
+    @Test
+    fun shouldReturnFalseWhenDeleteFailsWithError() {
+        every {
+            secretsManagerClient.deleteSecret(
+                    DeleteSecretRequest
+                            .builder()
+                            .secretId(mySecret)
+                            .forceDeleteWithoutRecovery(true).build())
+        } throws SdkException.builder().build()
+
+        assertFalse(sut.startMigrationInfrastructureCleanup())
     }
 
     private fun givenDeleteRequestCompletesWithStatus(status: Boolean) {
