@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastruc
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
+import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException
 
 class DatabaseSecretCleanupService(
         private val secretsManagerClient: () -> SecretsManagerClient,
@@ -32,12 +33,14 @@ class DatabaseSecretCleanupService(
 
         return try {
             val res = client.deleteSecret(
-                DeleteSecretRequest
-                        .builder()
-                        .secretId(targetDbCredentialsStorageService.secretName)
-                        .forceDeleteWithoutRecovery(true)
-                .build())
+                    DeleteSecretRequest
+                            .builder()
+                            .secretId(targetDbCredentialsStorageService.secretName)
+                            .forceDeleteWithoutRecovery(true)
+                            .build())
             res.sdkHttpResponse().isSuccessful
+        } catch (e: ResourceNotFoundException) {
+            true
         } catch (e: SdkException) {
             false
         }

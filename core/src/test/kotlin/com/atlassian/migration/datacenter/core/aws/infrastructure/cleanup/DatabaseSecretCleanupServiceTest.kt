@@ -69,6 +69,19 @@ internal class DatabaseSecretCleanupServiceTest {
         assertFalse(sut.startMigrationInfrastructureCleanup())
     }
 
+    @Test
+    fun shouldReturnTrueWhenSecretDoesNotExist() {
+        every {
+            secretsManagerClient.deleteSecret(
+                    DeleteSecretRequest
+                            .builder()
+                            .secretId(mySecret)
+                            .forceDeleteWithoutRecovery(true).build())
+        } throws ResourceNotFoundException.builder().build()
+
+        assertTrue(sut.startMigrationInfrastructureCleanup())
+    }
+
     private fun givenDeleteRequestCompletesWithStatus(status: Boolean) {
         every {
             secretsManagerClient.deleteSecret(
@@ -79,18 +92,5 @@ internal class DatabaseSecretCleanupServiceTest {
         } returns deleteResponse
         every { deleteResponse.sdkHttpResponse() } returns sdkResponse
         every { sdkResponse.isSuccessful } returns status
-    }
-
-    @Test
-    fun shouldReturnFalseWhenSecretDoesNotExist() {
-        every {
-            secretsManagerClient.deleteSecret(
-                    DeleteSecretRequest
-                            .builder()
-                            .secretId(mySecret)
-                            .forceDeleteWithoutRecovery(true).build())
-        } throws ResourceNotFoundException.builder().build()
-
-        assertFalse(sut.startMigrationInfrastructureCleanup())
     }
 }
