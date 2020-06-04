@@ -16,11 +16,54 @@
 
 package com.atlassian.migration.datacenter.api.aws
 
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.lang.Exception
+import javax.ws.rs.core.Response.Status.ACCEPTED
+import javax.ws.rs.core.Response.Status.CONFLICT
+import javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR
+import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
 internal class AWSResourceCleanupEndpointTest {
 
+    @MockK
+    lateinit var cleanupService: MigrationInfrastructureCleanupService
+
+    @InjectMockKs
     lateinit var sut: AWSResourceCleanupEndpoint
+
+    @Test
+    fun shouldReturnAcceptedWhenCleanupStarts() {
+        every { cleanupService.scheduleMigrationInfrastructureCleanup() } returns true
+
+        val resp = sut.cleanupMigrationInfrastructure()
+
+        assertEquals(ACCEPTED.statusCode, resp.status)
+    }
+
+    @Test
+    fun shouldReturnConflictWhenCleanupDoesntStart() {
+        every { cleanupService.scheduleMigrationInfrastructureCleanup() } returns false
+
+        val resp = sut.cleanupMigrationInfrastructure()
+
+        assertEquals(CONFLICT.statusCode, resp.status)
+    }
+
+    @Test
+    fun shouldReturnServerErrorWhenCleanupErrors() {
+        every { cleanupService.scheduleMigrationInfrastructureCleanup() } throws Exception()
+
+        val resp = sut.cleanupMigrationInfrastructure()
+
+        assertEquals(INTERNAL_SERVER_ERROR.statusCode, resp.status)
+    }
+
+
 }
