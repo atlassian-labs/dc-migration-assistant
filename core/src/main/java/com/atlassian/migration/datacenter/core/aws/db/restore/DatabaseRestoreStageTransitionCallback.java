@@ -41,7 +41,7 @@ public class DatabaseRestoreStageTransitionCallback implements MigrationStageCal
 
     @Override
     public void transitionToServiceNextStage() throws InvalidMigrationStageError {
-        migrationService.transition(MigrationStage.VALIDATE);
+        migrationService.transition(MigrationStage.FINAL_SYNC_WAIT);
     }
 
     @Override

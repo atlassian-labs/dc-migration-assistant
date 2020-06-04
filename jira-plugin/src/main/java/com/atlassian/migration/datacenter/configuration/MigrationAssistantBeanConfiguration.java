@@ -53,8 +53,10 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
+import com.atlassian.migration.datacenter.core.fs.captor.QueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
+import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -301,8 +303,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService);
+    public QueueWatcher queueWatcher(MigrationService migrationService, Supplier<SqsAsyncClient> sqsAsyncClientSupplier) {
+        return new SqsQueueWatcher(sqsAsyncClientSupplier, migrationService);
+    }
+
+    @Bean
+    public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher) {
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService, queueWatcher);
     }
 
     @Bean
@@ -311,7 +318,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi) {
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher) {
         return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi);
     }
 }

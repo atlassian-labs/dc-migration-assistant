@@ -33,7 +33,9 @@ class S3FinalSyncRunner(
         private val attachmentSyncManager: AttachmentSyncManager,
         private val client: Supplier<S3AsyncClient>,
         private val home: JiraHome,
-        private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService) : MigrationJobRunner {
+        private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService,
+        private val queueWatcher: QueueWatcher)
+    : MigrationJobRunner {
 
     companion object {
         private val log = LoggerFactory.getLogger(com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner::class.java)
@@ -63,6 +65,14 @@ class S3FinalSyncRunner(
             report.failedFiles.forEach {
                 log.error("${it.filePath} - ${it.reason}")
             }
+        }
+
+        val queueDrainResult = queueWatcher.awaitQueueDrain()
+
+        if (queueDrainResult) {
+            log.debug("Processed all items from remote queue.")
+        } else {
+            log.error("Encountered error(s) while processing items from remote queue.")
         }
 
         log.info("Finished final file sync migration job")
