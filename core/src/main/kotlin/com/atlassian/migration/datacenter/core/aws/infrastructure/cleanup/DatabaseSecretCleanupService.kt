@@ -19,23 +19,34 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import software.amazon.awssdk.core.exception.SdkException
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException
+import java.util.function.Supplier
 
 class DatabaseSecretCleanupService(
-        private val secretsManagerClient: () -> SecretsManagerClient,
+        private val secretsManagerClient: Supplier<SecretsManagerClient>,
         private val targetDbCredentialsStorageService: TargetDbCredentialsStorageService
 ) : MigrationInfrastructureCleanupService {
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(DatabaseSecretCleanupService::class.java)
+    }
+
     override fun startMigrationInfrastructureCleanup(): Boolean {
-        val client = secretsManagerClient.invoke()
+        val client = secretsManagerClient.get()
+
+        val secretName = targetDbCredentialsStorageService.secretName
+        logger.info("deleting database secret: $secretName")
 
         return try {
             val res = client.deleteSecret(
                     DeleteSecretRequest
                             .builder()
-                            .secretId(targetDbCredentialsStorageService.secretName)
+                            .secretId(secretName)
                             .forceDeleteWithoutRecovery(true)
                             .build())
             res.sdkHttpResponse().isSuccessful

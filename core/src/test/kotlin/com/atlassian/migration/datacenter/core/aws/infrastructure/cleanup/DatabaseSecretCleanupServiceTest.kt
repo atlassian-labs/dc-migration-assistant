@@ -31,13 +31,14 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretResponse
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException
+import java.util.function.Supplier
 
 @ExtendWith(MockKExtension::class)
 internal class DatabaseSecretCleanupServiceTest {
 
     @MockK
     lateinit var secretsManagerClient: SecretsManagerClient
-    private val clientSupplier = { secretsManagerClient }
+    private val clientSupplier = Supplier { secretsManagerClient }
     @MockK
     lateinit var deleteResponse: DeleteSecretResponse
     @MockK

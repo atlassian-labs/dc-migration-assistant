@@ -42,9 +42,11 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreSta
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCleanupTaskFactory;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
@@ -82,6 +84,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
+import java.lang.annotation.Target;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
@@ -325,7 +328,18 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationInfrastructureCleanupService awsMigrationInfrastructureCleanupService() {
-        return new AWSMigrationInfrastructureCleanupService();
+    public DatabaseSecretCleanupService databaseSecretCleanupService(Supplier<SecretsManagerClient> secretsManagerClientSupplier, TargetDbCredentialsStorageService targetDbCredentialsStorageService
+    ) {
+        return new DatabaseSecretCleanupService(secretsManagerClientSupplier, targetDbCredentialsStorageService);
+    }
+
+    @Bean
+    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService) {
+        return new AWSCleanupTaskFactory(databaseSecretCleanupService);
+    }
+
+    @Bean
+    public MigrationInfrastructureCleanupService awsMigrationInfrastructureCleanupService(AWSCleanupTaskFactory cleanupTaskFactory) {
+        return new AWSMigrationInfrastructureCleanupService(cleanupTaskFactory);
     }
 }
