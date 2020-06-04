@@ -25,9 +25,17 @@ interface MigrationInfrastructureCleanupService {
      * This is an asynchronous operation and can be monitored using the see method:
      * @see MigrationInfrastructureCleanupService.getMigrationInfrastructureCleanupStatus
      *
-     * @return true if the cleanup was scheduled successfully and false otherwise
+     * @return true if the cleanup was scheduled successfully, or if the resource doesn't need
+     * to be cleaned and false otherwise
      */
     fun startMigrationInfrastructureCleanup(): Boolean
 
+    /**
+     * Gets the status of the migration cleanup.
+     *
+     * @return CLEANUP_COMPLETE if no resources need to be cleaned up (i.e. all were cleaned up or there are none)
+     * CLEANUP_IN_PROGRESS if any resources are still being cleaned, CLEANUP_NOT_STARTED if there are still resources
+     * to be cleaned up and they are not being cleaned
+     */
     fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus
 }

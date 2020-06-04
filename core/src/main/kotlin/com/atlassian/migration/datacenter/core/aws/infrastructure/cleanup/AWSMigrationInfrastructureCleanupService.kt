@@ -34,7 +34,7 @@ class AWSMigrationInfrastructureCleanupService(private val cleanupTaskFactory: A
         if (tasks.any { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS }) {
             return InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
         }
-        if (tasks.all { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_NOT_STARTED }) {
+        if (tasks.any { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_NOT_STARTED }) {
             return InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
         }
         if (tasks.all { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_COMPLETE }) {
@@ -50,6 +50,6 @@ class AWSMigrationInfrastructureCleanupService(private val cleanupTaskFactory: A
     override fun startMigrationInfrastructureCleanup(): Boolean {
         logger.info("cleaning up AWS migration infrastructure")
 
-        return cleanupTaskFactory.getCleanupTasks().all { it.startMigrationInfrastructureCleanup() }
+        return cleanupTaskFactory.getCleanupTasks().any { it.startMigrationInfrastructureCleanup() }
     }
 }
