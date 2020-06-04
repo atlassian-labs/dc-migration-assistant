@@ -17,7 +17,6 @@ services:
   jira:
     build:
       context: ./jira
-    #image: atlassian/jira-software
     depends_on:
       - postgresql
     ports:
