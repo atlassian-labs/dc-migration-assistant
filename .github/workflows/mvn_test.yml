@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         java: [ 8, 11 ]
-        profile: ['integration', '!integration']
+        profile: ['integration', '!integration', 'smoketest']
 
     steps:
       - name: Checkout code
@@ -44,38 +44,54 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+
       - name: Test with maven
+        if: matrix.profile != 'smoketest'
         run: mvn -B clean verify -P ${{ matrix.profile}}
+
+      - name: Smoke-test with production image
+        if: matrix.profile == 'smoketest'
+        env:
+          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+        run: |
+          mvn package -DskipTests
+          mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+          cd jira-e2e-tests
+          ./postgres/inject-license
+          docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
+
       - name: Upload
-        if: matrix.profile == '!integration' && matrix.java == 11
+        if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11
         uses: actions/upload-artifact@v1
         with:
           name: plugin-jar
           path: jira-plugin/target/jira-plugin-1.0.0.jar
 
-  jira_e2e:
-    name: Run Jira integration/e2e tests
-    runs-on: ubuntu-latest
-    needs: run_tests
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Download plugin jar file from the previous job
-        uses: actions/download-artifact@v1
-        with:
-          name: plugin-jar
 
-      - name: Configure smoketest containers
-        env:
-          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
-        run: |
-          mv plugin-jar/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
-          cd jira-e2e-tests
-          ./postgres/inject-license
-      - name: Run smoketests
-        run: |
-          cd jira-e2e-tests
-          docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
+  # jira_e2e:
+  #   name: Run Jira integration/e2e tests
+  #   runs-on: ubuntu-latest
+  #   needs: run_tests
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #     - name: Download plugin jar file from the previous job
+  #       uses: actions/download-artifact@v1
+  #       with:
+  #         name: plugin-jar
+
+  #     - name: Configure smoketest containers
+  #       env:
+  #         JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+  #       run: |
+  #         mv plugin-jar/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
+  #         cd jira-e2e-tests
+  #         ./postgres/inject-license
+  #     - name: Run smoketests
+  #       run: |
+  #         cd jira-e2e-tests
+  #         docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
+
 
   deploy:
     name: Deploy to dogfooding instance
