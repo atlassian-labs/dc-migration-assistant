@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response
  * REST API endpoint for cleaning up migration resources
  */
 @Path("/aws/cleanup")
-class AWSResourceCleanupEndpoint(val cleanupService: MigrationInfrastructureCleanupService) {
+class AWSResourceCleanupEndpoint(private val cleanupService: MigrationInfrastructureCleanupService) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(AWSResourceCleanupEndpoint::class.java)
