@@ -21,7 +21,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastruc
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class AWSMigrationInfrastructureCleanupService : MigrationInfrastructureCleanupService {
+class AWSMigrationInfrastructureCleanupService(private val cleanupTaskFactory: AWSCleanupTaskFactory) : MigrationInfrastructureCleanupService {
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(AWSMigrationInfrastructureCleanupService::class.java)
@@ -30,11 +30,26 @@ class AWSMigrationInfrastructureCleanupService : MigrationInfrastructureCleanupS
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
         logger.info("querying state of AWS resource cleanup")
 
-        return InfrastructureCleanupStatus.CLEANUP_COMPLETE
+        val tasks = cleanupTaskFactory.getCleanupTasks()
+        if (tasks.any { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS }) {
+            return InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
+        }
+        if (tasks.all { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_NOT_STARTED }) {
+            return InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
+        }
+        if (tasks.all { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_COMPLETE }) {
+            return InfrastructureCleanupStatus.CLEANUP_COMPLETE
+        }
+        if (tasks.any { it.getMigrationInfrastructureCleanupStatus() == InfrastructureCleanupStatus.CLEANUP_FAILED }) {
+            return InfrastructureCleanupStatus.CLEANUP_FAILED
+        }
+
+        return InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
     }
 
     override fun startMigrationInfrastructureCleanup(): Boolean {
         logger.info("cleaning up AWS migration infrastructure")
-        return true
+
+        return cleanupTaskFactory.getCleanupTasks().all { it.startMigrationInfrastructureCleanup() }
     }
 }
