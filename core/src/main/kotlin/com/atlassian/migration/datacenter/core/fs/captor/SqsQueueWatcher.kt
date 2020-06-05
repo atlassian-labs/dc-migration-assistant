@@ -33,6 +33,7 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
 
     constructor(sqsAPi: SqsApi, migrationService: MigrationService) : this(sqsAPi, migrationService, 30)
 
+
     companion object {
         private val logger = LoggerFactory.getLogger(SqsQueueWatcher::class.java)
     }

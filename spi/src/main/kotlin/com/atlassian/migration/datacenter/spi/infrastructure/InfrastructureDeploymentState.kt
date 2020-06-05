@@ -21,5 +21,8 @@ package com.atlassian.migration.datacenter.spi.infrastructure
 enum class InfrastructureDeploymentState {
     CREATE_IN_PROGRESS,
     CREATE_COMPLETE,
-    CREATE_FAILED
+    CREATE_FAILED,
+    DELETE_IN_PROGRESS,
+    DELETE_FAILED,
+    DELETE_COMPLETE
 }
