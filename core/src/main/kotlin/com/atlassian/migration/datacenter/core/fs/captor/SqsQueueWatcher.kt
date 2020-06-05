@@ -26,7 +26,10 @@ import java.util.concurrent.TimeUnit
 
 //TODO: Convert to using co-routines and suspend functions?
 class SqsQueueWatcher(private val sqsAPi: SqsApi,
-                      private val migrationService: MigrationService) : QueueWatcher {
+                      private val migrationService: MigrationService,
+                      private val schedulerPollFrequency: Long) : QueueWatcher {
+
+    constructor(sqsAPi: SqsApi, migrationService: MigrationService) : this(sqsAPi, migrationService, 30)
 
     override fun awaitQueueDrain(): Boolean {
         awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait).get()
@@ -58,7 +61,7 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
         val completableFuture = CompletableFuture<Unit>()
         val executor = Executors.newSingleThreadScheduledExecutor()
 
-        val scheduledFuture = executor.scheduleAtFixedRate(runnable(completableFuture), 0, 30, TimeUnit.SECONDS)
+        val scheduledFuture = executor.scheduleAtFixedRate(runnable(completableFuture), 0, schedulerPollFrequency, TimeUnit.SECONDS)
 
         completableFuture.whenComplete { _, _ ->
             run {
