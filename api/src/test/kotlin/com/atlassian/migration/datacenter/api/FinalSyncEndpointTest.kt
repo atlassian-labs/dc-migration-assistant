@@ -16,7 +16,7 @@
 
 package com.atlassian.migration.datacenter.api
 
-import com.atlassian.migration.datacenter.api.db.DBMigrationStatus
+import com.atlassian.migration.datacenter.api.db.DbMigrationStatus
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.FinalFileSyncStatus
@@ -84,7 +84,7 @@ internal class FinalSyncEndpointTest {
         val result = mapper.readValue<FinalSyncEndpoint.FinalSyncStatus>(json)
 
         assertEquals(20, result.db.elapsedTime.seconds)
-        assertEquals(DBMigrationStatus.IMPORTING, result.db.status)
+        assertEquals(DbMigrationStatus.IMPORTING, result.db.status)
     }
 
     @Test

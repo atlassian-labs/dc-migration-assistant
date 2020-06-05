@@ -8,8 +8,10 @@ internal class DatabaseMigrationProgressKtTest {
 
     @Test
     fun testStageMapping() {
-        assertEquals(DBMigrationStatus.NOT_STARTED, stageToStatus(MigrationStage.PROVISION_APPLICATION))
-        assertEquals(DBMigrationStatus.EXPORTING, stageToStatus(MigrationStage.DB_MIGRATION_EXPORT))
-        assertEquals(DBMigrationStatus.FAILED, stageToStatus(MigrationStage.ERROR))
+        assertEquals(DbMigrationStatus.NOT_STARTED, stageToStatus(MigrationStage.PROVISION_APPLICATION))
+        assertEquals(DbMigrationStatus.EXPORTING, stageToStatus(MigrationStage.DB_MIGRATION_EXPORT))
+        assertEquals(DbMigrationStatus.FAILED, stageToStatus(MigrationStage.ERROR))
+        assertEquals(DbMigrationStatus.IMPORTING, stageToStatus(MigrationStage.FINAL_SYNC_WAIT))
+        assertEquals(DbMigrationStatus.IMPORTING, stageToStatus(MigrationStage.DATA_MIGRATION_IMPORT_WAIT))
     }
 }
