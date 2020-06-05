@@ -46,6 +46,7 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSCle
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationInfrastructureCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfrastructureService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationStackCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
@@ -85,7 +86,6 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
-import java.lang.annotation.Target;
 import java.nio.file.Paths;
 import java.util.function.Supplier;
 
@@ -335,8 +335,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService) {
-        return new AWSCleanupTaskFactory(databaseSecretCleanupService);
+    public AWSMigrationStackCleanupService migrationStackCleanupService(CfnApi cfnApi, MigrationService migrationService) {
+        return new AWSMigrationStackCleanupService(cfnApi, migrationService);
+    }
+
+    @Bean
+    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService, AWSMigrationStackCleanupService migrationStackCleanupService) {
+        return new AWSCleanupTaskFactory(databaseSecretCleanupService, migrationStackCleanupService);
     }
 
     @Bean

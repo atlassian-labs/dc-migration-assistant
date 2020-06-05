@@ -18,9 +18,9 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
 
-class AWSCleanupTaskFactory(private val secretCleanupService: DatabaseSecretCleanupService) {
+class AWSCleanupTaskFactory(private val secretCleanupService: DatabaseSecretCleanupService, private val migrationStackCleanupService: AWSMigrationStackCleanupService) {
 
     fun getCleanupTasks(): List<MigrationInfrastructureCleanupService> {
-        return listOf(secretCleanupService)
+        return listOf(secretCleanupService, migrationStackCleanupService)
     }
 }
