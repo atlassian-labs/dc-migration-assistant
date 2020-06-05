@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.function.BiConsumer
 
 //TODO: Convert to using co-routines and suspend functions?
 class SqsQueueWatcher(private val sqsAPi: SqsApi,
@@ -40,20 +39,21 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
 
     override fun awaitQueueDrain(): Boolean {
         //TODO: Change from when complete to toAccept/toCombine idioms
-        val completableFuture = this.awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait)
-                .whenComplete { _, _ ->
-                    run {
-                        awaitRunnableToComplete(::checkForQueueToBeEmpty).get()
-                    }
-                }
-                .whenComplete(BiConsumer { _, _ ->
-                    run {
-                        migrationService.transition(MigrationStage.VALIDATE)
-                    }
-                })
-
         try {
+            val completableFuture = this.awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait)
+                    .whenComplete { _, _ ->
+                        run {
+                            awaitRunnableToComplete(::checkForQueueToBeEmpty).get()
+                        }
+                    }
+                    .whenComplete { _, _ ->
+                        run {
+                            migrationService.transition(MigrationStage.VALIDATE)
+                        }
+                    }
+
             completableFuture.get()
+
             logger.info("Successfully waited for queue to be drained. Transitioned state to {}", MigrationStage.VALIDATE)
             return true
         } catch (e: Exception) {
