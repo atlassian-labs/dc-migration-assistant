@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws.infrastructure
+package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
 import com.atlassian.migration.datacenter.dto.MigrationContext
@@ -55,7 +55,7 @@ internal class AWSMigrationStackCleanupServiceTest {
         givenMigrationStackNameIsInContext()
         every { cfnApi.deleteStack(migrationStackName) } answers {}
 
-        assertTrue(sut.scheduleMigrationInfrastructureCleanup())
+        assertTrue(sut.startMigrationInfrastructureCleanup())
     }
 
     @Test
@@ -63,7 +63,7 @@ internal class AWSMigrationStackCleanupServiceTest {
         givenMigrationStackNameIsInContext()
         every { cfnApi.deleteStack(migrationStackName) } throws InfrastructureDeploymentError("error")
 
-        assertFalse(sut.scheduleMigrationInfrastructureCleanup())
+        assertFalse(sut.startMigrationInfrastructureCleanup())
     }
 
     @Test

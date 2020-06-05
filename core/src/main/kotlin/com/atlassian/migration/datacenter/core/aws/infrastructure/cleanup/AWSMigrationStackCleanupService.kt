@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws.infrastructure
+package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
 import com.atlassian.migration.datacenter.spi.MigrationService
@@ -25,7 +25,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastruc
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 
 class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val migrationService: MigrationService) : MigrationInfrastructureCleanupService {
-    override fun scheduleMigrationInfrastructureCleanup(): Boolean {
+    override fun startMigrationInfrastructureCleanup(): Boolean {
         val migrationStack = getMigrationStackName()
 
         return try {
