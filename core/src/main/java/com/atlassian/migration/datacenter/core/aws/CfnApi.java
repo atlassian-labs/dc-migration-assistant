@@ -174,7 +174,9 @@ public class CfnApi {
             }
         } catch (InterruptedException | ExecutionException e) {
             logger.error("unable to delete stack {}", stackName);
-            throw new InfrastructureDeploymentError("error during stack delete request", e);
+            if (!e.getCause().getClass().equals(StackInstanceNotFoundException.class)) {
+                throw new InfrastructureDeploymentError("error during stack delete request", e);
+            }
         }
     }
 

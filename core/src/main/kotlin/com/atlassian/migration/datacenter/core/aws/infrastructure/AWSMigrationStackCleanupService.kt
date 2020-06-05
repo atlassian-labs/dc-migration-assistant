@@ -20,12 +20,13 @@ import com.atlassian.migration.datacenter.core.aws.CfnApi
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
+import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 
 class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val migrationService: MigrationService) : MigrationInfrastructureCleanupService {
     override fun scheduleMigrationInfrastructureCleanup(): Boolean {
-        val context = migrationService.currentContext
-        val migrationStack = context.helperStackDeploymentId
+        val migrationStack = getMigrationStackName()
 
         return try {
             cfnApi.deleteStack(migrationStack)
@@ -36,6 +37,22 @@ class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val mi
     }
 
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
-        TODO("not implemented yet")
+        val migrationStack = getMigrationStackName()
+
+        return try {
+            when(cfnApi.getStatus(migrationStack).state) {
+                InfrastructureDeploymentState.DELETE_COMPLETE -> InfrastructureCleanupStatus.CLEANUP_COMPLETE
+                InfrastructureDeploymentState.DELETE_IN_PROGRESS -> InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
+                InfrastructureDeploymentState.DELETE_FAILED -> InfrastructureCleanupStatus.CLEANUP_FAILED
+                else -> InfrastructureCleanupStatus.CLEANUP_NOT_STARTED
+            }
+        } catch (e: StackInstanceNotFoundException) {
+            InfrastructureCleanupStatus.CLEANUP_COMPLETE
+        }
+    }
+
+    private fun getMigrationStackName(): String {
+        val context = migrationService.currentContext
+        return context.helperStackDeploymentId
     }
 }
