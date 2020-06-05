@@ -5,7 +5,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage.*
 import java.time.Duration
 
 
-enum class FinalSyncMigrationStatus {
+enum class DbMigrationStatus {
     NOT_STARTED,
     FAILED,
     EXPORTING,
@@ -15,7 +15,7 @@ enum class FinalSyncMigrationStatus {
 }
 
 
-fun stageToStatus(stage: MigrationStage): FinalSyncMigrationStatus {
+fun stageToStatus(stage: MigrationStage): DbMigrationStatus {
     // Could be data-driven, but this is clear enough.
     return when (stage) {
         NOT_STARTED,
@@ -27,28 +27,28 @@ fun stageToStatus(stage: MigrationStage): FinalSyncMigrationStatus {
         FS_MIGRATION_COPY,
         FS_MIGRATION_COPY_WAIT,
         OFFLINE_WARNING
-        -> FinalSyncMigrationStatus.NOT_STARTED
+        -> DbMigrationStatus.NOT_STARTED
 
         DB_MIGRATION_EXPORT,
         DB_MIGRATION_EXPORT_WAIT
-        -> FinalSyncMigrationStatus.EXPORTING
+        -> DbMigrationStatus.EXPORTING
 
         DB_MIGRATION_UPLOAD,
         DB_MIGRATION_UPLOAD_WAIT
-        -> FinalSyncMigrationStatus.UPLOADING
+        -> DbMigrationStatus.UPLOADING
 
         DATA_MIGRATION_IMPORT,
         DATA_MIGRATION_IMPORT_WAIT,
         FINAL_SYNC_WAIT
-        -> FinalSyncMigrationStatus.IMPORTING
+        -> DbMigrationStatus.IMPORTING
 
         VALIDATE,
         FINISHED
-        -> FinalSyncMigrationStatus.DONE
+        -> DbMigrationStatus.DONE
 
         ERROR
-        -> FinalSyncMigrationStatus.FAILED
+        -> DbMigrationStatus.FAILED
     }
 }
 
-data class DatabaseMigrationStatus(val status: FinalSyncMigrationStatus, val elapsedTime: Duration)
+data class DatabaseMigrationStatus(val status: DbMigrationStatus, val elapsedTime: Duration)
