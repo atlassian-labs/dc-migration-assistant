@@ -16,20 +16,55 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor
 
+import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
-import software.amazon.awssdk.services.sqs.SqsAsyncClient
-import java.util.function.Supplier
+import com.atlassian.migration.datacenter.spi.MigrationStage.FINAL_SYNC_WAIT
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
-class SqsQueueWatcher(private val sqsAsyncClientSupplier: Supplier<SqsAsyncClient>,
+//TODO: Convert to using co-routines and suspend functions?
+class SqsQueueWatcher(private val sqsAPi: SqsApi,
                       private val migrationService: MigrationService) : QueueWatcher {
 
     override fun awaitQueueDrain(): Boolean {
-        //TODO: Wait for
-        // 1. DB Status to move to Final_Sync_Wait
-        // 2. Remote SQS queue to be empty
-        //Then transition service to validate
+        awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait).get()
+        awaitRunnableToComplete(::checkForQueueToBeEmpty).get()
         migrationService.transition(MigrationStage.VALIDATE)
         return true
+    }
+
+    private fun checkForQueueToBeEmpty(future: @ParameterName(name = "future") CompletableFuture<Unit>): Runnable {
+        return Runnable {
+            val migrationQueueUrl = migrationService.currentContext.migrationQueueUrl
+            val queueLength = sqsAPi.getQueueLength(migrationQueueUrl)
+            if (queueLength == 0) {
+                future.complete(Unit)
+            }
+        }
+    }
+
+    private fun checkForStateToBeInFsSyncAwait(future: CompletableFuture<Unit>): Runnable {
+        return Runnable {
+            val currentStage = migrationService.currentStage
+            if (currentStage == FINAL_SYNC_WAIT) {
+                future.complete(Unit)
+            }
+        }
+    }
+
+    private fun awaitRunnableToComplete(runnable: (future: CompletableFuture<Unit>) -> Runnable): CompletableFuture<Unit> {
+        val completableFuture = CompletableFuture<Unit>()
+        val executor = Executors.newSingleThreadScheduledExecutor()
+
+        val scheduledFuture = executor.scheduleAtFixedRate(runnable(completableFuture), 0, 30, TimeUnit.SECONDS)
+
+        completableFuture.whenComplete { _, _ ->
+            run {
+                scheduledFuture.cancel(true)
+            }
+        }
+        return completableFuture
     }
 }

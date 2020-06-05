@@ -303,8 +303,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public QueueWatcher queueWatcher(MigrationService migrationService, Supplier<SqsAsyncClient> sqsAsyncClientSupplier) {
-        return new SqsQueueWatcher(sqsAsyncClientSupplier, migrationService);
+    public QueueWatcher queueWatcher(MigrationService migrationService, SqsApi sqsApi) {
+        return new SqsQueueWatcher(sqsApi, migrationService);
     }
 
     @Bean
