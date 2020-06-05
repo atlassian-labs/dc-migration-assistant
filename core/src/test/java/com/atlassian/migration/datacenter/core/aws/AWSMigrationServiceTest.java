@@ -18,7 +18,6 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -36,6 +35,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.nio.file.Paths;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
@@ -65,14 +66,12 @@ public class AWSMigrationServiceTest {
     private SchedulerService schedulerService;
     @Mock
     private ApplicationConfiguration applicationConfiguration;
-    @Mock
-    private JiraHome jiraHome;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, jiraHome);
+        sut = new AWSMigrationService(ao, applicationConfiguration, Paths.get("."));
         setupEntities();
     }
 

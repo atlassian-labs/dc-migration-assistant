@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.fs.copy;
 
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
@@ -42,26 +41,18 @@ import static org.mockito.Mockito.when;
 class S3BulkCopyTest {
 
     @Mock
-    JiraHome mockHome;
-
-    @Mock
     Supplier<S3AsyncClient> mockSupplier;
 
     @Mock
     AWSMigrationHelperDeploymentService helperDeploymentService;
 
-    private S3BulkCopy sut;
-
-    @BeforeEach
-    void setUp() {
-        sut = new S3BulkCopy(mockSupplier, helperDeploymentService, mockHome);
-        sut.bindMigrationReport(new DefaultFileSystemMigrationReport());
-    }
 
     @Test
     void shouldThrowWhenSharedHomeDirectoryIsInvalid() {
-        givenHelperDeploymentBucketExists();
         Path fakeHome = givenSharedHomeDoesNotExist();
+        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome);
+        sut.bindMigrationReport(new DefaultFileSystemMigrationReport());
+        givenHelperDeploymentBucketExists();
 
         try {
             sut.copySharedHomeToS3();
@@ -73,6 +64,8 @@ class S3BulkCopyTest {
 
     @Test
     void shouldAbortRunningMigration() throws NoSuchFieldException {
+        Path fakeHome = givenSharedHomeDoesNotExist();
+        S3BulkCopy sut = new S3BulkCopy(mockSupplier, helperDeploymentService, fakeHome);
         final FilesystemUploader uploader = mock(FilesystemUploader.class);
         FieldSetter.setField(sut, sut.getClass().getDeclaredField("fsUploader"), uploader);
 
@@ -83,7 +76,6 @@ class S3BulkCopyTest {
 
     private Path givenSharedHomeDoesNotExist() {
         Path nonexistentDir = Paths.get(UUID.randomUUID().toString());
-        when(mockHome.getHome()).thenReturn(nonexistentDir.toFile());
         return nonexistentDir;
     }
 

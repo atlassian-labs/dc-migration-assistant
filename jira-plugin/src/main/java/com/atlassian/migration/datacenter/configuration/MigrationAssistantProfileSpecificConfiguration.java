@@ -33,7 +33,7 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Profile("allowAnyTransition")
     @Primary
     public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome);
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome.getHome().toPath());
     }
 
     @Bean
