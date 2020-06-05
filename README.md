@@ -91,21 +91,7 @@ Will additionally fix any automatically-fixable issues.
 
 ### UI Testing Framework
 
-The Jira UI has a browser-based tests under `jira-e2e-tests`. The testing
-framework uses [Cypress](https://www.cypress.io/), [Jest](https://jestjs.io/),
-and [Yarn](https://yarnpkg.com). To run the tests during development, do the
-following:
-
-* Run the full Jira/plugin stack using `mvn amps:run`; see above for details.
-* `cd` into `jira-e2e-tests` and run `yarn install`.
-* Set the AWS credential environment variables:
-  * `export CYPRESS_AWS_ACCESS_KEY_ID=xxxx`
-  * `export CYPRESS_AWS_SECRET_ACCESS_KEY='yyyyyy'`
-* Run `yarn cypress` to start the interactive runner and select an appropriate test.
-
-The tests themselves are written in Typescript under `integration`. Additional
-utility and support functions are in `support`; currently these need to be
-written in Javascript, but are mapped to Typescript in `support/index.d.ts`.
+See [the testing README](jira-e2e-tests/README.md) for details.
 
 ## Contributions
 
