@@ -22,16 +22,27 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureClean
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
+import kotlin.math.log
 
 class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val migrationService: MigrationService) : MigrationInfrastructureCleanupService {
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(AWSMigrationStackCleanupService::class.java)
+    }
+
     override fun startMigrationInfrastructureCleanup(): Boolean {
         val migrationStack = getMigrationStackName()
 
+        logger.info("got request to cleanup migration stack $migrationStack")
+
         return try {
             cfnApi.deleteStack(migrationStack)
+            logger.info("successfully sent request to delete migration stack")
             true
         } catch (e: InfrastructureDeploymentError) {
+            logger.error("error cleaning up migration stack", e)
             false
         }
     }
@@ -39,8 +50,10 @@ class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val mi
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
         val migrationStack = getMigrationStackName()
 
+        logger.info("request for cleanup status of stack $migrationStack")
+
         return try {
-            when(cfnApi.getStatus(migrationStack).state) {
+            when (cfnApi.getStatus(migrationStack).state) {
                 InfrastructureDeploymentState.DELETE_COMPLETE -> InfrastructureCleanupStatus.CLEANUP_COMPLETE
                 InfrastructureDeploymentState.DELETE_IN_PROGRESS -> InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS
                 InfrastructureDeploymentState.DELETE_FAILED -> InfrastructureCleanupStatus.CLEANUP_FAILED
