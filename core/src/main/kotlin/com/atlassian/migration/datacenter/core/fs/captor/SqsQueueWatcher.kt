@@ -20,6 +20,7 @@ import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.MigrationStage.FINAL_SYNC_WAIT
+import com.atlassian.migration.datacenter.spi.MigrationStage.VALIDATE
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -32,24 +33,16 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
 
     constructor(sqsAPi: SqsApi, migrationService: MigrationService) : this(sqsAPi, migrationService, 30)
 
-
     companion object {
         private val logger = LoggerFactory.getLogger(SqsQueueWatcher::class.java)
     }
 
     override fun awaitQueueDrain(): Boolean {
-        //TODO: Change from when complete to toAccept/toCombine idioms
         try {
             val completableFuture = this.awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait)
-                    .whenComplete { _, _ ->
-                        run {
-                            awaitRunnableToComplete(::checkForQueueToBeEmpty).get()
-                        }
-                    }
-                    .whenComplete { _, _ ->
-                        run {
-                            migrationService.transition(MigrationStage.VALIDATE)
-                        }
+                    .thenCompose { awaitRunnableToComplete(::checkForQueueToBeEmpty) }
+                    .thenApply {
+                        migrationService.transition(VALIDATE)
                     }
 
             completableFuture.get()
