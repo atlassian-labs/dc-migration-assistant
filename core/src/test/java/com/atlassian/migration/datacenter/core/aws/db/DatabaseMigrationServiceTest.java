@@ -75,7 +75,6 @@ public class DatabaseMigrationServiceTest {
                 databaseArchivalService,
                 new DatabaseArchiveStageTransitionCallback(migrationService),
                 s3UploadService,
-                new DatabaseUploadStageTransitionCallback(migrationService),
                 restoreService,
                 awsMigrationHelperDeploymentService);
     }
@@ -90,7 +89,7 @@ public class DatabaseMigrationServiceTest {
         InOrder inOrder = inOrder(migrationService);
         when(awsMigrationHelperDeploymentService.getMigrationS3BucketName()).thenReturn(s3bucket);
         when(databaseArchivalService.archiveDatabase(eq(tempDir), any())).thenReturn(filePath);
-        when(s3UploadService.upload(eq(filePath), eq(s3bucket), any())).thenReturn(report);
+        when(s3UploadService.upload(eq(filePath), eq(s3bucket))).thenReturn(report);
         sut.performMigration();
 
         inOrder.verify(migrationService).transition(MigrationStage.DB_MIGRATION_EXPORT);

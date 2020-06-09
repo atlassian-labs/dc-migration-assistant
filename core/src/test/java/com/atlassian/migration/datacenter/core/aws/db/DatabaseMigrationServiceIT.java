@@ -127,9 +127,9 @@ class DatabaseMigrationServiceIT {
         DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration));
         DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
 
-        DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client);
-        s3UploadService.postConstruct();
         DatabaseUploadStageTransitionCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
+        DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback);
+        s3UploadService.postConstruct();
 
         when(ssmApi.runSSMDocument(anyString(), anyString(), anyMap())).thenReturn("my-commnd");
         when(ssmApi.getSSMCommand(anyString(), anyString())).thenReturn(GetCommandInvocationResponse.builder().status(CommandInvocationStatus.SUCCESS).build());
@@ -144,7 +144,6 @@ class DatabaseMigrationServiceIT {
                 databaseArchivalService,
                 archiveStageTransitionCallback,
                 s3UploadService,
-                uploadStageTransitionCallback,
                 restoreService,
                 migrationHelperDeploymentService);
 

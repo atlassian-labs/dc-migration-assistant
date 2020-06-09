@@ -43,7 +43,6 @@ public class DatabaseMigrationService {
     private final DatabaseArchivalService databaseArchivalService;
     private final DatabaseArchiveStageTransitionCallback stageTransitionCallback;
     private final DatabaseArtifactS3UploadService s3UploadService;
-    private final DatabaseUploadStageTransitionCallback uploadStageTransitionCallback;
     private final SsmPsqlDatabaseRestoreService restoreService;
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
@@ -55,14 +54,12 @@ public class DatabaseMigrationService {
                                     MigrationRunner migrationRunner, DatabaseArchivalService databaseArchivalService,
                                     DatabaseArchiveStageTransitionCallback stageTransitionCallback,
                                     DatabaseArtifactS3UploadService s3UploadService,
-                                    DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
                                     SsmPsqlDatabaseRestoreService restoreService,
                                     AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
         this.stageTransitionCallback = stageTransitionCallback;
         this.s3UploadService = s3UploadService;
-        this.uploadStageTransitionCallback = uploadStageTransitionCallback;
         this.restoreService = restoreService;
         this.migrationService = migrationService;
         this.migrationRunner = migrationRunner;
@@ -86,7 +83,7 @@ public class DatabaseMigrationService {
         String bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
 
         try {
-            report = s3UploadService.upload(pathToDatabaseFile, bucketName, this.uploadStageTransitionCallback);
+            report = s3UploadService.upload(pathToDatabaseFile, bucketName);
         } catch (FilesystemUploader.FileUploadException e) {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when uploading database dump to S3", e);

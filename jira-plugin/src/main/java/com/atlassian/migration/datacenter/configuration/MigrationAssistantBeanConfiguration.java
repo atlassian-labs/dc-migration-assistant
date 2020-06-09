@@ -176,13 +176,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier) {
-        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier);
+    public DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback(MigrationService migrationService) {
+        return new DatabaseUploadStageTransitionCallback(migrationService);
     }
 
     @Bean
-    public DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback(MigrationService migrationService) {
-        return new DatabaseUploadStageTransitionCallback(migrationService);
+    public DatabaseArtifactS3UploadService databaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, DatabaseUploadStageTransitionCallback uploadStageTransitionCallback) {
+        return new DatabaseArtifactS3UploadService(s3AsyncClientSupplier, uploadStageTransitionCallback);
     }
 
     @Bean
@@ -211,7 +211,6 @@ public class MigrationAssistantBeanConfiguration {
                 databaseArchivalService,
                 archiveStageTransitionCallback,
                 s3UploadService,
-                uploadStageTransitionCallback,
                 restoreService,
                 migrationHelperDeploymentService);
     }

@@ -46,13 +46,13 @@ public class DatabaseArtifactS3UploadServiceTest {
 
     @Test
     void serviceShouldInstantiateS3ClientFromSupplier() throws Exception {
-        sut.upload(path, "bucketName", databaseUploadStageTransitionCallback);
+        sut.upload(path, "bucketName");
         verify(s3AsyncClientSupplier).get();
     }
 
     @Test
     void serviceShouldTransitionThroughExpectedStages() throws Exception {
-        sut.upload(path, "bucketName", databaseUploadStageTransitionCallback);
+        sut.upload(path, "bucketName");
         verify(databaseUploadStageTransitionCallback).assertInStartingStage();
         verify(databaseUploadStageTransitionCallback).transitionToServiceWaitStage();
         verify(databaseUploadStageTransitionCallback).transitionToServiceNextStage();
