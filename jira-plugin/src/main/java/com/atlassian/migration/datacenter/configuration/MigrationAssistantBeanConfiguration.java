@@ -48,6 +48,7 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.AtlassianInfra
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationStackCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.MigrationBucketCleanupService;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
@@ -82,6 +83,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -95,6 +97,14 @@ public class MigrationAssistantBeanConfiguration {
     @Bean
     public Supplier<S3AsyncClient> s3AsyncClientSupplier(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
         return () -> S3AsyncClient.builder()
+                .credentialsProvider(credentialsProvider)
+                .region(Region.of(regionService.getRegion()))
+                .build();
+    }
+
+    @Bean
+    public Supplier<S3Client> s3ClientSupplier(AwsCredentialsProvider credentialsProvider, RegionService regionService) {
+        return () -> S3Client.builder()
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
@@ -334,8 +344,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService, AWSMigrationStackCleanupService migrationStackCleanupService) {
-        return new AWSCleanupTaskFactory(databaseSecretCleanupService, migrationStackCleanupService);
+    public MigrationBucketCleanupService bucketCleanupService(MigrationService migrationService, Supplier<S3Client> clientSupplier) {
+        return new MigrationBucketCleanupService(migrationService, clientSupplier);
+    }
+
+    @Bean
+    public AWSCleanupTaskFactory cleanupTaskFactory(DatabaseSecretCleanupService databaseSecretCleanupService, AWSMigrationStackCleanupService migrationStackCleanupService, MigrationBucketCleanupService bucketCleanupService) {
+        return new AWSCleanupTaskFactory(databaseSecretCleanupService, migrationStackCleanupService, bucketCleanupService);
     }
 
     @Bean
