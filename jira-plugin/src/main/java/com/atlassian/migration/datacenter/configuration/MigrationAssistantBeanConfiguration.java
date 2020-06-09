@@ -324,8 +324,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher) {
-        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi);
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher, AttachmentSyncManager attachmentSyncManager) {
+        return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi, attachmentSyncManager);
     }
 
     @Bean

@@ -22,4 +22,5 @@ import java.util.Set;
 
 public interface AttachmentSyncManager {
     Set<FileSyncRecord> getCapturedAttachments();
+    Integer getCapturedAttachmentCountForCurrentMigration();
 }
