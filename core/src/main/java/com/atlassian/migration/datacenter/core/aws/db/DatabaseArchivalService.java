@@ -24,10 +24,6 @@ public class DatabaseArchivalService {
     private DatabaseExtractor databaseExtractor;
     private MigrationStageCallback migrationStageCallback;
 
-    public DatabaseArchivalService(DatabaseExtractor databaseExtractor) {
-        this.databaseExtractor = databaseExtractor;
-    }
-
     public DatabaseArchivalService(DatabaseExtractor databaseExtractor, MigrationStageCallback migrationStageCallback) {
         this.databaseExtractor = databaseExtractor;
         this.migrationStageCallback = migrationStageCallback;

@@ -128,7 +128,7 @@ class DatabaseMigrationServiceIT {
         MigrationStageCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
         DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration), archiveStageTransitionCallback);
 
-        DatabaseUploadStageTransitionCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
+        MigrationStageCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
         DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback);
         s3UploadService.postConstruct();
 
