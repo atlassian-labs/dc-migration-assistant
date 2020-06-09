@@ -186,13 +186,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
-        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService);
+    public DatabaseRestoreStageTransitionCallback databaseRestoreStageTransitionCallback(MigrationService migrationService) {
+        return new DatabaseRestoreStageTransitionCallback(migrationService);
     }
 
     @Bean
-    public DatabaseRestoreStageTransitionCallback databaseRestoreStageTransitionCallback(MigrationService migrationService) {
-        return new DatabaseRestoreStageTransitionCallback(migrationService);
+    public SsmPsqlDatabaseRestoreService ssmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
+        return new SsmPsqlDatabaseRestoreService(ssm, migrationHelperDeploymentService, restoreStageTransitionCallback);
     }
 
     @Bean
@@ -202,8 +202,7 @@ public class MigrationAssistantBeanConfiguration {
                                                              DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback,
                                                              DatabaseArtifactS3UploadService s3UploadService,
                                                              DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
-                                                             SsmPsqlDatabaseRestoreService restoreService,
-                                                             DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+                                                             SsmPsqlDatabaseRestoreService restoreService, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         String tempDirectoryPath = System.getProperty("java.io.tmpdir");
         return new DatabaseMigrationService(
                 Paths.get(tempDirectoryPath),
@@ -214,7 +213,6 @@ public class MigrationAssistantBeanConfiguration {
                 s3UploadService,
                 uploadStageTransitionCallback,
                 restoreService,
-                restoreStageTransitionCallback,
                 migrationHelperDeploymentService);
     }
 

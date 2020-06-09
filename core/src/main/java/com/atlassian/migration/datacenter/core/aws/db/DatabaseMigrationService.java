@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
-import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner;
@@ -46,7 +45,6 @@ public class DatabaseMigrationService {
     private final DatabaseArtifactS3UploadService s3UploadService;
     private final DatabaseUploadStageTransitionCallback uploadStageTransitionCallback;
     private final SsmPsqlDatabaseRestoreService restoreService;
-    private final DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback;
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
@@ -54,20 +52,18 @@ public class DatabaseMigrationService {
     private final AtomicReference<Optional<LocalDateTime>> startTime = new AtomicReference<>(Optional.empty());
 
     public DatabaseMigrationService(Path tempDirectory, MigrationService migrationService,
-            MigrationRunner migrationRunner, DatabaseArchivalService databaseArchivalService,
-            DatabaseArchiveStageTransitionCallback stageTransitionCallback,
-            DatabaseArtifactS3UploadService s3UploadService,
-            DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
-            SsmPsqlDatabaseRestoreService restoreService,
-            DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback,
-            AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+                                    MigrationRunner migrationRunner, DatabaseArchivalService databaseArchivalService,
+                                    DatabaseArchiveStageTransitionCallback stageTransitionCallback,
+                                    DatabaseArtifactS3UploadService s3UploadService,
+                                    DatabaseUploadStageTransitionCallback uploadStageTransitionCallback,
+                                    SsmPsqlDatabaseRestoreService restoreService,
+                                    AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
         this.stageTransitionCallback = stageTransitionCallback;
         this.s3UploadService = s3UploadService;
         this.uploadStageTransitionCallback = uploadStageTransitionCallback;
         this.restoreService = restoreService;
-        this.restoreStageTransitionCallback = restoreStageTransitionCallback;
         this.migrationService = migrationService;
         this.migrationRunner = migrationRunner;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
@@ -97,7 +93,7 @@ public class DatabaseMigrationService {
         }
 
         try {
-            restoreService.restoreDatabase(restoreStageTransitionCallback);
+            restoreService.restoreDatabase();
         } catch (Exception e) {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when restoring database", e);

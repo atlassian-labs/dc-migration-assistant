@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
-import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
@@ -29,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -79,7 +77,6 @@ public class DatabaseMigrationServiceTest {
                 s3UploadService,
                 new DatabaseUploadStageTransitionCallback(migrationService),
                 restoreService,
-                new DatabaseRestoreStageTransitionCallback(migrationService),
                 awsMigrationHelperDeploymentService);
     }
 

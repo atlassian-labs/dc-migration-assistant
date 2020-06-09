@@ -36,25 +36,27 @@ public class SsmPsqlDatabaseRestoreService {
     private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
 
     private String commandId;
+    private final DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback;
 
     SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries,
-                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
         this.ssm = ssm;
         this.maxCommandRetries = maxCommandRetries;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        this.restoreStageTransitionCallback = restoreStageTransitionCallback;
     }
 
     public SsmPsqlDatabaseRestoreService(SSMApi ssm,
-                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
-        this(ssm, 10, migrationHelperDeploymentService);
+                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback) {
+        this(ssm, 10, migrationHelperDeploymentService, restoreStageTransitionCallback);
     }
 
-    public void restoreDatabase(DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback)
+    public void restoreDatabase()
             throws DatabaseMigrationFailure, InvalidMigrationStageError {
         String dbRestorePlaybook = migrationHelperDeploymentService.getDbRestoreDocument();
         String migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
 
-        restoreStageTransitionCallback.assertInStartingStage();
+        this.restoreStageTransitionCallback.assertInStartingStage();
 
         this.commandId = ssm.runSSMDocument(dbRestorePlaybook, migrationInstanceId, Collections.emptyMap());
 

@@ -133,18 +133,20 @@ class DatabaseMigrationServiceIT {
 
         when(ssmApi.runSSMDocument(anyString(), anyString(), anyMap())).thenReturn("my-commnd");
         when(ssmApi.getSSMCommand(anyString(), anyString())).thenReturn(GetCommandInvocationResponse.builder().status(CommandInvocationStatus.SUCCESS).build());
-        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService);
+
         DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback  = new DatabaseRestoreStageTransitionCallback(this.migrationService);
 
+        SsmPsqlDatabaseRestoreService restoreService = new SsmPsqlDatabaseRestoreService(ssmApi, migrationHelperDeploymentService, restoreStageTransitionCallback);
+
         DatabaseMigrationService service = new DatabaseMigrationService(tempDir,
-                                                                        migrationService,
-                                                                        migrationRunner,
-                                                                        databaseArchivalService,
-                                                                        archiveStageTransitionCallback,
-                                                                        s3UploadService,
-                                                                        uploadStageTransitionCallback,
-                                                                        restoreService,
-                                                                        restoreStageTransitionCallback, migrationHelperDeploymentService);
+                migrationService,
+                migrationRunner,
+                databaseArchivalService,
+                archiveStageTransitionCallback,
+                s3UploadService,
+                uploadStageTransitionCallback,
+                restoreService,
+                migrationHelperDeploymentService);
 
         FileSystemMigrationErrorReport report = service.performMigration();
 
