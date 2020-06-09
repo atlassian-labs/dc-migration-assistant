@@ -46,14 +46,14 @@ class DatabaseArchivalServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DatabaseArchivalService(databaseExtractor);
+        service = new DatabaseArchivalService(databaseExtractor, migrationStageCallback);
     }
 
     @Test
     void shouldArchiveDatabaseSuccessfully() throws Exception {
         when(this.databaseExtractor.startDatabaseDump(tempDir.resolve("db.dump"))).thenReturn(process);
         when(process.waitFor()).thenReturn(0);
-        Path target = service.archiveDatabase(tempDir, migrationStageCallback);
+        Path target = service.archiveDatabase(tempDir);
         assertTrue(target.endsWith("db.dump"));
 
         verify(this.migrationStageCallback).assertInStartingStage();
@@ -66,7 +66,7 @@ class DatabaseArchivalServiceTest {
         doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).assertInStartingStage();
 
         assertThrows(InvalidMigrationStageError.class, () -> {
-            service.archiveDatabase(tempDir, migrationStageCallback);
+            service.archiveDatabase(tempDir);
         });
     }
 
@@ -75,7 +75,7 @@ class DatabaseArchivalServiceTest {
         doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).transitionToServiceWaitStage();
 
         assertThrows(InvalidMigrationStageError.class, () -> {
-            service.archiveDatabase(tempDir, migrationStageCallback);
+            service.archiveDatabase(tempDir);
         });
         verify(migrationStageCallback).assertInStartingStage();
     }
@@ -88,7 +88,7 @@ class DatabaseArchivalServiceTest {
         doThrow(InvalidMigrationStageError.class).when(migrationStageCallback).transitionToServiceNextStage();
 
         assertThrows(InvalidMigrationStageError.class, () -> {
-            service.archiveDatabase(tempDir, migrationStageCallback);
+            service.archiveDatabase(tempDir);
         });
 
         verify(migrationStageCallback).assertInStartingStage();
@@ -102,7 +102,7 @@ class DatabaseArchivalServiceTest {
         when(process.waitFor()).thenThrow(new InterruptedException(errorMessage));
 
         assertThrows(DatabaseMigrationFailure.class, () -> {
-            service.archiveDatabase(tempDir, migrationStageCallback);
+            service.archiveDatabase(tempDir);
         });
 
         verify(migrationStageCallback).assertInStartingStage();

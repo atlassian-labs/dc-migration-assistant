@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
@@ -124,8 +125,8 @@ class DatabaseMigrationServiceIT {
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError
     {
-        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration));
-        DatabaseArchiveStageTransitionCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
+        MigrationStageCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration), archiveStageTransitionCallback);
 
         DatabaseUploadStageTransitionCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
         DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback);
@@ -142,7 +143,6 @@ class DatabaseMigrationServiceIT {
                 migrationService,
                 migrationRunner,
                 databaseArchivalService,
-                archiveStageTransitionCallback,
                 s3UploadService,
                 restoreService,
                 migrationHelperDeploymentService);

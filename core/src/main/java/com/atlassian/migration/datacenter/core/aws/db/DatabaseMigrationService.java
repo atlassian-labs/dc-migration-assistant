@@ -41,7 +41,6 @@ public class DatabaseMigrationService {
 
     private final Path tempDirectory;
     private final DatabaseArchivalService databaseArchivalService;
-    private final DatabaseArchiveStageTransitionCallback stageTransitionCallback;
     private final DatabaseArtifactS3UploadService s3UploadService;
     private final SsmPsqlDatabaseRestoreService restoreService;
     private final MigrationService migrationService;
@@ -52,13 +51,11 @@ public class DatabaseMigrationService {
 
     public DatabaseMigrationService(Path tempDirectory, MigrationService migrationService,
                                     MigrationRunner migrationRunner, DatabaseArchivalService databaseArchivalService,
-                                    DatabaseArchiveStageTransitionCallback stageTransitionCallback,
                                     DatabaseArtifactS3UploadService s3UploadService,
                                     SsmPsqlDatabaseRestoreService restoreService,
                                     AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
         this.tempDirectory = tempDirectory;
         this.databaseArchivalService = databaseArchivalService;
-        this.stageTransitionCallback = stageTransitionCallback;
         this.s3UploadService = s3UploadService;
         this.restoreService = restoreService;
         this.migrationService = migrationService;
@@ -76,7 +73,7 @@ public class DatabaseMigrationService {
         migrationService.transition(MigrationStage.DB_MIGRATION_EXPORT);
         startTime.set(Optional.of(LocalDateTime.now()));
 
-        Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory, stageTransitionCallback);
+        Path pathToDatabaseFile = databaseArchivalService.archiveDatabase(tempDirectory);
 
         FileSystemMigrationErrorReport report;
 
