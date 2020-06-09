@@ -20,6 +20,7 @@ import com.atlassian.jira.config.util.JiraHome
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig
 import com.atlassian.migration.datacenter.core.fs.S3Uploader
+import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport
 import com.atlassian.migration.datacenter.core.util.MigrationJobRunner
 import com.atlassian.scheduler.JobRunnerRequest
@@ -34,7 +35,8 @@ class S3FinalSyncRunner(
         private val client: Supplier<S3AsyncClient>,
         private val home: JiraHome,
         private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService,
-        private val queueWatcher: QueueWatcher)
+        private val queueWatcher: QueueWatcher,
+        private val attachmentListener: JiraIssueAttachmentListener)
     : MigrationJobRunner {
 
     companion object {
@@ -51,6 +53,9 @@ class S3FinalSyncRunner(
         if (!isRunning.compareAndSet(false, true)) {
             return JobRunnerResponse.aborted("Database migration job is already running")
         }
+
+        log.info("Stopping attachment event listener. Attachments created from this point onwards will not be migrated.")
+        attachmentListener.stop()
 
         val config = S3UploadConfig(migrationHelperDeploymentService.migrationS3BucketName, client.get(), home.home.toPath())
         val report = DefaultFileSystemMigrationReport()

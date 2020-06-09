@@ -72,7 +72,6 @@ public class JiraIssueAttachmentListener implements DisposableBean {
         if (started) {
             eventPublisher.unregister(this);
             started = false;
-
         }
     }
 
