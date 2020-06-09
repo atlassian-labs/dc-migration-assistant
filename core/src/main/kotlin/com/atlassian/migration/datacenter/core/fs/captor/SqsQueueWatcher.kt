@@ -38,7 +38,7 @@ class SqsQueueWatcher(private val sqsAPi: SqsApi,
     }
 
     override fun awaitQueueDrain(): Boolean {
-        logger.info("Waiting for migration state to be in {}. Once the stage is reached, SQS queue will be polling will begin.", MigrationStage.FINAL_SYNC_WAIT)
+        logger.info("Waiting for migration state to be in {}. Once the stage is reached, SQS queue will be polling will begin.", FINAL_SYNC_WAIT)
 
         try {
             val completableFuture = this.awaitRunnableToComplete(::checkForStateToBeInFsSyncAwait)
