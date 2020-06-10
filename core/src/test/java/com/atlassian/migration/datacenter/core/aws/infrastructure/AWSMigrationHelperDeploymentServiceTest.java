@@ -169,13 +169,11 @@ class AWSMigrationHelperDeploymentServiceTest {
         assertStackOutputsAreAvailable();
     }
 
-//    @Test
     @ParameterizedTest
     @MethodSource(value = "stackOutputGetterArguments")
     void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted(Function<MigrationContext, String> arg) throws InterruptedException {
         givenMigrationStackDeploymentWillCompleteSuccessfully();
         givenMigrationStackHasStartedDeploying();
-
 
         when(arg.apply(mockContext)).thenReturn(null);
 
@@ -194,10 +192,8 @@ class AWSMigrationHelperDeploymentServiceTest {
                         (Function<MigrationContext, String>) MigrationContext::getMigrationStackAsgIdentifier,
                         (Function<MigrationContext, String>) MigrationContext::getMigrationQueueUrl,
                         (Function<MigrationContext, String>) MigrationContext::getMigrationDLQueueUrl
-
                 )
         );
-
     }
 
     private void assertGettingStackOutputsThrowsError() {
