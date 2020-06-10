@@ -169,31 +169,14 @@ class AWSMigrationHelperDeploymentServiceTest {
         assertStackOutputsAreAvailable();
     }
 
-    @ParameterizedTest
-    @MethodSource(value = "stackOutputGetterArguments")
-    void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted(Function<MigrationContext, String> arg) throws InterruptedException {
-        givenMigrationStackDeploymentWillCompleteSuccessfully();
+    @Test
+    void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted() throws InterruptedException {
+        givenMigrationStackDeploymentWillFail();
         givenMigrationStackHasStartedDeploying();
-
-        when(arg.apply(mockContext)).thenReturn(null);
 
         Thread.sleep(100);
 
-        verify(mockMigrationService).error(anyString());
-    }
-
-    private static Stream<Arguments> stackOutputGetterArguments() {
-        return Stream.of(
-                Arguments.arguments(
-                        (Function<MigrationContext, String>) MigrationContext::getFsRestoreSsmDocument,
-                        (Function<MigrationContext, String>) MigrationContext::getFsRestoreStatusSsmDocument,
-                        (Function<MigrationContext, String>) MigrationContext::getRdsRestoreSsmDocument,
-                        (Function<MigrationContext, String>) MigrationContext::getMigrationBucketName,
-                        (Function<MigrationContext, String>) MigrationContext::getMigrationStackAsgIdentifier,
-                        (Function<MigrationContext, String>) MigrationContext::getMigrationQueueUrl,
-                        (Function<MigrationContext, String>) MigrationContext::getMigrationDLQueueUrl
-                )
-        );
+        assertGettingStackOutputsThrowsError();
     }
 
     private void assertGettingStackOutputsThrowsError() {
@@ -206,9 +189,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         outputGetters.add(sut::getDeadLetterQueueResource);
         outputGetters.add(sut::getQueueResource);
 
-        for (Executable outputGetter : outputGetters) {
-            assertThrows(InfrastructureDeploymentError.class, outputGetter);
-        }
+        outputGetters.forEach(outputGetter -> assertThrows(InfrastructureDeploymentError.class, outputGetter));
     }
 
     private void assertStackOutputsAreAvailable() {

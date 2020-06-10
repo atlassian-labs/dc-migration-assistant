@@ -24,6 +24,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -39,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Manages the deployment of the migration helper stack which is used to hydrate the new
@@ -109,14 +109,10 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         persistStackDetails(stackOutputs, migrationStackResources);
 
         try {
-            ensureStackOutputsAreSet();
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY);
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment", invalidMigrationStageError);
             migrationService.error(invalidMigrationStageError.getMessage());
-        } catch (InfrastructureDeploymentError ide){
-            logger.error("Error storing migration stack outputs in the database", ide);
-            migrationService.error(ide.getMessage());
         }
     }
 
@@ -167,26 +163,20 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     //TODO: Why not store this once in the migration context?
     public String getMigrationHostInstanceId() {
-        final String documentOverride = System.getProperty("com.atlassian.migration.instanceId");
-        if (documentOverride != null) {
-            return documentOverride;
-        } else {
-            ensureStackOutputsAreSet();
+        String migrationStackAsg = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationStackAsgIdentifier(), "com.atlassian.migration.instanceId");
 
-            String migrationStackAsg = migrationService.getCurrentContext().getMigrationStackAsgIdentifier();
-            AutoScalingClient client = autoScalingClientFactory.get();
-            DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
-                    DescribeAutoScalingGroupsRequest
-                            .builder()
-                            .autoScalingGroupNames(migrationStackAsg)
-                            .build()
-            );
+        AutoScalingClient client = autoScalingClientFactory.get();
+        DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
+                DescribeAutoScalingGroupsRequest
+                        .builder()
+                        .autoScalingGroupNames(migrationStackAsg)
+                        .build()
+        );
 
-            AutoScalingGroup migrationStackGroup = response.autoScalingGroups().get(0);
-            Instance migrationInstance = migrationStackGroup.instances().get(0);
+        AutoScalingGroup migrationStackGroup = response.autoScalingGroups().get(0);
+        Instance migrationInstance = migrationStackGroup.instances().get(0);
 
-            return migrationInstance.instanceId();
-        }
+        return migrationInstance.instanceId();
     }
 
     private String getMigrationStackPropertyOrOverride(Supplier<String> supplier, String migrationStackPropertySystemOverrideKey) {
@@ -195,23 +185,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         if (documentOverride != null) {
             return documentOverride;
         }
-        return supplier.get();
+        return ensureStackOutputIsSet(supplier);
     }
 
-    //Do we need to be defensive here?
-    private void ensureStackOutputsAreSet() {
-        MigrationContext currentContext = migrationService.getCurrentContext();
-        final Stream<String> stackOutputs = Stream.of(
-                currentContext.getFsRestoreSsmDocument(),
-                currentContext.getFsRestoreStatusSsmDocument(),
-                currentContext.getRdsRestoreSsmDocument(),
-                currentContext.getMigrationBucketName(),
-                currentContext.getMigrationStackAsgIdentifier(),
-                currentContext.getMigrationQueueUrl(),
-                currentContext.getMigrationDLQueueUrl());
-        if (stackOutputs.anyMatch(output -> output == null || output.equals(""))) {
+    private String ensureStackOutputIsSet(Supplier<String> supplier) {
+        String value = supplier.get();
+        if (StringUtils.isBlank(value))
             throw new InfrastructureDeploymentError("migration stack outputs are not set");
-        }
+        return value;
     }
 
     @Override
