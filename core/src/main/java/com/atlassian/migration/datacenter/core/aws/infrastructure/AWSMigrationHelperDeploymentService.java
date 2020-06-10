@@ -161,10 +161,15 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationDLQueueUrl(), "com.atlassian.migration.queue.deadLetterQueueName");
     }
 
-    //TODO: Why not store this once in the migration context?
     public String getMigrationHostInstanceId() {
-        String migrationStackAsg = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationStackAsgIdentifier(), "com.atlassian.migration.instanceId");
+        final String documentOverride = System.getProperty("com.atlassian.migration.instanceId");
+        if (documentOverride != null) {
+            return documentOverride;
+        }
 
+        String migrationStackAsg = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationStackAsgIdentifier(), "com.atlassian.migration.asgIdentifier");
+
+        //TODO: Store this once in the migration context once.
         AutoScalingClient client = autoScalingClientFactory.get();
         DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
                 DescribeAutoScalingGroupsRequest
