@@ -109,10 +109,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         persistStackDetails(stackOutputs, migrationStackResources);
 
         try {
+            ensureStackOutputsAreSet();
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY);
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("error transitioning to FS_MIGRATION_COPY stage after successful migration stack deployment", invalidMigrationStageError);
             migrationService.error(invalidMigrationStageError.getMessage());
+        } catch (InfrastructureDeploymentError ide){
+            logger.error("Error storing migration stack outputs in the database", ide);
+            migrationService.error(ide.getMessage());
         }
     }
 
@@ -191,8 +195,6 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         if (documentOverride != null) {
             return documentOverride;
         }
-
-        ensureStackOutputsAreSet();
         return supplier.get();
     }
 

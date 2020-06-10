@@ -23,10 +23,16 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.google.common.base.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -43,9 +49,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME;
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_QUEUE_NAME;
+import static java.util.stream.Stream.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -160,14 +169,35 @@ class AWSMigrationHelperDeploymentServiceTest {
         assertStackOutputsAreAvailable();
     }
 
-    @Test
-    void shouldThrowErrorWhenGettingOutputsIfStackDidNotDeploySuccessfully() throws InterruptedException {
-        givenMigrationStackDeploymentWillFail();
+//    @Test
+    @ParameterizedTest
+    @MethodSource(value = "stackOutputGetterArguments")
+    void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted(Function<MigrationContext, String> arg) throws InterruptedException {
+        givenMigrationStackDeploymentWillCompleteSuccessfully();
         givenMigrationStackHasStartedDeploying();
+
+
+        when(arg.apply(mockContext)).thenReturn(null);
 
         Thread.sleep(100);
 
-        assertGettingStackOutputsThrowsError();
+        verify(mockMigrationService).error(anyString());
+    }
+
+    private static Stream<Arguments> stackOutputGetterArguments() {
+        return Stream.of(
+                Arguments.arguments(
+                        (Function<MigrationContext, String>) MigrationContext::getFsRestoreSsmDocument,
+                        (Function<MigrationContext, String>) MigrationContext::getFsRestoreStatusSsmDocument,
+                        (Function<MigrationContext, String>) MigrationContext::getRdsRestoreSsmDocument,
+                        (Function<MigrationContext, String>) MigrationContext::getMigrationBucketName,
+                        (Function<MigrationContext, String>) MigrationContext::getMigrationStackAsgIdentifier,
+                        (Function<MigrationContext, String>) MigrationContext::getMigrationQueueUrl,
+                        (Function<MigrationContext, String>) MigrationContext::getMigrationDLQueueUrl
+
+                )
+        );
+
     }
 
     private void assertGettingStackOutputsThrowsError() {
