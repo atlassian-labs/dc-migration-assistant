@@ -50,8 +50,8 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
     private val mockRootResources = mapOf("JiraDCStack" to StackResource.builder().physicalResourceId(jiraStackName).build())
     private val mockJiraResources = mapOf("ElasticFileSystem" to StackResource.builder().physicalResourceId(testEfs).build())
     private val mockOutputs = listOf(
-            Output.builder().outputKey("SGname").outputValue(testSg).build(),
-            Output.builder().outputKey("DBEndpointAddress").outputValue(testDbEndpoint).build()
+            Output.builder().outputKey(securityGroupStackOutputKey).outputValue(testSg).build(),
+            Output.builder().outputKey(dbEndpointAddressStackOutputKey).outputValue(testDbEndpoint).build()
     )
     private val stack = Stack.builder().stackName(stackName).build()
     private val jiraStack = Stack.builder().stackName(jiraStackName).outputs(mockOutputs).build()

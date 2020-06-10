@@ -22,9 +22,6 @@ import software.amazon.awssdk.services.cloudformation.model.Stack
 
 class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
 
-    private val dbEndpointAddressStackOutputKey = "DBEndpointAddress"
-    private val securityGroupStackOutputKey = "SGname"
-
     override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
         val applicationStackOutputsMap = stack.outputs().associateBy({ it.outputKey() }, { it.outputValue() })
 
