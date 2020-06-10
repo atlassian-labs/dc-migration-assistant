@@ -17,40 +17,20 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
-
-    private val dbEndpointAddressStackOutputKey = "DBEndpointAddress"
-    private val securityGroupStackOutputKey = "SGname"
+class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi, private val standaloneMigrationStackInputGatheringStrategy: QuickstartStandaloneMigrationStackInputGatheringStrategy) : MigrationStackInputGatheringStrategy {
 
     override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
-        val applicationStackOutputsMap = stack.outputs().associateBy({ it.outputKey() }, { it.outputValue() })
-
-        val exportPrefix = stack.parameters().stream()
-                .filter { parameter -> parameter.parameterKey() == "ExportPrefix" }
-                .findFirst()
-                .map { it.parameterValue() }
-                .orElse("ATL-")
-
-        val cfnExports = cfnApi.exports
-
         val applicationResources = cfnApi.getStackResources(stack.stackName())
 
-        val jiraStack = applicationResources["JiraDCStack"]
-        val jiraStackName = jiraStack!!.physicalResourceId()
+        val jiraStackResource = applicationResources["JiraDCStack"]
+        val jiraStack = cfnApi.getStack(jiraStackResource!!.physicalResourceId())
+        if (jiraStack.isEmpty) {
+            throw InfrastructureDeploymentError("unable to find JiraDCStack resource in with-vpc cloudformation deployment: ${stack.stackName()}")
+        }
 
-        val jiraResources = cfnApi.getStackResources(jiraStackName)
-        val efsId = jiraResources["ElasticFileSystem"]!!.physicalResourceId()
-
-        return mapOf(
-                "NetworkPrivateSubnet" to cfnExports["${exportPrefix}PriNets"]!!.split(",")[0],
-                "EFSFileSystemId" to efsId,
-                "EFSSecurityGroup" to applicationStackOutputsMap[securityGroupStackOutputKey]!!,
-                "RDSSecurityGroup" to applicationStackOutputsMap[securityGroupStackOutputKey]!!,
-                "RDSEndpoint" to applicationStackOutputsMap[dbEndpointAddressStackOutputKey]!!,
-                "HelperInstanceType" to "c5.large",
-                "HelperVpcId" to cfnExports["${exportPrefix}VPCID"]!!
-        )
+        return standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputsFromApplicationStack(jiraStack.get())
     }
 }

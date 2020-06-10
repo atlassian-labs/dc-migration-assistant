@@ -17,8 +17,6 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
-import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY
-import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -52,25 +50,25 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
     private val mockRootResources = mapOf("JiraDCStack" to StackResource.builder().physicalResourceId(jiraStackName).build())
     private val mockJiraResources = mapOf("ElasticFileSystem" to StackResource.builder().physicalResourceId(testEfs).build())
     private val mockOutputs = listOf(
-            Output.builder().outputKey(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY).outputValue(testSg).build(),
-            Output.builder().outputKey(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY).outputValue(testDbEndpoint).build()
+            Output.builder().outputKey("SGname").outputValue(testSg).build(),
+            Output.builder().outputKey("DBEndpointAddress").outputValue(testDbEndpoint).build()
     )
-    private val stack = Stack.builder().outputs(mockOutputs).stackName(stackName).build()
+    private val stack = Stack.builder().stackName(stackName).build()
+    private val jiraStack = Stack.builder().stackName(jiraStackName).outputs(mockOutputs).build()
 
     private val mockExportsDefaultPrefix = mapOf("ATL-PriNets" to "$testSubnet1,$testSubnet2", "ATL-VPCID" to testVpc)
 
     @BeforeEach
     internal fun setUp() {
-        sut = QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi)
-        every { cfnApi.getStack(stackName) } returns Optional.of(stack)
+        sut = QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi, QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi))
+        every { cfnApi.exports } returns mockExportsDefaultPrefix
         every { cfnApi.getStackResources(stackName) } returns mockRootResources
         every { cfnApi.getStackResources(jiraStackName) } returns mockJiraResources
+        every { cfnApi.getStack(jiraStackName) } returns Optional.of(jiraStack)
     }
 
     @Test
     fun shouldGatherInputsWithDefaultPrefix() {
-        every { cfnApi.exports } returns mockExportsDefaultPrefix
-
         val params = sut.gatherMigrationStackInputsFromApplicationStack(stack)
 
         val expectation = mapOf(

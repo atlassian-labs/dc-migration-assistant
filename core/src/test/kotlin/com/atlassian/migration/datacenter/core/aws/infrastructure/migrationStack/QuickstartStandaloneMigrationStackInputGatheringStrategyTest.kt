@@ -49,8 +49,8 @@ internal class QuickstartStandaloneMigrationStackInputGatheringStrategyTest {
 
     private val mockResources = mapOf("ElasticFileSystem" to StackResource.builder().physicalResourceId(testEfs).build())
     private val mockOutputs = listOf(
-            Output.builder().outputKey(QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY).outputValue(testSg).build(),
-            Output.builder().outputKey(QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY).outputValue(testDbEndpoint).build()
+            Output.builder().outputKey("SGname").outputValue(testSg).build(),
+            Output.builder().outputKey("DBEndpointAddress").outputValue(testDbEndpoint).build()
     )
     private val params = listOf(Parameter.builder().parameterKey("ExportPrefix").parameterValue("TEST-").build())
 
