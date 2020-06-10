@@ -286,8 +286,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public QuickstartDeploymentService quickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService, AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService) {
-        return new QuickstartDeploymentService(cfnApi, migrationService, dbCredentialsStorageService, awsMigrationHelperDeploymentService);
+    public QuickstartDeploymentService quickstartDeploymentService(
+            CfnApi cfnApi,
+            MigrationService migrationService,
+            TargetDbCredentialsStorageService dbCredentialsStorageService,
+            AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService,
+            MigrationStackInputGatheringStrategyFactory strategyFactory) {
+        return new QuickstartDeploymentService(cfnApi, migrationService, dbCredentialsStorageService, awsMigrationHelperDeploymentService, strategyFactory);
     }
 
     @Bean

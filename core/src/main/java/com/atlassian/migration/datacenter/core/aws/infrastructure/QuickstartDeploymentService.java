@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.MigrationStackInputGatheringStrategyFactory;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.QuickstartStandaloneMigrationStackInputGatheringStrategy;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.QuickstartWithVPCMigrationStackInputGatheringStrategy;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -54,15 +55,22 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     private final MigrationService migrationService;
     private final TargetDbCredentialsStorageService dbCredentialsStorageService;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    private final MigrationStackInputGatheringStrategyFactory strategyFactory;
     private final CfnApi cfnApi;
 
-    public QuickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    public QuickstartDeploymentService(
+            CfnApi cfnApi,
+            MigrationService migrationService,
+            TargetDbCredentialsStorageService dbCredentialsStorageService,
+            AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
+            MigrationStackInputGatheringStrategyFactory strategyFactory) {
         super(cfnApi);
 
         this.cfnApi = cfnApi;
         this.migrationService = migrationService;
         this.dbCredentialsStorageService = dbCredentialsStorageService;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        this.strategyFactory = strategyFactory;
     }
 
     /**
@@ -134,8 +142,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             storeServiceURLInContext(applicationStackOutputsMap.get(SERVICE_URL_STACK_OUTPUT_KEY));
 
             Map<String, String> migrationStackParams =
-                    new QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi, new QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi))
-                            .gatherMigrationStackInputsFromApplicationStack(applicationStack);
+                    strategyFactory.getInputGatheringStrategy(migrationService.getCurrentContext().getDeploymentMode()).gatherMigrationStackInputsFromApplicationStack(applicationStack);
 
             migrationHelperDeploymentService.deployMigrationInfrastructure(migrationStackParams);
 
