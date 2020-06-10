@@ -162,14 +162,13 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     public String getMigrationHostInstanceId() {
-        final String documentOverride = System.getProperty("com.atlassian.migration.instanceId");
+        final String documentOverride = System.getProperty("com.atlassian.migration.hostInstanceId");
         if (documentOverride != null) {
             return documentOverride;
         }
 
         String migrationStackAsg = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationStackAsgIdentifier(), "com.atlassian.migration.asgIdentifier");
 
-        //TODO: Store this once in the migration context once.
         AutoScalingClient client = autoScalingClientFactory.get();
         DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
                 DescribeAutoScalingGroupsRequest
