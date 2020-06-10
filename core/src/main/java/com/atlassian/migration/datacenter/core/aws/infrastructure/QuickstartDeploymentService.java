@@ -27,6 +27,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     @Override
     public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application");
+
+        commitDeploymentModeToContext(ProvisioningConfig.DeploymentMode.STANDALONE);
+
         deployQuickstart(deploymentId, standaloneTemplateUrl, params);
     }
 
@@ -83,7 +87,15 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application and virtual network");
 
+        commitDeploymentModeToContext(ProvisioningConfig.DeploymentMode.WITH_NETWORK);
+
         deployQuickstart(deploymentId, withVpcTemplateUrl, params);
+    }
+
+    private void commitDeploymentModeToContext(ProvisioningConfig.DeploymentMode mode) {
+        MigrationContext context = migrationService.getCurrentContext();
+        context.setDeploymentMode(mode);
+        context.save();
     }
 
     private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params) throws InvalidMigrationStageError {

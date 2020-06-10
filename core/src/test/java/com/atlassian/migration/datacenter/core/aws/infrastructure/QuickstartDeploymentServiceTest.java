@@ -24,9 +24,12 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -229,6 +232,20 @@ class QuickstartDeploymentServiceTest {
 
         verify(mockContext).setServiceUrl(TEST_SERVICE_URL);
         verify(mockContext, times(2)).save();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ProvisioningConfig.DeploymentMode.class, names = {"WITH_NETWORK", "STANDALONE"})
+    void shouldStoreDeploymentModeInContext(ProvisioningConfig.DeploymentMode mode) throws InvalidMigrationStageError {
+        givenStackDeploymentWillComplete();
+
+        if (mode == ProvisioningConfig.DeploymentMode.WITH_NETWORK) {
+            deploymentService.deployApplicationWithNetwork(STACK_NAME, STACK_PARAMS);
+        } else if (mode == ProvisioningConfig.DeploymentMode.STANDALONE) {
+            deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
+        }
+
+        verify(mockContext).setDeploymentMode(mode);
     }
 
     private void givenStackDeploymentWillBeInProgress() {
