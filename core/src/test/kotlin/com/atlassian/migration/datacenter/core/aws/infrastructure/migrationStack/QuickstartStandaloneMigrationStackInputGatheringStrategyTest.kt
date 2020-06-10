@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws.infrastructure
+package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
