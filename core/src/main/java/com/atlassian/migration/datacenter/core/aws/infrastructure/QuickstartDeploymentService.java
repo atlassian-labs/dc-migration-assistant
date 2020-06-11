@@ -84,33 +84,43 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application");
 
-        commitDeploymentModeToContext(ProvisioningConfig.DeploymentMode.STANDALONE);
+        MigrationContext context = migrationService.getCurrentContext();
 
-        deployQuickstart(deploymentId, standaloneTemplateUrl, params);
+        deployQuickstart(deploymentId, standaloneTemplateUrl, params, context);
+
+        addDeploymentModeToContext(ProvisioningConfig.DeploymentMode.STANDALONE, context);
+
+        context.save();
     }
 
     @Override
     public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application and virtual network");
 
-        commitDeploymentModeToContext(ProvisioningConfig.DeploymentMode.WITH_NETWORK);
-
-        deployQuickstart(deploymentId, withVpcTemplateUrl, params);
-    }
-
-    private void commitDeploymentModeToContext(ProvisioningConfig.DeploymentMode mode) {
         MigrationContext context = migrationService.getCurrentContext();
-        context.setDeploymentMode(mode);
+
+        deployQuickstart(deploymentId, withVpcTemplateUrl, params, context);
+
+        addDeploymentModeToContext(ProvisioningConfig.DeploymentMode.WITH_NETWORK, context);
+
         context.save();
     }
 
-    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
+    /**
+     * Adds the deployment mode to the provided deployment context. Note that this does not save the context. You will
+     * need to commit this yourself by calling {@link MigrationContext#save()}
+     */
+    private void addDeploymentModeToContext(ProvisioningConfig.DeploymentMode mode, MigrationContext context) {
+        context.setDeploymentMode(mode);
+    }
+
+    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InvalidMigrationStageError {
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
         super.deployCloudformationStack(templateUrl, deploymentId, params);
 
-        addDeploymentIdToMigrationContext(deploymentId);
+        addDeploymentIdToMigrationContext(deploymentId, context);
 
         storeDbCredentials(params);
     }
@@ -162,12 +172,14 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         dbCredentialsStorageService.storeCredentials(params.get("DBPassword"));
     }
 
-    private void addDeploymentIdToMigrationContext(String deploymentId) {
+    /**
+     * Adds the deployment ID to the provided deployment context. Note that this does not save the context. You will
+     * need to commit this yourself by calling {@link MigrationContext#save()}
+     */
+    private void addDeploymentIdToMigrationContext(String deploymentId, MigrationContext context) {
         logger.info("Storing stack name in migration context");
 
-        MigrationContext context = migrationService.getCurrentContext();
         context.setApplicationDeploymentId(deploymentId);
-        context.save();
     }
 
     @Override

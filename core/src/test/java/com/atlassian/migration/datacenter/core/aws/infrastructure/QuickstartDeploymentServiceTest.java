@@ -237,7 +237,7 @@ class QuickstartDeploymentServiceTest {
         Thread.sleep(100);
 
         verify(mockContext).setServiceUrl(testServiceUrl);
-        verify(mockContext, times(3)).save();
+        verify(mockContext, times(2)).save();
     }
 
     @ParameterizedTest
