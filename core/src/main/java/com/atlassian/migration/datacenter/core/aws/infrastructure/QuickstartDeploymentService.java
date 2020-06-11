@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.MigrationStackInputGatheringStrategyFactory;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -25,6 +26,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,15 +53,22 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     private final MigrationService migrationService;
     private final TargetDbCredentialsStorageService dbCredentialsStorageService;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    private final MigrationStackInputGatheringStrategyFactory strategyFactory;
     private final CfnApi cfnApi;
 
-    public QuickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService, AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+    public QuickstartDeploymentService(
+            CfnApi cfnApi,
+            MigrationService migrationService,
+            TargetDbCredentialsStorageService dbCredentialsStorageService,
+            AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
+            MigrationStackInputGatheringStrategyFactory strategyFactory) {
         super(cfnApi);
 
         this.cfnApi = cfnApi;
         this.migrationService = migrationService;
         this.dbCredentialsStorageService = dbCredentialsStorageService;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        this.strategyFactory = strategyFactory;
     }
 
     /**
@@ -74,23 +83,44 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     @Override
     public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application");
-        deployQuickstart(deploymentId, standaloneTemplateUrl, params);
+
+        MigrationContext context = migrationService.getCurrentContext();
+
+        deployQuickstart(deploymentId, standaloneTemplateUrl, params, context);
+
+        addDeploymentModeToContext(ProvisioningConfig.DeploymentMode.STANDALONE, context);
+
+        context.save();
     }
 
     @Override
     public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application and virtual network");
 
-        deployQuickstart(deploymentId, withVpcTemplateUrl, params);
+        MigrationContext context = migrationService.getCurrentContext();
+
+        deployQuickstart(deploymentId, withVpcTemplateUrl, params, context);
+
+        addDeploymentModeToContext(ProvisioningConfig.DeploymentMode.WITH_NETWORK, context);
+
+        context.save();
     }
 
-    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
+    /**
+     * Adds the deployment mode to the provided deployment context. Note that this does not save the context. You will
+     * need to commit this yourself by calling {@link MigrationContext#save()}
+     */
+    private void addDeploymentModeToContext(ProvisioningConfig.DeploymentMode mode, MigrationContext context) {
+        context.setDeploymentMode(mode);
+    }
+
+    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InvalidMigrationStageError {
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
         super.deployCloudformationStack(templateUrl, deploymentId, params);
 
-        addDeploymentIdToMigrationContext(deploymentId);
+        addDeploymentIdToMigrationContext(deploymentId, context);
 
         storeDbCredentials(params);
     }
@@ -120,8 +150,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             storeServiceURLInContext(applicationStackOutputsMap.get(SERVICE_URL_STACK_OUTPUT_KEY));
 
             Map<String, String> migrationStackParams =
-                    new QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi)
-                            .gatherMigrationStackInputsFromApplicationStack(applicationStack);
+                    strategyFactory.getInputGatheringStrategy(migrationService.getCurrentContext().getDeploymentMode()).gatherMigrationStackInputsFromApplicationStack(applicationStack);
 
             migrationHelperDeploymentService.deployMigrationInfrastructure(migrationStackParams);
 
@@ -143,12 +172,14 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         dbCredentialsStorageService.storeCredentials(params.get("DBPassword"));
     }
 
-    private void addDeploymentIdToMigrationContext(String deploymentId) {
+    /**
+     * Adds the deployment ID to the provided deployment context. Note that this does not save the context. You will
+     * need to commit this yourself by calling {@link MigrationContext#save()}
+     */
+    private void addDeploymentIdToMigrationContext(String deploymentId, MigrationContext context) {
         logger.info("Storing stack name in migration context");
 
-        MigrationContext context = migrationService.getCurrentContext();
         context.setApplicationDeploymentId(deploymentId);
-        context.save();
     }
 
     @Override

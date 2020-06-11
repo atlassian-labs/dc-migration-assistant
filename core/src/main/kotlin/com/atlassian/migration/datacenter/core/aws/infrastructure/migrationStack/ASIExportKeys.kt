@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws.infrastructure
+package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
-import software.amazon.awssdk.services.cloudformation.model.Stack
-
-interface MigrationStackInputGatheringStrategy {
-
-    fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String>
-
-}
+const val dbEndpointAddressStackOutputKey = "DBEndpointAddress"
+const val securityGroupStackOutputKey = "SGname"

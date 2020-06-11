@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.aws.infrastructure
+package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
+open class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
+
     override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
         val applicationStackOutputsMap = stack.outputs().associateBy({ it.outputKey() }, { it.outputValue() })
 
@@ -37,9 +39,9 @@ class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnAp
         return mapOf(
                 "NetworkPrivateSubnet" to cfnExports["${exportPrefix}PriNets"]!!.split(",")[0],
                 "EFSFileSystemId" to efsId,
-                "EFSSecurityGroup" to applicationStackOutputsMap[QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY]!!,
-                "RDSSecurityGroup" to applicationStackOutputsMap[QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY]!!,
-                "RDSEndpoint" to applicationStackOutputsMap[QuickstartDeploymentService.DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY]!!,
+                "EFSSecurityGroup" to applicationStackOutputsMap[securityGroupStackOutputKey]!!,
+                "RDSSecurityGroup" to applicationStackOutputsMap[securityGroupStackOutputKey]!!,
+                "RDSEndpoint" to applicationStackOutputsMap[dbEndpointAddressStackOutputKey]!!,
                 "HelperInstanceType" to "c5.large",
                 "HelperVpcId" to cfnExports["${exportPrefix}VPCID"]!!
         )    }

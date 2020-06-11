@@ -49,6 +49,9 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDepl
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.AWSMigrationStackCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.DatabaseSecretCleanupService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup.MigrationBucketCleanupService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.MigrationStackInputGatheringStrategyFactory;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.QuickstartStandaloneMigrationStackInputGatheringStrategy;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.QuickstartWithVPCMigrationStackInputGatheringStrategy;
 import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManager;
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
@@ -283,8 +286,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public QuickstartDeploymentService quickstartDeploymentService(CfnApi cfnApi, MigrationService migrationService, TargetDbCredentialsStorageService dbCredentialsStorageService, AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService) {
-        return new QuickstartDeploymentService(cfnApi, migrationService, dbCredentialsStorageService, awsMigrationHelperDeploymentService);
+    public QuickstartDeploymentService quickstartDeploymentService(
+            CfnApi cfnApi,
+            MigrationService migrationService,
+            TargetDbCredentialsStorageService dbCredentialsStorageService,
+            AWSMigrationHelperDeploymentService awsMigrationHelperDeploymentService,
+            MigrationStackInputGatheringStrategyFactory strategyFactory) {
+        return new QuickstartDeploymentService(cfnApi, migrationService, dbCredentialsStorageService, awsMigrationHelperDeploymentService, strategyFactory);
     }
 
     @Bean
@@ -357,5 +365,22 @@ public class MigrationAssistantBeanConfiguration {
     @Primary
     public MigrationInfrastructureCleanupService awsMigrationInfrastructureCleanupService(AWSCleanupTaskFactory cleanupTaskFactory) {
         return new AWSMigrationInfrastructureCleanupService(cleanupTaskFactory);
+    }
+
+    @Bean
+    public QuickstartWithVPCMigrationStackInputGatheringStrategy withVPCMigrationStackInputGatheringStrategy(CfnApi cfnApi, QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneStrategy) {
+        return new QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi, standaloneStrategy);
+    }
+
+    @Bean
+    public QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneMigrationStackInputGatheringStrategy(CfnApi cfnApi) {
+        return new QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi);
+    }
+
+    @Bean
+    public MigrationStackInputGatheringStrategyFactory migrationStackInputGatheringStrategyFactory(
+            QuickstartWithVPCMigrationStackInputGatheringStrategy withVpcStrategy,
+            QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneStrategy) {
+        return new MigrationStackInputGatheringStrategyFactory(withVpcStrategy, standaloneStrategy);
     }
 }

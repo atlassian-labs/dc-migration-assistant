@@ -18,15 +18,21 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.MigrationStackInputGatheringStrategyFactory;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.QuickstartStandaloneMigrationStackInputGatheringStrategy;
+import com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack.QuickstartWithVPCMigrationStackInputGatheringStrategy;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,9 +52,11 @@ import static com.atlassian.migration.datacenter.core.aws.infrastructure.Quickst
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SECURITY_GROUP_NAME_STACK_OUTPUT_KEY;
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SERVICE_URL_STACK_OUTPUT_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,32 +71,9 @@ class QuickstartDeploymentServiceTest {
         put("DBPassword", TEST_DB_PASSWORD);
     }};
 
-    static final String TEST_SG = "test-sg";
-    static final String TEST_DB_ENDPOINT = "my-db.com";
     static final String TEST_SERVICE_URL = "https://my.loadbalancer";
     static final List<Output> MOCK_OUTPUTS = new LinkedList<Output>() {{
-        add(Output.builder().outputKey(SECURITY_GROUP_NAME_STACK_OUTPUT_KEY).outputValue(TEST_SG).build());
-        add(Output.builder().outputKey(DATABASE_ENDPOINT_ADDRESS_STACK_OUTPUT_KEY).outputValue(TEST_DB_ENDPOINT).build());
         add(Output.builder().outputKey(SERVICE_URL_STACK_OUTPUT_KEY).outputValue(TEST_SERVICE_URL).build());
-    }};
-
-    static final String TEST_SUBNET_1 = "subnet-123";
-    static final String TEST_SUBNET_2 = "subnet-456";
-    static final String TEST_VPC = "vpc-01234";
-    static final HashMap<String, String> MOCK_EXPORTS = new HashMap<String, String>() {{
-        put("ATL-PriNets", TEST_SUBNET_1 + "," + TEST_SUBNET_2);
-        put("ATL-VPCID", TEST_VPC);
-    }};
-
-    static final String TEST_JIRA = "my-jira-stack";
-    static final HashMap<String, StackResource> MOCK_ROOT_RESOURCES = new HashMap<String, StackResource>() {{
-        put("JiraDCStack", StackResource.builder().physicalResourceId(TEST_JIRA).build());
-    }};
-
-    static final String TEST_EFS = "fs-1234";
-    static final HashMap<String, StackResource> MOCK_JIRA_RESOURCES = new HashMap<String, StackResource>() {{
-        put("ElasticFileSystem", StackResource.builder().physicalResourceId(TEST_EFS).build());
-
     }};
 
     @Mock
@@ -103,7 +88,15 @@ class QuickstartDeploymentServiceTest {
     @Mock
     AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
 
+    @Mock
+    QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneMigrationStackInputGatheringStrategy;
+
+    @Mock
+    QuickstartWithVPCMigrationStackInputGatheringStrategy withVPCMigrationStackInputGatheringStrategy;
+
     @InjectMocks
+    MigrationStackInputGatheringStrategyFactory strategyFactory;
+
     QuickstartDeploymentService deploymentService;
 
     @Mock
@@ -120,9 +113,15 @@ class QuickstartDeploymentServiceTest {
         when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
 
         lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().stackName(STACK_NAME).outputs(MOCK_OUTPUTS).build()));
-        lenient().when(mockCfnApi.getExports()).thenReturn(MOCK_EXPORTS);
-        lenient().when(mockCfnApi.getStackResources(STACK_NAME)).thenReturn(MOCK_ROOT_RESOURCES);
-        lenient().when(mockCfnApi.getStackResources(TEST_JIRA)).thenReturn(MOCK_JIRA_RESOURCES);
+
+
+        deploymentService = new QuickstartDeploymentService(
+                mockCfnApi,
+                mockMigrationService,
+                dbCredentialsStorageService,
+                migrationHelperDeploymentService,
+                strategyFactory
+        );
     }
 
     @Test
@@ -156,7 +155,6 @@ class QuickstartDeploymentServiceTest {
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
         givenStackDeploymentWillBeInProgress();
-        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 
         deploySimpleStack();
 
@@ -200,20 +198,29 @@ class QuickstartDeploymentServiceTest {
     void shouldDeployMigrationStackWithApplicationStackOutputsAndResources() throws InvalidMigrationStageError, InterruptedException {
         givenStackDeploymentWillComplete();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
+        when(mockContext.getDeploymentMode()).thenReturn(ProvisioningConfig.DeploymentMode.STANDALONE);
+
+        final String testS = "test-sg";
+        final String testDbEndpoint = "my-db.com";
+        final String testSubnet1 = "subnet-123";
+        final String testVpc = "vpc-01234";
+        final String testEfs = "fs-1234";
+
+        Map<String, String> expectedMigrationStackParams = new HashMap<String, String>() {{
+            put("NetworkPrivateSubnet", testSubnet1);
+            put("EFSFileSystemId", testEfs);
+            put("EFSSecurityGroup", testS);
+            put("RDSSecurityGroup", testS);
+            put("RDSEndpoint", testDbEndpoint);
+            put("HelperInstanceType", "c5.large");
+            put("HelperVpcId", testVpc);
+        }};
+
+        when(standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputsFromApplicationStack(any())).thenReturn(expectedMigrationStackParams);
 
         deploySimpleStack();
 
-        Thread.sleep(100);
-
-        Map<String, String> expectedMigrationStackParams = new HashMap<String, String>() {{
-            put("NetworkPrivateSubnet", TEST_SUBNET_1);
-            put("EFSFileSystemId", TEST_EFS);
-            put("EFSSecurityGroup", TEST_SG);
-            put("RDSSecurityGroup", TEST_SG);
-            put("RDSEndpoint", TEST_DB_ENDPOINT);
-            put("HelperInstanceType", "c5.large");
-            put("HelperVpcId", TEST_VPC);
-        }};
+        Thread.sleep(1200);
 
         verify(migrationHelperDeploymentService).deployMigrationInfrastructure(expectedMigrationStackParams);
     }
@@ -222,13 +229,26 @@ class QuickstartDeploymentServiceTest {
     void shouldStoreServiceUrlInMigrationContext() throws InvalidMigrationStageError, InterruptedException {
         givenStackDeploymentWillComplete();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
+        final String testServiceUrl = "https://my.loadbalancer";
 
         deploySimpleStack();
 
         Thread.sleep(100);
 
-        verify(mockContext).setServiceUrl(TEST_SERVICE_URL);
+        verify(mockContext).setServiceUrl(testServiceUrl);
         verify(mockContext, times(2)).save();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ProvisioningConfig.DeploymentMode.class, names = {"WITH_NETWORK", "STANDALONE"})
+    void shouldStoreDeploymentModeInContext(ProvisioningConfig.DeploymentMode mode) throws InvalidMigrationStageError {
+        if (mode == ProvisioningConfig.DeploymentMode.WITH_NETWORK) {
+            deploymentService.deployApplicationWithNetwork(STACK_NAME, STACK_PARAMS);
+        } else if (mode == ProvisioningConfig.DeploymentMode.STANDALONE) {
+            deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
+        }
+
+        verify(mockContext).setDeploymentMode(mode);
     }
 
     private void givenStackDeploymentWillBeInProgress() {
