@@ -155,7 +155,6 @@ class QuickstartDeploymentServiceTest {
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
         givenStackDeploymentWillBeInProgress();
-        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
 
         deploySimpleStack();
 
@@ -243,8 +242,6 @@ class QuickstartDeploymentServiceTest {
     @ParameterizedTest
     @EnumSource(value = ProvisioningConfig.DeploymentMode.class, names = {"WITH_NETWORK", "STANDALONE"})
     void shouldStoreDeploymentModeInContext(ProvisioningConfig.DeploymentMode mode) throws InvalidMigrationStageError {
-        givenStackDeploymentWillComplete();
-
         if (mode == ProvisioningConfig.DeploymentMode.WITH_NETWORK) {
             deploymentService.deployApplicationWithNetwork(STACK_NAME, STACK_PARAMS);
         } else if (mode == ProvisioningConfig.DeploymentMode.STANDALONE) {
