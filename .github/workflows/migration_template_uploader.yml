@@ -1,0 +1,26 @@
+name: UploadMigrationTemplate
+
+on: [push]
+
+env:
+  AWS_S3_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: 'us-east-1'
+  
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@master
+      - name: Generate migration stack template
+        run: make rendertemplate -C ./templates/migration-stack
+      - name: Upload Migration stack template
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --exclude '*' --include 'migration-helper.yml'
+        env:
+          SOURCE_DIR: './templates/migration-stack'

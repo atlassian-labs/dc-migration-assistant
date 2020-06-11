@@ -112,7 +112,7 @@ module.exports = (env, argv = {}) => {
     };
 
     const loadDotEnvVariables = mode => {
-        const dotEnvFilePath = path.join(__dirname, '../..', '.env');
+        const dotEnvFilePath = path.join(__dirname, '../', '.env');
         const varsFromEnvFile = loadEnvVarsFrom(dotEnvFilePath, {});
         if (!isProductionEnv(mode)) {
             const envScopedOverridesFile = `${dotEnvFilePath}.${mode}`;
