@@ -20,7 +20,7 @@ import com.atlassian.migration.datacenter.core.aws.CfnApi
 import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
+open class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
 
     override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
         val applicationStackOutputsMap = stack.outputs().associateBy({ it.outputKey() }, { it.outputValue() })

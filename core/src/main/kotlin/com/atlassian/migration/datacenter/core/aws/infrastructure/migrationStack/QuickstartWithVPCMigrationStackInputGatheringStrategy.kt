@@ -20,7 +20,7 @@ import com.atlassian.migration.datacenter.core.aws.CfnApi
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi, private val standaloneMigrationStackInputGatheringStrategy: QuickstartStandaloneMigrationStackInputGatheringStrategy) : MigrationStackInputGatheringStrategy {
+open class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi, private val standaloneMigrationStackInputGatheringStrategy: QuickstartStandaloneMigrationStackInputGatheringStrategy) : MigrationStackInputGatheringStrategy {
 
     override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
         val applicationResources = cfnApi.getStackResources(stack.stackName())
