@@ -23,10 +23,16 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
+import com.google.common.base.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -43,9 +49,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_DEAD_LETTER_QUEUE_NAME;
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService.STACK_RESOURCE_QUEUE_NAME;
+import static java.util.stream.Stream.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -161,7 +170,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldThrowErrorWhenGettingOutputsIfStackDidNotDeploySuccessfully() throws InterruptedException {
+    void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted() throws InterruptedException {
         givenMigrationStackDeploymentWillFail();
         givenMigrationStackHasStartedDeploying();
 
@@ -180,9 +189,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         outputGetters.add(sut::getDeadLetterQueueResource);
         outputGetters.add(sut::getQueueResource);
 
-        for (Executable outputGetter : outputGetters) {
-            assertThrows(InfrastructureDeploymentError.class, outputGetter);
-        }
+        outputGetters.forEach(outputGetter -> assertThrows(InfrastructureDeploymentError.class, outputGetter));
     }
 
     private void assertStackOutputsAreAvailable() {
