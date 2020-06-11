@@ -27,10 +27,9 @@ class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: 
 
         val jiraStackResource = applicationResources["JiraDCStack"]
         val jiraStack = cfnApi.getStack(jiraStackResource!!.physicalResourceId())
-        if (jiraStack.isEmpty) {
-            throw InfrastructureDeploymentError("unable to find JiraDCStack resource in with-vpc cloudformation deployment: ${stack.stackName()}")
+        if (jiraStack.isPresent) {
+            return standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputsFromApplicationStack(jiraStack.get())
         }
-
-        return standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputsFromApplicationStack(jiraStack.get())
+        throw InfrastructureDeploymentError("unable to find JiraDCStack resource in with-vpc cloudformation deployment: ${stack.stackName()}")
     }
 }
