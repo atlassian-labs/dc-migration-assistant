@@ -61,7 +61,9 @@ jobs:
           mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
           ./postgres/inject-license
-          docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
+          JIRA_VERSION=latest docker-compose up --force-recreate --build
+          mvn verify -pl func-tests -Prest
+          docker-compose down
 
       - name: Upload
         if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11

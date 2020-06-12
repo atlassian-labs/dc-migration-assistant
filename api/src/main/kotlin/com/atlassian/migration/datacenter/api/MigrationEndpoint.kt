@@ -37,15 +37,9 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun getMigrationStatus(): Response {
-        return if (migrationService.currentStage == MigrationStage.NOT_STARTED) {
-            Response
-                .status(Response.Status.NOT_FOUND)
-                .build()
-        } else {
-            Response
+        return Response
                 .ok(mapOf("stage" to migrationService.currentStage.toString()))
                 .build()
-        }
     }
 
     /**
@@ -94,10 +88,10 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @GET
     @Path("/ready")
     fun getMigrationReadyStatus(): Response {
-        val status = migrationService.readyStatus;
+        val status = migrationService.readyStatus
         return Response
                 .ok(jacksonObjectMapper().writeValueAsString(status))
-                .build();
+                .build()
     }
 
     @DELETE

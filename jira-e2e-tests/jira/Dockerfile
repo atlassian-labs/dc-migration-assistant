@@ -1,4 +1,5 @@
-FROM atlassian/jira-software
+ARG JIRA_VERSION
+FROM atlassian/jira-software:${JIRA_VERSION}
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends netcat-openbsd \
