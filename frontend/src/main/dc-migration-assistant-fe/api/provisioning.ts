@@ -29,6 +29,7 @@ enum RestApiPathConstants {
     GetDeploymentStatusPath = 'aws/stack/status',
     GetASIInfoPath = `aws/global-infrastructure/asi`,
     CreateStackPath = `aws/stack/create`,
+    CleanupStackPath = `aws/cleanup`,
 }
 
 type InfrastructureDeploymentState =
@@ -148,5 +149,13 @@ export const provisioning = {
         params: DeploymentParameters
     ): Promise<Response> => {
         return deployInfra(stackName, params, 'WITH_NETWORK');
+    },
+    cleanupInfrastructure: async (): Promise<void> => {
+        return callAppRest('DELETE', RestApiPathConstants.CleanupStackPath).then(resp => {
+            if (resp.status === 202) {
+                return Promise.resolve();
+            }
+            return Promise.reject();
+        });
     },
 };

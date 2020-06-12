@@ -15,6 +15,7 @@
  */
 package com.atlassian.migration.datacenter.dto
 
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import net.java.ao.Entity
 
 interface MigrationContext : Entity {
@@ -23,6 +24,11 @@ interface MigrationContext : Entity {
     var helperStackDeploymentId: String
     var serviceUrl: String
     var errorMessage: String
+
+    var deploymentMode: ProvisioningConfig.DeploymentMode
+
+    var startEpoch: Long
+    var endEpoch: Long
 
     var rdsRestoreSsmDocument: String
     var fsRestoreSsmDocument: String

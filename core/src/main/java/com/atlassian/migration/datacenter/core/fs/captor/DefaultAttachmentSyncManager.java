@@ -55,4 +55,15 @@ public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
 
         return records;
     }
+
+    @Override
+    public Integer getCapturedAttachmentCountForCurrentMigration() {
+        Migration migration = migrationService.getCurrentMigration();
+
+        if (migration == null) {
+            return 0;
+        }
+
+        return activeObjects.count(FileSyncRecord.class, Query.select().where("migration_id = ?", migration.getID()));
+    }
 }

@@ -50,6 +50,6 @@ class AWSMigrationInfrastructureCleanupService(private val cleanupTaskFactory: A
     override fun startMigrationInfrastructureCleanup(): Boolean {
         logger.info("cleaning up AWS migration infrastructure")
 
-        return cleanupTaskFactory.getCleanupTasks().any { it.startMigrationInfrastructureCleanup() }
+        return cleanupTaskFactory.getCleanupTasks().map { it.startMigrationInfrastructureCleanup() }.any { it }
     }
 }

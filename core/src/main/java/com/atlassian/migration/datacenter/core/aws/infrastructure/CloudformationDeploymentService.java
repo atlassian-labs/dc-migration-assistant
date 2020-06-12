@@ -80,7 +80,7 @@ public abstract class CloudformationDeploymentService {
         requireNonNull(stackName);
         InfrastructureDeploymentStatus status = cfnApi.getStatus(stackName);
 
-        if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
+        if (isFailedToCreateDeploymentState(status.getState())) {
             logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", status.getReason());
             handleFailedDeployment(status.getReason());
             deploymentWatcher.cancel(true);
@@ -100,7 +100,7 @@ public abstract class CloudformationDeploymentService {
                 handleSuccessfulDeployment();
                 stackCompleteFuture.complete("");
             }
-            if (status.getState().equals(InfrastructureDeploymentState.CREATE_FAILED)) {
+            if (isFailedToCreateDeploymentState(status.getState())) {
                 logger.error("stack {} creation failed with reason {}", stackName, status.getReason());
                 handleFailedDeployment(status.getReason());
                 stackCompleteFuture.complete("");
@@ -122,5 +122,10 @@ public abstract class CloudformationDeploymentService {
             deploymentWatcher.cancel(true);
             canceller.cancel(true);
         });
+    }
+
+    private boolean isFailedToCreateDeploymentState(InfrastructureDeploymentState state) {
+        return !(InfrastructureDeploymentState.CREATE_COMPLETE.equals(state) ||
+                InfrastructureDeploymentState.CREATE_IN_PROGRESS.equals(state));
     }
 }

@@ -16,7 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.aws;
 
+import com.atlassian.core.exception.InfrastructureException;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import org.slf4j.Logger;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.services.cloudformation.CloudFormationAsyncClient;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DeleteStackResponse;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
@@ -110,6 +113,12 @@ public class CfnApi {
             case CREATE_IN_PROGRESS:
                 deploymentState = InfrastructureDeploymentState.CREATE_IN_PROGRESS;
                 break;
+            case DELETE_IN_PROGRESS:
+                deploymentState = InfrastructureDeploymentState.DELETE_IN_PROGRESS;
+            case DELETE_COMPLETE:
+                deploymentState = InfrastructureDeploymentState.DELETE_COMPLETE;
+            case DELETE_FAILED:
+                deploymentState = InfrastructureDeploymentState.DELETE_FAILED;
             default:
                 deploymentState = InfrastructureDeploymentState.CREATE_FAILED;
                 break;
@@ -150,6 +159,24 @@ public class CfnApi {
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Error deploying cloudformation stack {}", stackName, e);
             return Optional.empty();
+        }
+    }
+
+    public void deleteStack(String stackName) {
+        logger.trace("received request to delete stack {}", stackName);
+
+        try {
+            DeleteStackResponse response = this.getClient()
+                    .deleteStack(builder -> builder.stackName(stackName))
+                    .get();
+            if (!response.sdkHttpResponse().isSuccessful()) {
+                throw new InfrastructureDeploymentError("error during stack delete request");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("unable to delete stack {}", stackName);
+            if (!e.getCause().getClass().equals(StackInstanceNotFoundException.class)) {
+                throw new InfrastructureDeploymentError("error during stack delete request", e);
+            }
         }
     }
 

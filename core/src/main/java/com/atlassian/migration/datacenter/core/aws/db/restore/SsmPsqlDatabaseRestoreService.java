@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.aws.db.restore;
 
+import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.ssm.SuccessfulSSMCommandConsumer;
@@ -32,44 +33,45 @@ public class SsmPsqlDatabaseRestoreService {
 
     private final SSMApi ssm;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
+    private final MigrationStageCallback migrationStageCallback;
 
     private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
-
     private String commandId;
 
     SsmPsqlDatabaseRestoreService(SSMApi ssm, int maxCommandRetries,
-                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
+                                  AWSMigrationHelperDeploymentService migrationHelperDeploymentService, MigrationStageCallback migrationStageCallback) {
         this.ssm = ssm;
         this.maxCommandRetries = maxCommandRetries;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
+        this.migrationStageCallback = migrationStageCallback;
     }
 
     public SsmPsqlDatabaseRestoreService(SSMApi ssm,
-                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService) {
-        this(ssm, 10, migrationHelperDeploymentService);
+                                         AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback) {
+        this(ssm, 10, migrationHelperDeploymentService, migrationStageCallback);
     }
 
-    public void restoreDatabase(DatabaseRestoreStageTransitionCallback restoreStageTransitionCallback)
+    public void restoreDatabase()
             throws DatabaseMigrationFailure, InvalidMigrationStageError {
         String dbRestorePlaybook = migrationHelperDeploymentService.getDbRestoreDocument();
         String migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
 
-        restoreStageTransitionCallback.assertInStartingStage();
+        this.migrationStageCallback.assertInStartingStage();
 
         this.commandId = ssm.runSSMDocument(dbRestorePlaybook, migrationInstanceId, Collections.emptyMap());
 
         SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
                 migrationInstanceId);
 
-        restoreStageTransitionCallback.transitionToServiceWaitStage();
+        migrationStageCallback.transitionToServiceWaitStage();
 
         try {
             consumer.handleCommandOutput(maxCommandRetries);
-            restoreStageTransitionCallback.transitionToServiceNextStage();
+            migrationStageCallback.transitionToServiceNextStage();
         } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException
                 | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
             final String errorMessage = "Error restoring database. Either download of database dump from S3 failed or pg_restore failed";
-            restoreStageTransitionCallback
+            migrationStageCallback
                     .transitionToServiceErrorStage(String.format("%s. %s", errorMessage, e.getMessage()));
             throw new DatabaseMigrationFailure(errorMessage, e);
         }

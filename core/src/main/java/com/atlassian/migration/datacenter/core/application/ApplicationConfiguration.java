@@ -20,6 +20,7 @@ package com.atlassian.migration.datacenter.core.application;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 
 public interface ApplicationConfiguration {
+    String getPluginKey();
+    String getPluginVersion();
     DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException;
-
 }

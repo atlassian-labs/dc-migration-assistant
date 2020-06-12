@@ -19,10 +19,12 @@ package com.atlassian.migration.datacenter.core.application;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 import com.atlassian.migration.datacenter.spi.exceptions.UnsupportedPasswordEncodingException;
+import com.atlassian.plugin.PluginAccessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,14 +42,16 @@ import static org.mockito.Mockito.when;
 class JiraConfigurationTest {
     @Mock
     JiraHome jiraHome;
+    @Mock
+    PluginAccessor pluginAccessor;
     @TempDir
     Path tempDir;
 
+    @InjectMocks
     JiraConfiguration jiraConfiguration;
 
     @BeforeEach
     void setUp() {
-        jiraConfiguration = new JiraConfiguration(jiraHome);
         when(jiraHome.getLocalHomePath()).thenReturn(tempDir.toString());
     }
 

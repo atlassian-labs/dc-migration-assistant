@@ -106,6 +106,24 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
+    void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException {
+        final String badStatus = "it broke";
+        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.DELETE_IN_PROGRESS, badStatus));
+
+        deploySimpleStack();
+
+        Thread.sleep(100);
+
+        assertTrue(deploymentFailed);
+        assertFalse(deploymentSucceeded);
+
+
+        InfrastructureDeploymentStatus status = sut.getDeploymentStatus(STACK_NAME);
+        assertEquals(InfrastructureDeploymentState.DELETE_IN_PROGRESS, status.getState());
+        assertEquals(badStatus, status.getReason());
+    }
+
+    @Test
     void shouldCallHandleSuccessfulDeploymentWhenDeploymentFails() throws InterruptedException {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(new InfrastructureDeploymentStatus(InfrastructureDeploymentState.CREATE_COMPLETE, ""));
 

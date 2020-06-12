@@ -23,6 +23,7 @@ internal class S3FinalSyncServiceTest {
 
     @MockK lateinit var  migrationContext: MigrationContext
     @MockK lateinit var  sqsApi: SqsApi
+    @MockK lateinit var  attachmentSyncManager: AttachmentSyncManager
 
     @InjectMockKs
     lateinit var sut: S3FinalSyncService
@@ -36,12 +37,13 @@ internal class S3FinalSyncServiceTest {
 
         every { migrationService.currentContext } returns migrationContext
         every { migrationContext.migrationQueueUrl } returns queueUrl
-        every {  sqsApi.getQueueLength(queueUrl) } returns 42
+        every { sqsApi.getQueueLength(queueUrl) } returns 42
+        every { attachmentSyncManager.capturedAttachmentCountForCurrentMigration } returns 21
 
         val finalSyncStatus = sut.getFinalSyncStatus()
 
         assertEquals(42, finalSyncStatus.enqueuedFileCount)
-        assertEquals(0, finalSyncStatus.uploadedFileCount)
+        assertEquals(21, finalSyncStatus.uploadedFileCount)
 
         verify {
             sqsApi.getQueueLength(queueUrl)

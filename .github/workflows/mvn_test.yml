@@ -53,6 +53,9 @@ jobs:
         if: matrix.profile == 'smoketest'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+          CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
+          CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
+          
         run: |
           mvn package -DskipTests
           mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/

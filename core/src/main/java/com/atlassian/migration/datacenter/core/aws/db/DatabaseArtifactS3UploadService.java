@@ -12,6 +12,7 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
+import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.fs.Crawler;
 import com.atlassian.migration.datacenter.core.fs.DirectoryStreamCrawler;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
@@ -28,12 +29,14 @@ import java.util.function.Supplier;
 
 public class DatabaseArtifactS3UploadService {
     private final Supplier<S3AsyncClient> s3AsyncClientSupplier;
+    private final MigrationStageCallback migrationStageCallback;
     private S3AsyncClient s3AsyncClient;
     private final FileSystemMigrationReport fileSystemMigrationReport;
 
-    public DatabaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier) {
+    public DatabaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationStageCallback migrationStageCallback) {
         this.s3AsyncClientSupplier = s3AsyncClientSupplier;
         this.fileSystemMigrationReport = new DefaultFileSystemMigrationReport();
+        this.migrationStageCallback = migrationStageCallback;
     }
 
     @PostConstruct
@@ -41,15 +44,15 @@ public class DatabaseArtifactS3UploadService {
         this.s3AsyncClient = this.s3AsyncClientSupplier.get();
     }
 
-    public FileSystemMigrationReport upload(Path target, String targetBucketName, DatabaseUploadStageTransitionCallback callback) throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+    public FileSystemMigrationReport upload(Path target, String targetBucketName) throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
         s3AsyncClient = s3AsyncClientSupplier.get();
-        callback.assertInStartingStage();
+        this.migrationStageCallback.assertInStartingStage();
         FilesystemUploader filesystemUploader = buildFileSystemUploader(target, targetBucketName, fileSystemMigrationReport, s3AsyncClient);
 
-        callback.transitionToServiceWaitStage();
+        this.migrationStageCallback.transitionToServiceWaitStage();
         filesystemUploader.uploadDirectory(target);
 
-        callback.transitionToServiceNextStage();
+        this.migrationStageCallback.transitionToServiceNextStage();
         return fileSystemMigrationReport;
     }
 

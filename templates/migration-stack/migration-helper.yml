@@ -237,9 +237,12 @@ Resources:
               content: !Sub
                 - |
                   #!/bin/bash
-                  SYNC_LOG_FILE="/var/atlassian/dc-migration-assistant/sync-log.txt"
+                  LOG_DIR="/var/log/atlassian/dc-migration-assistant"
+                  mkdir -p $LOG_DIR
+                  SYNC_LOG_FILE="$LOG_DIR/sync-log.txt"
+                  SYNC_LOG_ERROR_FILE="$LOG_DIR/sync-error.txt"
                   echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
-                  aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>/var/atlassian/dc-migration-assistant/sync-error.txt
+                  aws s3 sync s3://${MigrationBucket} /efs/jira/shared >> $SYNC_LOG_FILE 2>$SYNC_LOG_ERROR_FILE
                   echo "s3 sync with shared home complete with exit code $?" >> $SYNC_LOG_FILE
                 - MigrationBucket: !Ref MigrationBucket
               mode: "000755"
@@ -351,14 +354,16 @@ Resources:
                   #!/bin/bash
                   DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
                   mkdir -p $DATABASE_DOWNLOAD_DIR
-                  DB_DUMP_LOG_FILE="/var/atlassian/dc-migration-assistant/pg_dump-log.txt"
+                  LOG_DIR="/var/log/atlassian/dc-migration-assistant"
+                  mkdir -p $LOG_DIR
+                  DB_DUMP_LOG_FILE="$LOG_DIR/pg_dump-log.txt"
                   SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
                   aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE
                   echo "Restoring database from $DATABASE_DOWNLOAD_DIR to ${DBHost}:${DBPort}/$DBName" | tee $DB_DUMP_LOG_FILE
                   PGPASSWORD=$SECRET_PASSWORD pg_restore -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -F d --verbose $DATABASE_DOWNLOAD_DIR 2>&1 | tee $DB_DUMP_LOG_FILE
                   PG_RESTORE_EXIT_CODE=$?
-                  ERRORS_EXIST=`grep -qiE 'error|warning' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
-                  RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' /var/atlassian/dc-migration-assistant/pg_dump-log.txt && echo 'true' || echo 'false'`
+                  ERRORS_EXIST=`grep -qiE 'error|warning' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
+                  RESTORE_COMPLETE=`grep -qiE 'pg_restore: finished main parallel loop' $DB_DUMP_LOG_FILE && echo 'true' || echo 'false'`
                   echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
                 - {
                   SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
@@ -651,7 +656,7 @@ Resources:
           inputs:
             runCommand:
             - "#!/bin/bash"
-            - python3 /opt/atlassian/dc-migration-assistant/home-copy-status.py /var/atlassian/dc-migration-assistant/sync-log.txt /var/atlassian/dc-migration-assistant/sync-error.txt
+            - python3 /opt/atlassian/dc-migration-assistant/home-copy-status.py /var/log/atlassian/dc-migration-assistant/sync-log.txt /var/log/atlassian/dc-migration-assistant/sync-error.txt
             timeoutSeconds: "60"
             workingDirectory: "/opt/atlassian/dc-migration-assistant/"
       DocumentType: "Command"

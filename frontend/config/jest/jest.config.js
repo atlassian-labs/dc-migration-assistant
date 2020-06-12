@@ -22,6 +22,7 @@ const paths = {
 };
 
 module.exports = {
+    setupFiles: ['dotenv/config'],
     clearMocks: true,
     verbose: false,
     roots: [paths.testsRoot],

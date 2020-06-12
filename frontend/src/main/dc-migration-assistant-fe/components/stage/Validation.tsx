@@ -22,6 +22,7 @@ import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
 import { homePath } from '../../utils/RoutePaths';
 import { migration, MigrationStage } from '../../api/migration';
+import { provisioning } from '../../api/provisioning';
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
@@ -171,6 +172,16 @@ const ValidationSummary = (): ReactElement => {
                 href={homePath}
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
+            </Button>
+            <Button
+                appearance="warning"
+                onClick={(): any => provisioning.cleanupInfrastructure()}
+                style={{
+                    marginTop: '15px',
+                    marginLeft: '5px',
+                }}
+            >
+                Cleanup migration infrastructure
             </Button>
         </>
     );

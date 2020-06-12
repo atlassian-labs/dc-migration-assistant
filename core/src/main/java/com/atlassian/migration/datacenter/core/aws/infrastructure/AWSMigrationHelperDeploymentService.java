@@ -24,6 +24,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentStatus;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
@@ -39,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Manages the deployment of the migration helper stack which is used to hydrate the new
@@ -161,28 +161,26 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationDLQueueUrl(), "com.atlassian.migration.queue.deadLetterQueueName");
     }
 
-    //TODO: Why not store this once in the migration context?
     public String getMigrationHostInstanceId() {
-        final String documentOverride = System.getProperty("com.atlassian.migration.instanceId");
+        final String documentOverride = System.getProperty("com.atlassian.migration.hostInstanceId");
         if (documentOverride != null) {
             return documentOverride;
-        } else {
-            ensureStackOutputsAreSet();
-
-            String migrationStackAsg = migrationService.getCurrentContext().getMigrationStackAsgIdentifier();
-            AutoScalingClient client = autoScalingClientFactory.get();
-            DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
-                    DescribeAutoScalingGroupsRequest
-                            .builder()
-                            .autoScalingGroupNames(migrationStackAsg)
-                            .build()
-            );
-
-            AutoScalingGroup migrationStackGroup = response.autoScalingGroups().get(0);
-            Instance migrationInstance = migrationStackGroup.instances().get(0);
-
-            return migrationInstance.instanceId();
         }
+
+        String migrationStackAsg = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationStackAsgIdentifier(), "com.atlassian.migration.asgIdentifier");
+
+        AutoScalingClient client = autoScalingClientFactory.get();
+        DescribeAutoScalingGroupsResponse response = client.describeAutoScalingGroups(
+                DescribeAutoScalingGroupsRequest
+                        .builder()
+                        .autoScalingGroupNames(migrationStackAsg)
+                        .build()
+        );
+
+        AutoScalingGroup migrationStackGroup = response.autoScalingGroups().get(0);
+        Instance migrationInstance = migrationStackGroup.instances().get(0);
+
+        return migrationInstance.instanceId();
     }
 
     private String getMigrationStackPropertyOrOverride(Supplier<String> supplier, String migrationStackPropertySystemOverrideKey) {
@@ -191,25 +189,14 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         if (documentOverride != null) {
             return documentOverride;
         }
-
-        ensureStackOutputsAreSet();
-        return supplier.get();
+        return ensureStackOutputIsSet(supplier);
     }
 
-    //Do we need to be defensive here?
-    private void ensureStackOutputsAreSet() {
-        MigrationContext currentContext = migrationService.getCurrentContext();
-        final Stream<String> stackOutputs = Stream.of(
-                currentContext.getFsRestoreSsmDocument(),
-                currentContext.getFsRestoreStatusSsmDocument(),
-                currentContext.getRdsRestoreSsmDocument(),
-                currentContext.getMigrationBucketName(),
-                currentContext.getMigrationStackAsgIdentifier(),
-                currentContext.getMigrationQueueUrl(),
-                currentContext.getMigrationDLQueueUrl());
-        if (stackOutputs.anyMatch(output -> output == null || output.equals(""))) {
+    private String ensureStackOutputIsSet(Supplier<String> supplier) {
+        String value = supplier.get();
+        if (StringUtils.isBlank(value))
             throw new InfrastructureDeploymentError("migration stack outputs are not set");
-        }
+        return value;
     }
 
     @Override

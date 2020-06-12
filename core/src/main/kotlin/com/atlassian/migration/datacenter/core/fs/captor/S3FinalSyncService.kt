@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.fs.captor
 
 import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
+import com.atlassian.migration.datacenter.dto.FileSyncRecord
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.scheduler.config.JobId
 import org.slf4j.LoggerFactory
@@ -25,7 +26,8 @@ import org.slf4j.LoggerFactory
 class S3FinalSyncService(private val migrationRunner: MigrationRunner,
                          private val s3FinalSyncRunner: S3FinalSyncRunner,
                          private val migrationService: MigrationService,
-                         private val sqsApi: SqsApi
+                         private val sqsApi: SqsApi,
+                         private val attachmentSyncManager: AttachmentSyncManager
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
@@ -55,10 +57,11 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
     fun getFinalSyncStatus() : FinalFileSyncStatus {
         val currentContext = migrationService.currentContext
         val migrationQueueUrl = currentContext.migrationQueueUrl
+        val uploadedFileCount =  attachmentSyncManager.capturedAttachmentCountForCurrentMigration
 
         val itemsInQueue = sqsApi.getQueueLength(migrationQueueUrl)
 
-        return FinalFileSyncStatus(0, itemsInQueue)
+        return FinalFileSyncStatus(uploadedFileCount, itemsInQueue)
     }
 
     private fun getScheduledJobId(): JobId {

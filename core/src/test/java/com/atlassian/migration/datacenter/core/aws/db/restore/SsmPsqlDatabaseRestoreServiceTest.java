@@ -52,21 +52,21 @@ class SsmPsqlDatabaseRestoreServiceTest {
 
     @BeforeEach
     void setUp() {
-        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1, migrationHelperDeploymentService);
+        sut = new SsmPsqlDatabaseRestoreService(ssmApi, 1, migrationHelperDeploymentService, callback);
     }
 
     @Test
     void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError {
         givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS);
 
-        sut.restoreDatabase(callback);
+        sut.restoreDatabase();
     }
 
     @Test
     void shouldThrowWhenCommandStatusIsFailed() {
         givenCommandCompletesWithStatus(CommandInvocationStatus.FAILED);
 
-        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase(callback));
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
     }
 
     @Test
@@ -119,5 +119,4 @@ class SsmPsqlDatabaseRestoreServiceTest {
                         .build()
         );
     }
-
 }

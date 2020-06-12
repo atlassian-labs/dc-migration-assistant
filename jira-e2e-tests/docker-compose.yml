@@ -39,6 +39,9 @@ services:
   cypress:
     build:
       context: ./cypress
+    environment:
+      - CYPRESS_AWS_ACCESS_KEY_ID=${CYPRESS_AWS_ACCESS_KEY_ID}
+      - CYPRESS_AWS_SECRET_ACCESS_KEY=${CYPRESS_AWS_SECRET_ACCESS_KEY}
     command: >
       bash -c '
           cd /opt/cypress &&

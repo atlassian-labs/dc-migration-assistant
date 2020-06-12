@@ -22,29 +22,30 @@ import java.nio.file.Path;
 public class DatabaseArchivalService {
 
     private DatabaseExtractor databaseExtractor;
+    private MigrationStageCallback migrationStageCallback;
 
-    public DatabaseArchivalService(DatabaseExtractor databaseExtractor) {
+    public DatabaseArchivalService(DatabaseExtractor databaseExtractor, MigrationStageCallback migrationStageCallback) {
         this.databaseExtractor = databaseExtractor;
+        this.migrationStageCallback = migrationStageCallback;
     }
 
-    public Path archiveDatabase(Path tempDirectory, MigrationStageCallback archiveStageCallback) throws InvalidMigrationStageError
-    {
+    public Path archiveDatabase(Path tempDirectory) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
 
-        archiveStageCallback.assertInStartingStage();
+        this.migrationStageCallback.assertInStartingStage();
 
         Process extractorProcess = this.databaseExtractor.startDatabaseDump(target);
-        archiveStageCallback.transitionToServiceWaitStage();
+        this.migrationStageCallback.transitionToServiceWaitStage();
 
         try {
             extractorProcess.waitFor();
         } catch (Exception e) {
             String msg = "Error while waiting for DB extractor to finish";
-            archiveStageCallback.transitionToServiceErrorStage(e.getMessage());
+            this.migrationStageCallback.transitionToServiceErrorStage(e.getMessage());
             throw new DatabaseMigrationFailure(msg, e);
         }
 
-        archiveStageCallback.transitionToServiceNextStage();
+        this.migrationStageCallback.transitionToServiceNextStage();
         return target;
     }
 }

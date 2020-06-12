@@ -101,6 +101,22 @@ public class DefaultAttachmentSyncManagerTest {
         assertEquals(0, sut.getCapturedAttachments().size());
     }
 
+    @Test
+    public void shouldReturnActualCountWhenFileSyncRecordExists() {
+        Migration migration = givenMigrationExists();
+        givenFileSyncRecordIsInDB("/foo/baz", migration);
+        givenFileSyncRecordIsInDB("/foo/bar", migration);
+
+        assertEquals(2, sut.getCapturedAttachmentCountForCurrentMigration());
+    }
+
+
+    @Test
+    public void shouldBeZeroWhenFileSyncRecordsDoNotExistForMigration() {
+        Migration migration = givenMigrationExists();
+        assertEquals(0, sut.getCapturedAttachmentCountForCurrentMigration());
+    }
+
     @NotNull
     private FileSyncRecord givenFileSyncRecordIsInDB(String path, Migration migration) {
         FileSyncRecord record = ao.create(FileSyncRecord.class);

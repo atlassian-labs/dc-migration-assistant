@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
-import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
@@ -29,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -75,11 +73,8 @@ public class DatabaseMigrationServiceTest {
                 migrationService,
                 migrationRunner,
                 databaseArchivalService,
-                new DatabaseArchiveStageTransitionCallback(migrationService),
                 s3UploadService,
-                new DatabaseUploadStageTransitionCallback(migrationService),
                 restoreService,
-                new DatabaseRestoreStageTransitionCallback(migrationService),
                 awsMigrationHelperDeploymentService);
     }
 
@@ -92,8 +87,8 @@ public class DatabaseMigrationServiceTest {
 
         InOrder inOrder = inOrder(migrationService);
         when(awsMigrationHelperDeploymentService.getMigrationS3BucketName()).thenReturn(s3bucket);
-        when(databaseArchivalService.archiveDatabase(eq(tempDir), any())).thenReturn(filePath);
-        when(s3UploadService.upload(eq(filePath), eq(s3bucket), any())).thenReturn(report);
+        when(databaseArchivalService.archiveDatabase(eq(tempDir))).thenReturn(filePath);
+        when(s3UploadService.upload(eq(filePath), eq(s3bucket))).thenReturn(report);
         sut.performMigration();
 
         inOrder.verify(migrationService).transition(MigrationStage.DB_MIGRATION_EXPORT);
