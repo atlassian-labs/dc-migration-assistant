@@ -54,6 +54,7 @@ import static com.atlassian.migration.datacenter.core.aws.infrastructure.Quickst
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -149,6 +150,7 @@ class QuickstartDeploymentServiceTest {
         deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
 
         verify(dbCredentialsStorageService).storeCredentials(TEST_DB_PASSWORD);
+        verify(mockContext, atLeastOnce()).save();
     }
 
     @Test
