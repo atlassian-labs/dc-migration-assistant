@@ -65,9 +65,11 @@ jobs:
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build -d
 
-      - name: Rest api tests with production image
+      - name: Rest api tests with production image built by previous step
+        timeout-minutes: 15
         if: matrix.profile == 'smoketest'
         run: |
+          while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:2990/jira/status)" != "200" ]]; do sleep 5; done
           mvn verify -pl func-tests -Prest
           docker-compose down
 
@@ -77,7 +79,6 @@ jobs:
         with:
           name: plugin-jar
           path: jira-plugin/target/jira-plugin-1.0.0.jar
-
 
   deploy:
     name: Deploy to dogfooding instance
