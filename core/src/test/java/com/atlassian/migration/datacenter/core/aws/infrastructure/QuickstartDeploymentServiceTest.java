@@ -238,7 +238,9 @@ class QuickstartDeploymentServiceTest {
         Thread.sleep(100);
 
         verify(mockContext).setServiceUrl(testServiceUrl);
-        verify(mockContext, times(2)).save();
+        //Caters to the last save call in deployApplication com/atlassian/migration/datacenter/core/aws/infrastructure/QuickstartDeploymentService.java:106.
+        // That call must be removed and each setter should save automatically, or the entire block needs to be run in a transaction
+        verify(mockContext, times(3)).save();
     }
 
     @ParameterizedTest
