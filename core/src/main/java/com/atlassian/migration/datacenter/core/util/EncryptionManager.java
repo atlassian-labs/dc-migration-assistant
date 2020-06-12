@@ -16,19 +16,19 @@
 
 package com.atlassian.migration.datacenter.core.util;
 
-import com.atlassian.jira.config.util.JiraHome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public class EncryptionManager {
@@ -38,14 +38,11 @@ public class EncryptionManager {
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptionManager.class);
 
-    private TextEncryptor textEncryptor;
-    private final JiraHome jiraHome;
+    private final TextEncryptor textEncryptor;
 
-    public EncryptionManager(JiraHome jiraHome) {
-        this.jiraHome = jiraHome;
-        assert this.jiraHome != null;
-        String keyFilePath = this.jiraHome.getHome().getPath().concat("/").concat(ENCRYPTION_KEY_FILE_NAME);
-        String saltFilePath = this.jiraHome.getHome().getPath().concat("/").concat(ENCRYPTION_SALT_FILE_NAME);
+    public EncryptionManager(@Nonnull Path home) {
+        Path keyFilePath = home.resolve(ENCRYPTION_KEY_FILE_NAME);
+        Path saltFilePath = home.resolve(ENCRYPTION_SALT_FILE_NAME);
         String password = getEncryptionData(keyFilePath);
         String salt = getEncryptionData(saltFilePath);
         this.textEncryptor = Encryptors.text(password, salt);
@@ -81,18 +78,18 @@ public class EncryptionManager {
         }
     }
 
-    private String getEncryptionData(String fileName) {
-        File dataFile = new File(fileName);
+    private String getEncryptionData(Path filePath) {
+        File dataFile = filePath.toFile();
         if (dataFile.exists()) {
-            return readFileData(dataFile);
+            return readFileData(filePath);
         } else {
             return generateAndWriteKey(dataFile);
         }
     }
 
-    private String readFileData(File sourceFile) {
+    private String readFileData(Path filePath) {
         StringBuilder dataBuilder = new StringBuilder();
-        try (Stream<String> stream = Files.lines(Paths.get(sourceFile.getPath()), StandardCharsets.UTF_8)) {
+        try (Stream<String> stream = Files.lines(filePath, StandardCharsets.UTF_8)) {
             stream.forEach(dataBuilder::append);
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());

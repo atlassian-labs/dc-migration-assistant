@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor
 
-import com.atlassian.jira.config.util.JiraHome
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig
 import com.atlassian.migration.datacenter.core.fs.S3Uploader
@@ -27,13 +26,14 @@ import com.atlassian.scheduler.JobRunnerRequest
 import com.atlassian.scheduler.JobRunnerResponse
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 
 class S3FinalSyncRunner(
         private val attachmentSyncManager: AttachmentSyncManager,
         private val client: Supplier<S3AsyncClient>,
-        private val home: JiraHome,
+        private val home: Path,
         private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService,
         private val queueWatcher: QueueWatcher,
         private val attachmentListener: JiraIssueAttachmentListener)
@@ -57,7 +57,7 @@ class S3FinalSyncRunner(
         log.info("Stopping attachment event listener. Attachments created from this point onwards will not be migrated.")
         attachmentListener.stop()
 
-        val config = S3UploadConfig(migrationHelperDeploymentService.migrationS3BucketName, client.get(), home.home.toPath())
+        val config = S3UploadConfig(migrationHelperDeploymentService.migrationS3BucketName, client.get(), home)
         val report = DefaultFileSystemMigrationReport()
         val uploader = S3Uploader(config, report)
 

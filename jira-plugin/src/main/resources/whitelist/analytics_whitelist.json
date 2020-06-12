@@ -15,11 +15,11 @@
   "atl.dc.migration.transition": [
     "pluginVersion",
     "fromStage",
-    "toStage",
+    "toStage"
   ],
   "atl.dc.migration.transition.failed": [
     "pluginVersion",
     "fromStage",
-    "toStage",
+    "toStage"
   ]
 }

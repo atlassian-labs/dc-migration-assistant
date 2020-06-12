@@ -5,6 +5,8 @@ services:
   postgresql:
     build:
       context: ./postgres
+    ports:
+      - '5432:5432'
     environment:
       - 'POSTGRES_DB=jiradb'
       - 'POSTGRES_USER=jiradb'
