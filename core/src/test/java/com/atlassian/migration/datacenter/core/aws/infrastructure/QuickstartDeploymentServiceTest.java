@@ -54,6 +54,7 @@ import static com.atlassian.migration.datacenter.core.aws.infrastructure.Quickst
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -149,6 +150,7 @@ class QuickstartDeploymentServiceTest {
         deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
 
         verify(dbCredentialsStorageService).storeCredentials(TEST_DB_PASSWORD);
+        verify(mockContext, atLeastOnce()).save();
     }
 
     @Test
@@ -236,7 +238,9 @@ class QuickstartDeploymentServiceTest {
         Thread.sleep(100);
 
         verify(mockContext).setServiceUrl(testServiceUrl);
-        verify(mockContext, times(2)).save();
+        //Caters to the last save call in deployApplication com/atlassian/migration/datacenter/core/aws/infrastructure/QuickstartDeploymentService.java:106.
+        // That call must be removed and each setter should save automatically, or the entire block needs to be run in a transaction
+        verify(mockContext, times(3)).save();
     }
 
     @ParameterizedTest

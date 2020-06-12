@@ -180,6 +180,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         logger.info("Storing stack name in migration context");
 
         context.setApplicationDeploymentId(deploymentId);
+        context.save();
     }
 
     @Override
