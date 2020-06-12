@@ -8,7 +8,7 @@ if [[ $jsrc -nt $jtarget ]]; then
 fi
 
 cd jira-e2e-tests/
-docker-compose rm -f
+docker-compose rm -sf
 if [[ "$1" == "--no-test" ]]; then
     docker-compose up --force-recreate --build jira postgresql
 else
