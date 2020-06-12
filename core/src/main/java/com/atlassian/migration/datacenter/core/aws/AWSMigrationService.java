@@ -18,7 +18,6 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
@@ -40,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.nio.file.Path;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -52,16 +52,16 @@ public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
-    private JiraHome jiraHome;
+    private Path localHome;
     private EventPublisher eventPublisher;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
+    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, Path jiraHome, EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
-        this.jiraHome = jiraHome;
+        this.localHome = jiraHome;
         this.eventPublisher = eventPublisher;
     }
 
@@ -129,7 +129,7 @@ public class AWSMigrationService implements MigrationService {
     public MigrationReadyStatus getReadyStatus()
     {
         long MAX_FS_SIZE = 1024L * 1024L * 1024L * 400L;
-        long size = FileUtils.sizeOfDirectory(jiraHome.getHome());
+        long size = FileUtils.sizeOfDirectory(localHome.toFile());
 
         Boolean fs = size < MAX_FS_SIZE;
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
