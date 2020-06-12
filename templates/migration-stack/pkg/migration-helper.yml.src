@@ -233,7 +233,7 @@ Resources:
             01_create_log_dir:
               command: "mkdir -p /var/log/atlassian/dc-migration-assistant"
             02_ownership:
-              command: "chown -R jira:jira /var/log/atlassian/dc-migration-assistant"
+              command: "chown -R jira:jira /var/log/atlassian/"
         prepare_efs_sync_script:
           packages:
             yum:
