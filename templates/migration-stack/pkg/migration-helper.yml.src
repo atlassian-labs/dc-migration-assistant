@@ -307,7 +307,7 @@ Resources:
               java-1.8.0-openjdk: []
           commands:
             01_download:
-              command: "wget http://trebuchet-public-assets.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
+              command: "wget http://trebuchet-public-resources.s3.us-east-1.amazonaws.com/filesystem-processor-1.0.0.jar -O /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
             02_ownership:
               command: "chown -R jira:jira /opt/atlassian/dc-migration-assistant/filesystem-processor-1.0.0.jar"
         start_java_helper_app:

@@ -49,7 +49,7 @@ public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
 
         final FileSyncRecord[] recordsForCurrentMigration = activeObjects.find(
                 FileSyncRecord.class,
-                Query.select().where("migration_id = ?", migration.getID()));
+                Query.select().where("MIGRATION_ID = ?", migration.getID()));
 
         Collections.addAll(records, recordsForCurrentMigration);
 
@@ -64,6 +64,6 @@ public class DefaultAttachmentSyncManager implements AttachmentSyncManager {
             return 0;
         }
 
-        return activeObjects.count(FileSyncRecord.class, Query.select().where("migration_id = ?", migration.getID()));
+        return activeObjects.count(FileSyncRecord.class, Query.select().where("MIGRATION_ID = ?", migration.getID()));
     }
 }
