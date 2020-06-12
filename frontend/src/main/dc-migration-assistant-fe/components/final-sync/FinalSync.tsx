@@ -40,6 +40,7 @@ const finalSyncInProgressStages = [
     MigrationStage.DB_MIGRATION_EXPORT_WAIT,
     MigrationStage.DB_MIGRATION_UPLOAD,
     MigrationStage.DB_MIGRATION_UPLOAD_WAIT,
+    MigrationStage.FINAL_SYNC_WAIT,
 ];
 
 const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => {
