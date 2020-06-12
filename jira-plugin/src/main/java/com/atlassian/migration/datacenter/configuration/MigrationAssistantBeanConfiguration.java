@@ -76,6 +76,7 @@ import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
+import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
 import org.springframework.context.annotation.Bean;
@@ -179,8 +180,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public JiraConfiguration jiraConfiguration(JiraHome jiraHome) {
-        return new JiraConfiguration(jiraHome);
+    public JiraConfiguration jiraConfiguration(JiraHome jiraHome, PluginAccessor pluginAccessor) {
+        return new JiraConfiguration(jiraHome, pluginAccessor);
     }
 
     @Bean
@@ -226,8 +227,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome, eventPublisher);
     }
 
     @Bean

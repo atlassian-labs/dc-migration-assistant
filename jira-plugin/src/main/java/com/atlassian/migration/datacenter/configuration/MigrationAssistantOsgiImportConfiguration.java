@@ -20,6 +20,7 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
+import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.permission.PermissionEnforcer;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -58,6 +59,11 @@ public class MigrationAssistantOsgiImportConfiguration {
     @Bean
     public JiraHome getJiraHome() {
         return importOsgiService(JiraHome.class);
+    }
+
+    @Bean
+    public PluginAccessor getPluginAccessor() {
+        return importOsgiService(PluginAccessor.class);
     }
 
     @Bean

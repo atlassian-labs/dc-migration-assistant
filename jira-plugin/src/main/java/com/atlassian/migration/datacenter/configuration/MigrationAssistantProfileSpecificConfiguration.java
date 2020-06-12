@@ -13,6 +13,7 @@
 package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
@@ -32,8 +33,8 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Bean
     @Profile("allowAnyTransition")
     @Primary
-    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome);
+    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, jiraHome, eventPublisher);
     }
 
     @Bean

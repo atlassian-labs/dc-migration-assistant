@@ -96,4 +96,12 @@ interface MigrationService {
      * @see MigrationStage.ERROR
      */
     fun error(e: Throwable)
+
+    /**
+     * Moves the migration to the final state (if valid) and performs any cleanup.
+     *
+     * @see MigrationStage.FINISHED
+     */
+    @Throws(InvalidMigrationStageError::class)
+    fun finish()
 }
