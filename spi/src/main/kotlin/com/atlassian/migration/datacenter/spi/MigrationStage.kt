@@ -56,6 +56,14 @@ enum class MigrationStage {
         return to.validFrom?.equals(this) ?: true
     }
 
+    fun isAfter(stage: MigrationStage): Boolean {
+        if (this == stage || this == NOT_STARTED) return false
+        if (this == FINISHED || this == ERROR) return true
+        this.validFrom!!.let { it: MigrationStage ->
+            return if (it == stage) true else it.isAfter(stage)
+        }
+    }
+
     // Hacky, but OK for now.
     val isDBPhase: Boolean
         get() =// Hacky, but OK for now.
