@@ -59,7 +59,7 @@ class MigrationEndpointRestTest : BaseRestTest() {
     @Test
     fun `Migration can be started`() {
         Given {
-            spec(requestSpec).auth().preemptive().basic("admin", "admin").contentType(ContentType.JSON)
+            spec(requestSpec).contentType(ContentType.JSON)
         } When {
             post("/migration")
             get("/migration")
@@ -73,7 +73,7 @@ class MigrationEndpointRestTest : BaseRestTest() {
     @Test
     fun `Only one concurrent migration can be started`() {
         Given {
-            spec(requestSpec).auth().preemptive().basic("admin", "admin").contentType(ContentType.JSON)
+            spec(requestSpec).contentType(ContentType.JSON)
         } When {
             post("/migration")
             post("/migration")

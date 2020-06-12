@@ -16,7 +16,7 @@
 
 package com.atlassian.migration.test
 
-import io.restassured.RestAssured
+import io.restassured.authentication.PreemptiveAuthProvider
 import io.restassured.builder.RequestSpecBuilder
 import io.restassured.filter.log.LogDetail
 import org.junit.jupiter.api.Tag
@@ -33,7 +33,7 @@ open class BaseRestTest {
         .log(LogDetail.ALL)
         .setBaseUri(baseURI)
         .setBasePath(basePath)
-        .setAuth(RestAssured.basic(username, password))
+        .setAuth(PreemptiveAuthProvider().basic(username, password))
         .addParam("os_authType", "basic")
         .build()
 }
