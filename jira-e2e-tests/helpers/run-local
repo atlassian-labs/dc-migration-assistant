@@ -9,4 +9,8 @@ fi
 
 cd jira-e2e-tests/
 docker-compose rm -f
-docker-compose up --force-recreate --build
+if [[ "$1" == "--no-test" ]]; then
+    docker-compose up --force-recreate --build jira postgresql
+else
+    docker-compose up --force-recreate --build
+fi
