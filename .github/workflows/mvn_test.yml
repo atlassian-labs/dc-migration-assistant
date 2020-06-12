@@ -9,6 +9,7 @@ jobs:
   run_tests:
     name: Java${{ matrix.java }} ${{ matrix.profile }} test
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     strategy:
       matrix:
@@ -50,6 +51,7 @@ jobs:
         run: mvn -B clean verify -P ${{ matrix.profile}}
 
       - name: Smoke-test with production image
+        timeout-minutes: 10
         if: matrix.profile == 'smoketest'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
@@ -61,7 +63,14 @@ jobs:
           mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
           ./postgres/inject-license
-          docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit
+          JIRA_VERSION=latest docker-compose up --force-recreate --build -d
+
+      - name: Rest api tests with production image built by previous step
+        timeout-minutes: 15
+        if: matrix.profile == 'smoketest'
+        run: |
+          cd jira-e2e-tests
+          until docker-compose ps --services --filter "status=stopped" | grep cypress ; do sleep 5; done; mvn -f ../pom.xml verify -pl func-tests -Prest; docker-compose down
 
       - name: Upload
         if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11
@@ -69,7 +78,6 @@ jobs:
         with:
           name: plugin-jar
           path: jira-plugin/target/jira-plugin-1.0.0.jar
-
 
   deploy:
     name: Deploy to dogfooding instance

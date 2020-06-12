@@ -16,7 +16,7 @@
 
 package com.atlassian.migration.test
 
-import io.restassured.RestAssured
+import io.restassured.authentication.PreemptiveAuthProvider
 import io.restassured.builder.RequestSpecBuilder
 import io.restassured.filter.log.LogDetail
 import org.junit.jupiter.api.Tag
@@ -26,11 +26,14 @@ open class BaseRestTest {
     private val username: String = System.getProperty("JIRA_USERNAME", "admin")
     private val password: String = System.getProperty("JIRA_PASSWORD", "admin")
 
+    val baseURI = System.getProperty("JIRA_BASE_URL", "http://localhost:2990/jira")
+    val basePath = System.getProperty("JIRA_BASE_PATH", "/rest/dc-migration/1.0")
+
     val requestSpec = RequestSpecBuilder()
         .log(LogDetail.ALL)
-        .setBaseUri(System.getProperty("JIRA_BASE_URL", "http://localhost:2990/jira"))
-        .setBasePath(System.getProperty("JIRA_BASE_PATH", "/rest/dc-migration/1.0"))
-        .setAuth(RestAssured.basic(username, password))
+        .setBaseUri(baseURI)
+        .setBasePath(basePath)
+        .setAuth(PreemptiveAuthProvider().basic(username, password))
         .addParam("os_authType", "basic")
         .build()
 }

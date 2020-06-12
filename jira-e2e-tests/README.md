@@ -36,6 +36,19 @@ Once acquired the license can be injected with:
     export JIRA_E2E_LICENSE='xxxxx'
     ./postgres/inject-license
 
+Data is pre-loaded from a pg_dump of a jira software 7.13.0 that is saved under jira.sql.tmpl. If you need to re-generate
+this you will need to:
+ - Start jira software version of choice and setup to point to a postgres database (lets call it newDB)
+ - Go through setup, create sample project (any will do), take note of the server id, shutdown the instance
+ - `pg_dump newDB > jira.sql.tmpl`. Ensure to copy jira.sql.tmpl to correct directory, replacing existing file.
+ - In `jira.sql.tmpl`:
+ 
+    - find the line after `COPY productlicense (id, license) FROM stdin;` and replace with 
+    `10000	INJECT_LICENSE_HERE`
+    - find any reference to your server id, replace with BFAP-W4RG-46TJ-B5TK
+ -  run `./postgres/inject-license`
+   
+
 ### Jira container setup
 
 The Jira container configuration injects a copy of the plugin, which should have

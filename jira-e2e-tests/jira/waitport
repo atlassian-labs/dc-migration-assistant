@@ -4,7 +4,7 @@ set -e
 
 host=$1
 port=$2
-secs=600
+secs=1200
 
 echo -n "Waiting for TCP connection to $host:$port..."
 
