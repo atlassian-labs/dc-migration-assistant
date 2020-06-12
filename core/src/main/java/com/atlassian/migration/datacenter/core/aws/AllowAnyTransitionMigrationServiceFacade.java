@@ -13,6 +13,7 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -21,8 +22,8 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 
 public class AllowAnyTransitionMigrationServiceFacade extends AWSMigrationService implements MigrationService {
-    public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
-        super(activeObjects, applicationConfiguration, jiraHome);
+    public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
+        super(activeObjects, applicationConfiguration, jiraHome, eventPublisher);
     }
 
     @Override

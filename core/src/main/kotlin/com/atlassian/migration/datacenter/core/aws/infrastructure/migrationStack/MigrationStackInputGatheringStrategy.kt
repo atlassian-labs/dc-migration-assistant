@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.application;
+package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
+import software.amazon.awssdk.services.cloudformation.model.Stack
 
-import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
+interface MigrationStackInputGatheringStrategy {
 
-public interface ApplicationConfiguration {
-    String getPluginKey();
-    String getPluginVersion();
-    DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException;
+    fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String>
+
 }

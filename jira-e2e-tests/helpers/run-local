@@ -1,0 +1,12 @@
+#!/bin/bash -x
+
+jsrc=jira-plugin/target/jira-plugin-1.0.0.jar
+jtarget=jira-e2e-tests/jira/jira-plugin-1.0.0.jar
+
+if [[ $jsrc -nt $jtarget ]]; then
+    cp $jsrc $jtarget
+fi
+
+cd jira-e2e-tests/
+docker-compose rm -f
+docker-compose up --force-recreate --build

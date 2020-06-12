@@ -21,7 +21,7 @@ describe('Plugin installation smoke tests', () => {
 
         cy.get('.upm-count-enabled')
             .should((el) => {
-                expect(el.first()).to.contain('8 of 8 modules enabled')
+                expect(el.first()).to.contain('9 of 9 modules enabled')
             })
     });
 

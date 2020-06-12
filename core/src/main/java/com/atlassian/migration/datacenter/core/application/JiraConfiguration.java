@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.application;
 
 import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
+import com.atlassian.plugin.PluginAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
@@ -26,15 +27,26 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-public class JiraConfiguration implements ApplicationConfiguration {
-    private final XmlMapper xmlMapper;
+public class JiraConfiguration extends CommonApplicationConfiguration
+{
+
     private final JiraHome jiraHome;
+
+    public static final String PLUGIN_KEY = "com.atlassian.migration.datacenter.jira-plugin";
+    private final XmlMapper xmlMapper;
     private Optional<DatabaseConfiguration> databaseConfiguration = Optional.empty();
 
-    public JiraConfiguration(JiraHome jiraHome) {
+    public JiraConfiguration(JiraHome jiraHome, PluginAccessor pluginAccessor) {
+        super(pluginAccessor);
         this.jiraHome = jiraHome;
         this.xmlMapper = new XmlMapper();
         this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    @Override
+    public String getPluginKey()
+    {
+        return PLUGIN_KEY;
     }
 
     @Override

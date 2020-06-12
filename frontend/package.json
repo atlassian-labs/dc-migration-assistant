@@ -109,7 +109,7 @@
         "build": "webpack --config ./config/webpack.config.js",
         "build:dev": "webpack --config ./config/webpack.config.js --mode=development",
         "dev-server": "webpack-dev-server --config ./config/webpack.config.js --mode=development --env=dev-server",
-        "test": "jest --config ./config/jest/jest.config.js --passWithNoTests",
+        "test": "jest --setupFiles dotenv/config --config ./config/jest/jest.config.js --passWithNoTests",
         "update-snapshots": "jest --updateSnapshot --config ./config/jest/jest.config.js",
         "eject": "react-scripts eject",
         "lint": "eslint './**/*.{jsx,ts,tsx}'"

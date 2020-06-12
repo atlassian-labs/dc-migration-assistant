@@ -211,24 +211,20 @@ const QuickStartDeployContainer = styled.div`
     justify-items: center;
 `;
 
-const DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc-with-vpc.template.yaml';
-
 const quickstartWithVPCParametersTemplateLocation = (): string => {
-    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_WITH_VPC_PARAMETER_URL;
-    return parametersUrlFromEnv === undefined
-        ? DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL
-        : parametersUrlFromEnv;
+    const parametersUrlFromEnv = process.env.DEFAULT_QUICKSTART_WITH_VPC_PARAMETER_URL;
+    if (parametersUrlFromEnv === undefined) {
+        throw Error('QuickStart Jira with VPC template location not set in .env');
+    }
+    return parametersUrlFromEnv;
 };
 
-const DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL =
-    'https://trebuchet-public-resources.s3.amazonaws.com/quickstart-jira-dc.template.yaml';
-
 const quickstartStandaloneParametersTemplateLocation = (): string => {
-    const parametersUrlFromEnv = process.env.REACT_APP_QUICKSTART_STANDALONE_PARAMETER_URL;
-    return parametersUrlFromEnv === undefined
-        ? DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL
-        : parametersUrlFromEnv;
+    const parametersUrlFromEnv = process.env.DEFAULT_QUICKSTART_STANDALONE_PARAMETER_URL;
+    if (parametersUrlFromEnv === undefined) {
+        throw Error('QuickStart Jira template location not set in .env');
+    }
+    return parametersUrlFromEnv;
 };
 
 const templateForDeploymentMode = (mode: DeploymentMode): string => {

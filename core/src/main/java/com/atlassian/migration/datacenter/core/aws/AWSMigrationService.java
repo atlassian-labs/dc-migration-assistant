@@ -17,7 +17,13 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
@@ -34,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
-import java.util.Optional;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -48,14 +53,16 @@ public class AWSMigrationService implements MigrationService {
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
     private JiraHome jiraHome;
+    private EventPublisher eventPublisher;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome) {
+    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
         this.jiraHome = jiraHome;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -108,11 +115,14 @@ public class AWSMigrationService implements MigrationService {
         Migration migration = findFirstOrCreateMigration();
         MigrationStage currentStage = migration.getStage();
 
-        // NOTE: This assumes that the state transitions from the start of the enum to the end.
         if (!currentStage.isValidTransition(to)) {
+            eventPublisher.publish(new MigrationTransitionFailedEvent(applicationConfiguration.getPluginVersion(),
+                                                                      currentStage.toString(), to.toString()));
             throw InvalidMigrationStageError.errorWithMessage(currentStage, to);
         }
         setCurrentStage(migration, to);
+        eventPublisher.publish(new MigrationTransitionEvent(applicationConfiguration.getPluginVersion(),
+                                                            currentStage.toString(), to.toString()));
     }
 
     @Override
@@ -130,10 +140,19 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public void error(String message) {
         Migration migration = findFirstOrCreateMigration();
-        setCurrentStage(migration, ERROR);
         MigrationContext context = getCurrentContext();
+
+        MigrationStage failStage = context.getMigration().getStage();
+        Long now = System.currentTimeMillis() / 1000L;
+
+        setCurrentStage(migration, ERROR);
         context.setErrorMessage(message);
+        context.setEndEpoch(now);
         context.save();
+
+        eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
+                                                        failStage.toString(), message,
+                                                        now - context.getStartEpoch()));
     }
 
     @Override
@@ -141,6 +160,22 @@ public class AWSMigrationService implements MigrationService {
     {
         error(e.getMessage());
         findFirstOrCreateMigration().getStage().setException(e);
+    }
+
+    @Override
+    public void finish() throws InvalidMigrationStageError
+    {
+        // TODO: This may require additional operations
+
+        Long now = System.currentTimeMillis() / 1000L;
+        transition(MigrationStage.FINISHED);
+
+        MigrationContext context = getCurrentContext();
+        context.setEndEpoch(now);
+        context.save();
+
+        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(),
+                                                          now - context.getStartEpoch()));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {
@@ -162,7 +197,10 @@ public class AWSMigrationService implements MigrationService {
 
             MigrationContext context = ao.create(MigrationContext.class);
             context.setMigration(migration);
+            context.setStartEpoch(System.currentTimeMillis() / 1000L);
             context.save();
+
+            eventPublisher.publish(new MigrationCreatedEvent(applicationConfiguration.getPluginVersion()));
 
             return migration;
         } else {
