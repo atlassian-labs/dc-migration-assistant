@@ -18,7 +18,6 @@ package com.atlassian.migration.datacenter.core.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.security.crypto.keygen.KeyGenerators;
@@ -95,7 +94,7 @@ public class EncryptionManager {
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
         }
-        return new String(Hex.encode(dataBuilder.toString().getBytes()));
+        return dataBuilder.toString();
     }
 
     private String generateAndWriteKey(File file) {

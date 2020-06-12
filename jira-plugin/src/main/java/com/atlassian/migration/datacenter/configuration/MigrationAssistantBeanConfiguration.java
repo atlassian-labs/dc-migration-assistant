@@ -151,7 +151,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public EncryptionManager encryptionManager(JiraHome jiraHome) {
-        return new EncryptionManager(jiraHome);
+        return new EncryptionManager(jiraHome.getHome().toPath());
     }
 
     @Bean
@@ -328,7 +328,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public S3FinalSyncRunner s3FinalSyncRunner(AttachmentSyncManager attachmentSyncManager, Supplier<S3AsyncClient> s3ClientSupplier, JiraHome jiraHome, AWSMigrationHelperDeploymentService helperDeploymentService, QueueWatcher queueWatcher, JiraIssueAttachmentListener attachmentListener) {
-        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome, helperDeploymentService, queueWatcher, attachmentListener);
+        return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, jiraHome.getHome().toPath(), helperDeploymentService, queueWatcher, attachmentListener);
     }
 
     @Bean
