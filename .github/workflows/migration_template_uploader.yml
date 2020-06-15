@@ -3,6 +3,7 @@ name: UploadMigrationTemplate
 on: [push]
 
 env:
+  MASTER_BRANCH: ${{ secrets.MASTER_BRANCH }}
   AWS_S3_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
@@ -17,8 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Generate migration stack template
+        if: github.ref == env.MASTER_BRANCH
         run: make rendertemplate -C ./templates/migration-stack
       - name: Upload Migration stack template
+        if: github.ref == env.MASTER_BRANCH
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read --exclude '*' --include 'migration-helper.yml'
