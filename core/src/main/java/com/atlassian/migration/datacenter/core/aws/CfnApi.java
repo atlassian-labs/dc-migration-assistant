@@ -115,10 +115,13 @@ public class CfnApi {
                 break;
             case DELETE_IN_PROGRESS:
                 deploymentState = InfrastructureDeploymentState.DELETE_IN_PROGRESS;
+                break;
             case DELETE_COMPLETE:
                 deploymentState = InfrastructureDeploymentState.DELETE_COMPLETE;
+                break;
             case DELETE_FAILED:
                 deploymentState = InfrastructureDeploymentState.DELETE_FAILED;
+                break;
             default:
                 deploymentState = InfrastructureDeploymentState.CREATE_FAILED;
                 break;
