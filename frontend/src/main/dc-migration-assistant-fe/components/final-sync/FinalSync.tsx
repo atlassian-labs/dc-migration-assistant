@@ -72,8 +72,8 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     if (hasProgressedToNextStage) {
         builder.setCompleteness(1);
     } else {
-        // Uploaded file count can be zero when no attachments are uploaded
-        builder.setCompleteness(uploaded === 0 ? 1 : downloaded / uploaded);
+        // If there are no files to upload (i.e. uploaded = 0), the state will be transitioned to `Validate` and conditional branch will not be evaluated due to the `hasProgressedToNextStage` check above.
+        builder.setCompleteness(uploaded === 0 ? 0 : downloaded / uploaded);
     }
 
     if (downloaded === uploaded) {
