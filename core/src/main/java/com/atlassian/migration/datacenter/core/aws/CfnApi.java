@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -59,7 +60,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.CREATE_FAILED;
-import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.DELETE_FAILED;
 
 public class CfnApi {
     private static final Logger logger = LoggerFactory.getLogger(CfnApi.class);
@@ -143,29 +143,38 @@ public class CfnApi {
                             CREATE_FAILED.equals(stackEvent.resourceStatus()))
                     .collect(Collectors.toList());
 
-            if (failedEvents.size() == 0) {
+            if (failedEvents.isEmpty()) {
                 return Optional.empty();
             }
 
-            final AtomicReference<StackEvent> earliestEventRef = new AtomicReference<>(failedEvents.get(0));
+            StackEvent earliestEvent = getEarliestEventFromStackEvents(failedEvents);
 
-            failedEvents.forEach(stackEvent -> {
-                if (earliestEventRef.get().timestamp().isAfter(stackEvent.timestamp())) {
-                    earliestEventRef.set(stackEvent);
-                }
-            });
-
-            StackEvent earliestEvent = earliestEventRef.get();
-            if (earliestEvent.resourceType().equals("AWS::CloudFormation::Stack") && earliestEvent.resourceStatusReason().contains("Embedded stack")) {
+            if (isEmbeddedStackError(earliestEvent)) {
                 return getStackErrorRootCause(earliestEvent.physicalResourceId());
             }
 
-            return Optional.of(earliestEventRef.get().resourceStatusReason());
+            return Optional.of(earliestEvent.resourceStatusReason());
 
         } catch (InterruptedException | ExecutionException e) {
             logger.error("unable to get stack events", e);
             return Optional.empty();
         }
+    }
+
+    private boolean isEmbeddedStackError(StackEvent stackEvent) {
+        return stackEvent.resourceType().equals("AWS::CloudFormation::Stack") && stackEvent.resourceStatusReason().contains("Embedded stack");
+    }
+
+    @NotNull
+    private StackEvent getEarliestEventFromStackEvents(List<StackEvent> failedEvents) {
+        final AtomicReference<StackEvent> earliestEventRef = new AtomicReference<>(failedEvents.get(0));
+
+        failedEvents.forEach(stackEvent -> {
+            if (earliestEventRef.get().timestamp().isAfter(stackEvent.timestamp())) {
+                earliestEventRef.set(stackEvent);
+            }
+        });
+        return earliestEventRef.get();
     }
 
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) {
