@@ -81,10 +81,10 @@ jobs:
 
       - name: Archive code coverage results
         if: matrix.profile == '!integration' && matrix.java == 8
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: code-coverage-report
-          path: '**/target/site/jacoco-unit-test-coverage-report'
+          path: ./**/target/site/jacoco-unit-test-coverage-report/
 
   deploy:
     name: Deploy to dogfooding instance
