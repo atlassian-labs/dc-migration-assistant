@@ -39,10 +39,7 @@ type InfrastructureDeploymentState =
     | 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT';
 
 type StackStatusResponse = {
-    status: {
-        state: InfrastructureDeploymentState;
-        reason: string;
-    };
+    status: InfrastructureDeploymentState;
     phase?: 'app_infra' | 'migration_infra';
 };
 
