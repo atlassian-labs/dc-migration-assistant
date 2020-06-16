@@ -49,19 +49,13 @@ internal class CfnApiTest {
 
     @Test
     fun shouldGetFailedMessagesForGivenStack() {
-        val stackEvents = listOf<StackEvent>(
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
-                        .timestamp(Instant.now())
-                        .build()
+        givenErrorsExistForStack(testStack,
+                {
+                    it.resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
+                            .timestamp(Instant.now())
+                            .resourceType("dont matter")
+                }
         )
-
-        every {
-            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
-        } returns
-                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
-
         val error = "The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup]."
 
         assertEquals(error, sut.getStackErrorRootCause(testStack).get())
@@ -70,75 +64,76 @@ internal class CfnApiTest {
     @Test
     fun shouldGetTheEarliestFailedMessage() {
         val earliestError = "AutoscalingGroup deletion cannot be performed because the Terminate process has been suspended; please resume this process and then retry stack deletion."
-        val stackEvents = listOf<StackEvent>(
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
-                        .timestamp(Instant.now())
-                        .build(),
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceStatusReason(earliestError)
-                        .timestamp(Instant.now().minusSeconds(20))
-                        .build()
-        )
 
-        every {
-            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
-        } returns
-                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
+        givenErrorsExistForStack(testStack,
+                {
+                    it.resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
+                            .timestamp(Instant.now())
+                            .resourceType("dont matter")
+
+                },
+                {
+                    it.resourceStatusReason(earliestError)
+                            .resourceType("dont matter")
+                            .timestamp(Instant.now().minusSeconds(20))
+                }
+        )
 
         assertEquals(earliestError, sut.getStackErrorRootCause(testStack).get())
     }
 
     @Test
     fun shouldReturnEmptyWhenNoErrorMessages() {
-        every {
-            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
-        } returns
-                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(emptyList()).build())
+        givenErrorsExistForStack(testStack)
 
         assertEquals(Optional.empty<String>(), sut.getStackErrorRootCause(testStack))
     }
 
     @Test
     fun shouldFollowEventsForFailuresInNestedStacks() {
-        val nestedStackId = "arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b"
         val earliestError = "Dashboard 'tcat-per-jira-37c49438-dashboard' already exists"
+        val nestedStackId = "arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b"
         val stackResourceType = "AWS::CloudFormation::Stack"
-        val stackEvents = listOf(
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceType(stackResourceType)
-                        .resourceStatusReason("Embedded stack arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b was not successfully created: The following resource(s) failed to create: [Dashboard].")
-                        .physicalResourceId(nestedStackId)
-                        .timestamp(Instant.now())
-                        .build()
-        )
-        val nestedStackEvents = listOf(
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceStatusReason(earliestError)
-                        .resourceType("AWS::CloudWatch::Dashboard")
-                        .timestamp(Instant.now().minusSeconds(20))
-                        .build(),
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceStatusReason("The following resource(s) failed to create: [Dashboard].")
-                        .timestamp(Instant.now())
-                        .resourceType(stackResourceType)
-                        .build()
-        )
 
-        every {
-            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
-        } returns
-                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
+        givenErrorsExistForStack(testStack, {
+            it.resourceType(stackResourceType)
+                    .resourceStatusReason("Embedded stack arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b was not successfully created: The following resource(s) failed to create: [Dashboard].")
+                    .physicalResourceId(nestedStackId)
+                    .timestamp(Instant.now())
+        })
 
-        every {
-            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == nestedStackId })
-        } returns CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(nestedStackEvents).build())
+        givenErrorsExistForStack(nestedStackId,
+                {
+                    it
+                            .resourceStatusReason(earliestError)
+                            .resourceType("AWS::CloudWatch::Dashboard")
+                            .timestamp(Instant.now().minusSeconds(20))
+                },
+                {
+                    it
+                            .resourceStatusReason("The following resource(s) failed to create: [Dashboard].")
+                            .timestamp(Instant.now())
+                            .resourceType(stackResourceType)
+                })
 
         assertEquals(earliestError, sut.getStackErrorRootCause(testStack).get())
+    }
+
+    @Test
+    fun shouldFollowEventsForMultiplyNestedStacks() {
+
+    }
+
+    fun givenErrorsExistForStack(stackName: String, vararg builderAcceptors: (StackEvent.Builder) -> StackEvent.Builder) {
+        val errors = builderAcceptors.map {
+            it.invoke(
+                    StackEvent.builder()
+                            .resourceStatus(ResourceStatus.CREATE_FAILED))
+                    .build()
+        }
+
+        every {
+            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == stackName })
+        } returns CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(errors).build())
     }
 }
