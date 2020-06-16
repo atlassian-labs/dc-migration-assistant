@@ -78,7 +78,7 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
             }
         }
         if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK) {
-            return Response.ok(mapper.writeValueAsString(mapOf("status" to mapOf("state" to PENDING_MIGRATION_INFR_STATUS), "phase" to "migration_infra"))).build()
+            return Response.ok(mapper.writeValueAsString(mapOf("status" to ProvisioningStatusResponse(PENDING_MIGRATION_INFR_STATUS)))).build()
         }
         if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
             return try {
@@ -103,3 +103,4 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
     }
 
 }
+

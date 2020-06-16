@@ -19,6 +19,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.infrastructure.*
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -26,8 +27,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -157,14 +157,15 @@ internal class CloudFormationEndpointTest {
     @Test
     fun shouldReturnIntermediatePhaseWhileBetweenDeployments() {
         val expectedStatus = "PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT"
-        val expectedPhase = "migration_infra"
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK
 
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertThat(response.entity as String, containsString(expectedStatus));
-        assertThat(response.entity as String, containsString(expectedPhase));
+        val typeRef: TypeReference<HashMap<String, ProvisioningStatusResponse>> = object : TypeReference<HashMap<String, ProvisioningStatusResponse>>() {}
+        val readValue = ObjectMapper().readValue(response.entity as String, typeRef)
+
+        assertThat(readValue["status"]!!.state, equalTo(expectedStatus));
     }
 
     @Test
