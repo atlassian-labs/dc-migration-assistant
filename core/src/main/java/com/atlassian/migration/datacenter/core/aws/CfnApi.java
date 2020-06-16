@@ -147,15 +147,20 @@ public class CfnApi {
                 return Optional.empty();
             }
 
-            final AtomicReference<StackEvent> earliestEvent = new AtomicReference<>(failedEvents.get(0));
+            final AtomicReference<StackEvent> earliestEventRef = new AtomicReference<>(failedEvents.get(0));
 
             failedEvents.forEach(stackEvent -> {
-                if (earliestEvent.get().timestamp().isAfter(stackEvent.timestamp())) {
-                    earliestEvent.set(stackEvent);
+                if (earliestEventRef.get().timestamp().isAfter(stackEvent.timestamp())) {
+                    earliestEventRef.set(stackEvent);
                 }
             });
 
-            return Optional.of(earliestEvent.get().resourceStatusReason());
+            StackEvent earliestEvent = earliestEventRef.get();
+            if (earliestEvent.resourceType().equals("AWS::CloudFormation::Stack") && earliestEvent.resourceStatusReason().contains("Embedded stack")) {
+                return getStackErrorRootCause(earliestEvent.physicalResourceId());
+            }
+
+            return Optional.of(earliestEventRef.get().resourceStatusReason());
 
         } catch (InterruptedException | ExecutionException e) {
             logger.error("unable to get stack events", e);
