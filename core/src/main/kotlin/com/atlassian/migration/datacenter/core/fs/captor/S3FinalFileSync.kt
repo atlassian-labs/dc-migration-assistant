@@ -32,5 +32,4 @@ class S3FinalFileSync(private val attachmentSyncManager: AttachmentSyncManager, 
 
         uploader.upload(uploadQueue)
     }
-
 }

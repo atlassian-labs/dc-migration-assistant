@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.cloudformation.model.ListStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.ListStacksResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
 import software.amazon.awssdk.services.cloudformation.model.StackResource;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
@@ -54,6 +55,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.CREATE_FAILED;
+import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.DELETE_FAILED;
 
 public class CfnApi {
     private static final Logger logger = LoggerFactory.getLogger(CfnApi.class);
@@ -116,6 +120,24 @@ public class CfnApi {
                 return InfrastructureDeploymentState.DELETE_FAILED;
             default:
                 return InfrastructureDeploymentState.CREATE_FAILED;
+        }
+    }
+
+    public List<String> getStackErrors(String stackName) {
+        try {
+            List<StackEvent> events = this.getClient()
+                    .describeStackEvents(builder -> builder.stackName(stackName))
+                    .get()
+                    .stackEvents();
+
+            return events.stream()
+                    .filter(stackEvent ->
+                            CREATE_FAILED.equals(stackEvent.resourceStatus()))
+                    .map(StackEvent::resourceStatusReason)
+                    .collect(Collectors.toList());
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("unable to get stack events", e);
+            return Collections.emptyList();
         }
     }
 
