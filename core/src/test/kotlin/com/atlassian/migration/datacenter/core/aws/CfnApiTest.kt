@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsR
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsResponse
 import software.amazon.awssdk.services.cloudformation.model.ResourceStatus
 import software.amazon.awssdk.services.cloudformation.model.StackEvent
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import kotlin.test.assertEquals
@@ -48,15 +49,11 @@ internal class CfnApiTest {
     }
 
     @Test
-    fun shouldGetAllFailedMessagesForGivenStack() {
+    fun shouldGetFailedMessagesForGivenStack() {
         val stackEvents = listOf<StackEvent>(
                 StackEvent.builder()
                         .resourceStatus(ResourceStatus.CREATE_FAILED)
                         .resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
-                        .build(),
-                StackEvent.builder()
-                        .resourceStatus(ResourceStatus.CREATE_FAILED)
-                        .resourceStatusReason("AutoscalingGroup deletion cannot be performed because the Terminate process has been suspended; please resume this process and then retry stack deletion.")
                         .build()
         )
 
@@ -66,10 +63,34 @@ internal class CfnApiTest {
             CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
 
         val errors = listOf(
-                "The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].",
-                "AutoscalingGroup deletion cannot be performed because the Terminate process has been suspended; please resume this process and then retry stack deletion."
+                "The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup]."
         )
 
         assertEquals(errors, sut.getStackErrors(testStack))
     }
+
+    @Test
+    fun shouldGetTheEarliestFailedMessage() {
+        val earliestError = "AutoscalingGroup deletion cannot be performed because the Terminate process has been suspended; please resume this process and then retry stack deletion."
+        val stackEvents = listOf<StackEvent>(
+                StackEvent.builder()
+                        .resourceStatus(ResourceStatus.CREATE_FAILED)
+                        .resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
+                        .timestamp(Instant.now())
+                        .build(),
+                StackEvent.builder()
+                        .resourceStatus(ResourceStatus.CREATE_FAILED)
+                        .resourceStatusReason(earliestError)
+                        .timestamp(Instant.now().minusSeconds(20))
+                        .build()
+        )
+
+        every {
+            cfnClient.describeStackEvents(any<Consumer<DescribeStackEventsRequest.Builder>>())
+        } returns
+                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
+
+        assertEquals(listOf(earliestError), sut.getStackErrors(testStack))
+    }
+
 }

@@ -54,6 +54,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.CREATE_FAILED;
@@ -130,11 +131,25 @@ public class CfnApi {
                     .get()
                     .stackEvents();
 
-            return events.stream()
+            List<StackEvent> failedEvents =  events.stream()
                     .filter(stackEvent ->
                             CREATE_FAILED.equals(stackEvent.resourceStatus()))
-                    .map(StackEvent::resourceStatusReason)
                     .collect(Collectors.toList());
+
+            if (failedEvents.size() == 0) {
+                return Collections.emptyList();
+            }
+
+            final AtomicReference<StackEvent> earliestEvent = new AtomicReference<>(failedEvents.get(0));
+
+            failedEvents.forEach(stackEvent -> {
+                if (earliestEvent.get().timestamp().isAfter(stackEvent.timestamp())) {
+                    earliestEvent.set(stackEvent);
+                }
+            });
+
+            return Collections.singletonList(earliestEvent.get().resourceStatusReason());
+
         } catch (InterruptedException | ExecutionException e) {
             logger.error("unable to get stack events", e);
             return Collections.emptyList();
