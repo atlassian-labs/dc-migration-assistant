@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,8 +31,6 @@ import software.amazon.awssdk.services.cloudformation.model.StackEvent
 import java.time.Instant
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
 internal class CfnApiTest {
@@ -59,9 +58,9 @@ internal class CfnApiTest {
         )
 
         every {
-            cfnClient.describeStackEvents(any<Consumer<DescribeStackEventsRequest.Builder>>())
+            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
         } returns
-            CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
+                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
 
         val error = "The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup]."
 
@@ -85,7 +84,7 @@ internal class CfnApiTest {
         )
 
         every {
-            cfnClient.describeStackEvents(any<Consumer<DescribeStackEventsRequest.Builder>>())
+            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
         } returns
                 CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
 
@@ -95,10 +94,10 @@ internal class CfnApiTest {
     @Test
     fun shouldReturnEmptyWhenNoErrorMessages() {
         every {
-            cfnClient.describeStackEvents(any<Consumer<DescribeStackEventsRequest.Builder>>())
+            cfnClient.describeStackEvents(match<DescribeStackEventsRequest> { it.stackName() == testStack })
         } returns
                 CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(emptyList()).build())
 
-        assertEquals(Optional.empty(), sut.getStackErrorRootCause(testStack))
+        assertEquals(Optional.empty<String>(), sut.getStackErrorRootCause(testStack))
     }
 }

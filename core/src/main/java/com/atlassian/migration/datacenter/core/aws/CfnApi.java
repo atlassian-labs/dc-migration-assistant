@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
@@ -133,7 +134,7 @@ public class CfnApi {
     public Optional<String> getStackErrorRootCause(String stackName) {
         try {
             List<StackEvent> events = this.getClient()
-                    .describeStackEvents(builder -> builder.stackName(stackName))
+                    .describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build())
                     .get()
                     .stackEvents();
 
