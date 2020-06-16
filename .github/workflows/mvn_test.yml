@@ -80,6 +80,7 @@ jobs:
           path: jira-plugin/target/jira-plugin-1.0.0.jar
 
       - name: Archive code coverage results
+        if: matrix.profile == '!integration' && matrix.java == 8
         uses: actions/upload-artifact@v1
         with:
           name: code-coverage-report
