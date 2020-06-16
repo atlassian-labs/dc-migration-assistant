@@ -40,6 +40,8 @@ const finalSyncInProgressStages = [
     MigrationStage.DB_MIGRATION_EXPORT_WAIT,
     MigrationStage.DB_MIGRATION_UPLOAD,
     MigrationStage.DB_MIGRATION_UPLOAD_WAIT,
+    MigrationStage.FINAL_SYNC_WAIT,
+    MigrationStage.VALIDATE, // Because of the auto-transition from FINAL_SYNC_WAIT to VALIDATE, we need to add/hack this in here :(
 ];
 
 const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => {
@@ -62,12 +64,17 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
 
 const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     const { fs, db } = status;
-    const { downloaded, uploaded } = fs;
+    const { downloaded, uploaded, hasProgressedToNextStage } = fs;
     const builder = new ProgressBuilder();
     builder.setPhase(I18n.getText('atlassian.migration.datacenter.sync.fs.phase'));
     // FIXME: This time will be wrong when one of the components of final sync completes
     builder.setElapsedSeconds(db.elapsedTime.seconds);
-    builder.setCompleteness(uploaded === 0 ? 0 : downloaded / uploaded);
+    if (hasProgressedToNextStage) {
+        builder.setCompleteness(1);
+    } else {
+        // If there are no files to upload (i.e. uploaded = 0), the state will be transitioned to `Validate` and conditional branch will not be evaluated due to the `hasProgressedToNextStage` check above.
+        builder.setCompleteness(uploaded === 0 ? 0 : downloaded / uploaded);
+    }
 
     if (downloaded === uploaded) {
         builder.setCompleteMessage(

@@ -35,4 +35,19 @@ internal class MigrationStageTest {
     fun testInvalidTransition() {
         Assertions.assertFalse(MigrationStage.DB_MIGRATION_UPLOAD.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT))
     }
+
+    @Test
+    fun testIsAfterStage(){
+        Assertions.assertTrue(MigrationStage.FINISHED.isAfter(MigrationStage.NOT_STARTED))
+        Assertions.assertTrue(MigrationStage.VALIDATE.isAfter(MigrationStage.FINAL_SYNC_WAIT))
+        Assertions.assertTrue(MigrationStage.VALIDATE.isAfter(MigrationStage.PROVISION_APPLICATION))
+        Assertions.assertTrue(MigrationStage.PROVISION_MIGRATION_STACK_WAIT.isAfter(MigrationStage.PROVISION_MIGRATION_STACK))
+        Assertions.assertTrue(MigrationStage.ERROR.isAfter(MigrationStage.PROVISION_APPLICATION))
+
+        Assertions.assertFalse(MigrationStage.NOT_STARTED.isAfter(MigrationStage.FINISHED))
+        Assertions.assertFalse(MigrationStage.DB_MIGRATION_EXPORT_WAIT.isAfter(MigrationStage.FINAL_SYNC_WAIT))
+        Assertions.assertFalse(MigrationStage.NOT_STARTED.isAfter(MigrationStage.PROVISION_APPLICATION))
+        Assertions.assertFalse(MigrationStage.FS_MIGRATION_COPY.isAfter(MigrationStage.FS_MIGRATION_COPY_WAIT))
+        Assertions.assertFalse(MigrationStage.FS_MIGRATION_COPY_WAIT.isAfter(MigrationStage.FS_MIGRATION_COPY_WAIT))
+    }
 }
