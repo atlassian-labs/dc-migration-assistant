@@ -124,7 +124,13 @@ public class CfnApi {
         }
     }
 
-    public List<String> getStackErrors(String stackName) {
+    /**
+     * Tries to get the root cause of a stack creation failure. Gets the earliest, non-embedded stack, CREATE_FAILED
+     * event reason.
+     * @param stackName the name of the stack to get the error message for
+     * @return an optional containing the error message for the first stack deployment failure event.
+     */
+    public Optional<String> getStackErrorRootCause(String stackName) {
         try {
             List<StackEvent> events = this.getClient()
                     .describeStackEvents(builder -> builder.stackName(stackName))
@@ -137,7 +143,7 @@ public class CfnApi {
                     .collect(Collectors.toList());
 
             if (failedEvents.size() == 0) {
-                return Collections.emptyList();
+                return Optional.empty();
             }
 
             final AtomicReference<StackEvent> earliestEvent = new AtomicReference<>(failedEvents.get(0));
@@ -148,11 +154,11 @@ public class CfnApi {
                 }
             });
 
-            return Collections.singletonList(earliestEvent.get().resourceStatusReason());
+            return Optional.of(earliestEvent.get().resourceStatusReason());
 
         } catch (InterruptedException | ExecutionException e) {
             logger.error("unable to get stack events", e);
-            return Collections.emptyList();
+            return Optional.empty();
         }
     }
 

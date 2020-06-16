@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.aws
 
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.BeforeEach
@@ -54,6 +53,7 @@ internal class CfnApiTest {
                 StackEvent.builder()
                         .resourceStatus(ResourceStatus.CREATE_FAILED)
                         .resourceStatusReason("The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup].")
+                        .timestamp(Instant.now())
                         .build()
         )
 
@@ -62,11 +62,9 @@ internal class CfnApiTest {
         } returns
             CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
 
-        val errors = listOf(
-                "The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup]."
-        )
+        val error = "The following resource(s) failed to create: [MigrationStackResourceAccessCustom, HelperServerGroup, HelperLaunchConfig, HelperSecurityGroup]."
 
-        assertEquals(errors, sut.getStackErrors(testStack))
+        assertEquals(error, sut.getStackErrorRootCause(testStack).get())
     }
 
     @Test
@@ -90,7 +88,6 @@ internal class CfnApiTest {
         } returns
                 CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
 
-        assertEquals(listOf(earliestError), sut.getStackErrors(testStack))
+        assertEquals(earliestError, sut.getStackErrorRootCause(testStack).get())
     }
-
 }
