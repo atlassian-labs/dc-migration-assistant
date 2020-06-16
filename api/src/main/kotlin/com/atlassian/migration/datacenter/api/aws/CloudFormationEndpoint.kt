@@ -18,7 +18,9 @@ package com.atlassian.migration.datacenter.api.aws
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.*
+import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -76,7 +78,7 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
             }
         }
         if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK) {
-            return Response.ok(mapper.writeValueAsString(mapOf("status" to PENDING_MIGRATION_INFR_STATUS))).build()
+            return Response.ok(mapper.writeValueAsString(mapOf("status" to ProvisioningStatusResponse(PENDING_MIGRATION_INFR_STATUS)))).build()
         }
         if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
             return try {
@@ -99,4 +101,6 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
             Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
         }
     }
+
 }
+
