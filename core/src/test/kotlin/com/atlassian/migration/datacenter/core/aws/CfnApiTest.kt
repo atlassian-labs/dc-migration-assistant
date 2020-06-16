@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsR
 import software.amazon.awssdk.services.cloudformation.model.ResourceStatus
 import software.amazon.awssdk.services.cloudformation.model.StackEvent
 import java.time.Instant
+import java.util.Optional
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import kotlin.test.assertEquals
@@ -89,5 +90,15 @@ internal class CfnApiTest {
                 CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(stackEvents).build())
 
         assertEquals(earliestError, sut.getStackErrorRootCause(testStack).get())
+    }
+
+    @Test
+    fun shouldReturnEmptyWhenNoErrorMessages() {
+        every {
+            cfnClient.describeStackEvents(any<Consumer<DescribeStackEventsRequest.Builder>>())
+        } returns
+                CompletableFuture.completedFuture(DescribeStackEventsResponse.builder().stackEvents(emptyList()).build())
+
+        assertEquals(Optional.empty(), sut.getStackErrorRootCause(testStack))
     }
 }
