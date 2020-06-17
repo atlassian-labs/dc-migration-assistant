@@ -102,5 +102,17 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
         }
     }
 
+    @POST
+    @Path("/reset")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun resetProvisioningStage(): Response {
+        return when (val currentStage = migrationService.currentStage) {
+            MigrationStage.ERROR -> Response.accepted().build()
+            else -> Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "Expected state to be ${MigrationStage.ERROR} but was $currentStage")).build()
+        }
+
+    }
+
 }
 

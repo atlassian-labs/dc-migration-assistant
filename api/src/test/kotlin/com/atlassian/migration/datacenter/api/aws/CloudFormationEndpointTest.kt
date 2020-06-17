@@ -18,7 +18,10 @@ package com.atlassian.migration.datacenter.api.aws
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.*
+import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.MockKAnnotations
@@ -162,10 +165,7 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
-        val readValue = ObjectMapper().readValue(response.entity as String, typeRef)
-
-        assertThat(readValue["status"]!!, equalTo(expectedStatus))
+        assertEquals(expectedStatus, responseEntityToMap(response.entity as String)["status"]!!)
     }
 
     @Test
@@ -203,6 +203,26 @@ internal class CloudFormationEndpointTest {
         assertEquals(Response.Status.OK.statusCode, response.status)
 
         assertThat(response.entity as String, containsString("CREATE_FAILED"))
+    }
+
+
+    @Test
+    fun shouldBeAcceptedGivenCurrentStageIsErrorWhenResetEndpointIsInvoked() {
+        every { migrationSerivce.currentStage } returns MigrationStage.ERROR
+        val response = endpoint.resetProvisioningStage()
+        assertEquals(Response.Status.ACCEPTED.statusCode, response.status)
+    }
+
+    @Test
+    fun shouldBeBadRequestGivenCurrentStageIsNotErrorWhenResetEndpointIsInvoked() {
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
+        val response = endpoint.resetProvisioningStage()
+        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
+        assertEquals("Expected state to be ${MigrationStage.ERROR} but was ${MigrationStage.PROVISION_MIGRATION_STACK_WAIT}", (response.entity as Map<String, String>)["message"])
+    }
+
+    private fun responseEntityToMap(response: String): HashMap<String, String> {
+        return ObjectMapper().readValue(response, object : TypeReference<HashMap<String, String>>() {})
     }
 
 }
