@@ -152,8 +152,6 @@
         "UnixOther",
         "Other"
       ]
-    },
-    "fsSizeCompatible",
-    "fsSize"
+    }
   ]
 }
