@@ -21,7 +21,7 @@ jobs:
 #        if: github.ref == env.MASTER
         run: |
           make rendertemplate -C ./templates/migration-stack
-          sum ./templates/migration-stack/migration-helper.yml
+          echo "migration-helper.yml md5 is: [`md5sum ./templates/migration-stack/migration-helper.yml`]"
 #      - name: cat template
 #        run: cat 'migration-helper.yml'
 #        env:
