@@ -15,39 +15,43 @@
  */
 package com.atlassian.migration.datacenter.spi
 
+import com.atlassian.migration.datacenter.spi.MigrationStage.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertTrue
 
 internal class MigrationStageTest {
     @Test
     fun testErrorFromAnywhere() {
-        Assertions.assertTrue(MigrationStage.DB_MIGRATION_EXPORT.isValidTransition(MigrationStage.ERROR))
-        Assertions.assertTrue(MigrationStage.NOT_STARTED.isValidTransition(MigrationStage.ERROR))
+        assertTrue(DB_MIGRATION_EXPORT.isValidTransition(ERROR))
+        assertTrue(NOT_STARTED.isValidTransition(ERROR))
     }
 
     @Test
     fun testValidTransition() {
-        Assertions.assertTrue(MigrationStage.PROVISION_APPLICATION.isValidTransition(MigrationStage.PROVISION_APPLICATION_WAIT))
-        Assertions.assertTrue(MigrationStage.DB_MIGRATION_EXPORT.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT_WAIT))
+        assertTrue(PROVISION_APPLICATION.isValidTransition(PROVISION_APPLICATION_WAIT))
+        assertTrue(DB_MIGRATION_EXPORT.isValidTransition(DB_MIGRATION_EXPORT_WAIT))
+        assertTrue(PROVISION_MIGRATION_STACK.isValidTransition(PROVISIONING_ERROR))
+        assertTrue(PROVISION_APPLICATION_WAIT.isValidTransition(PROVISIONING_ERROR))
     }
 
     @Test
     fun testInvalidTransition() {
-        Assertions.assertFalse(MigrationStage.DB_MIGRATION_UPLOAD.isValidTransition(MigrationStage.DB_MIGRATION_EXPORT))
+        Assertions.assertFalse(DB_MIGRATION_UPLOAD.isValidTransition(DB_MIGRATION_EXPORT))
     }
 
     @Test
     fun testIsAfterStage(){
-        Assertions.assertTrue(MigrationStage.FINISHED.isAfter(MigrationStage.NOT_STARTED))
-        Assertions.assertTrue(MigrationStage.VALIDATE.isAfter(MigrationStage.FINAL_SYNC_WAIT))
-        Assertions.assertTrue(MigrationStage.VALIDATE.isAfter(MigrationStage.PROVISION_APPLICATION))
-        Assertions.assertTrue(MigrationStage.PROVISION_MIGRATION_STACK_WAIT.isAfter(MigrationStage.PROVISION_MIGRATION_STACK))
-        Assertions.assertTrue(MigrationStage.ERROR.isAfter(MigrationStage.PROVISION_APPLICATION))
+        assertTrue(FINISHED.isAfter(NOT_STARTED))
+        assertTrue(VALIDATE.isAfter(FINAL_SYNC_WAIT))
+        assertTrue(VALIDATE.isAfter(PROVISION_APPLICATION))
+        assertTrue(PROVISION_MIGRATION_STACK_WAIT.isAfter(PROVISION_MIGRATION_STACK))
+        assertTrue(ERROR.isAfter(PROVISION_APPLICATION))
 
-        Assertions.assertFalse(MigrationStage.NOT_STARTED.isAfter(MigrationStage.FINISHED))
-        Assertions.assertFalse(MigrationStage.DB_MIGRATION_EXPORT_WAIT.isAfter(MigrationStage.FINAL_SYNC_WAIT))
-        Assertions.assertFalse(MigrationStage.NOT_STARTED.isAfter(MigrationStage.PROVISION_APPLICATION))
-        Assertions.assertFalse(MigrationStage.FS_MIGRATION_COPY.isAfter(MigrationStage.FS_MIGRATION_COPY_WAIT))
-        Assertions.assertFalse(MigrationStage.FS_MIGRATION_COPY_WAIT.isAfter(MigrationStage.FS_MIGRATION_COPY_WAIT))
+        Assertions.assertFalse(NOT_STARTED.isAfter(FINISHED))
+        Assertions.assertFalse(DB_MIGRATION_EXPORT_WAIT.isAfter(FINAL_SYNC_WAIT))
+        Assertions.assertFalse(NOT_STARTED.isAfter(PROVISION_APPLICATION))
+        Assertions.assertFalse(FS_MIGRATION_COPY.isAfter(FS_MIGRATION_COPY_WAIT))
+        Assertions.assertFalse(FS_MIGRATION_COPY_WAIT.isAfter(FS_MIGRATION_COPY_WAIT))
     }
 }
