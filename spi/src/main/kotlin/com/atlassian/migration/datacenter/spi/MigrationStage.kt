@@ -68,7 +68,6 @@ enum class MigrationStage {
             }
         }
 
-
         return when (to) {
             ERROR -> true
             else -> {

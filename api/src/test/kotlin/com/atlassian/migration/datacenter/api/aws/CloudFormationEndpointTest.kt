@@ -205,12 +205,12 @@ internal class CloudFormationEndpointTest {
         assertThat(response.entity as String, containsString("CREATE_FAILED"))
     }
 
-
     @Test
     fun shouldBeAcceptedGivenCurrentStageIsErrorWhenResetEndpointIsInvoked() {
-        every { migrationSerivce.currentStage } returns MigrationStage.ERROR
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISIONING_ERROR
         val response = endpoint.resetProvisioningStage()
         assertEquals(Response.Status.ACCEPTED.statusCode, response.status)
+        verify { migrationSerivce.transition(MigrationStage.PROVISION_APPLICATION) }
     }
 
     @Test
