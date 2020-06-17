@@ -38,6 +38,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -254,6 +255,18 @@ internal class CloudFormationEndpointTest {
                 "https://console.aws.amazon.com/cloudformation/home?region=$testRegion#/stacks/stackinfo?filteringText=$deploymentId&filteringStatus=failed&viewNested=true&stackId=arn${urlEncodedColon}aws${urlEncodedColon}cloudformation$urlEncodedColon$testRegion${urlEncodedColon}887764444972${urlEncodedColon}stack$urlEncodedSlash$deploymentId${urlEncodedSlash}cf721e30-aab0-11ea-8ca3-122e54527a47",
                 responseData["stackUrl"]
         )
+    }
+
+    @Test
+    fun successfulStatusShouldNotIncludeURLOrError() {
+        every { deploymentService.deploymentStatus } returns InfrastructureDeploymentState.CREATE_IN_PROGRESS
+        every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
+
+        val response = endpoint.infrastructureStatus()
+        val responseData = readResponseIntoMap(response)
+
+        assertFalse(responseData.containsKey("stackUrl"))
+        assertFalse(responseData.containsKey("error"))
     }
 
     private fun readResponseIntoMap(response: Response): HashMap<String, String> {
