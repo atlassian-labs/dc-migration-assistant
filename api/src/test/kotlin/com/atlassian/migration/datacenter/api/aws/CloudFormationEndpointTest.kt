@@ -209,7 +209,7 @@ internal class CloudFormationEndpointTest {
     fun shouldBeAcceptedGivenCurrentStageIsErrorWhenResetEndpointIsInvoked() {
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISIONING_ERROR
         val response = endpoint.resetProvisioningStage()
-        assertEquals(Response.Status.ACCEPTED.statusCode, response.status)
+        assertEquals(Response.Status.OK.statusCode, response.status)
         verify { migrationSerivce.transition(MigrationStage.PROVISION_APPLICATION) }
     }
 

@@ -93,7 +93,10 @@ enum class MigrationStage {
             this.toString().startsWith("DB_")
 
     fun isErrorStage(): Boolean {
-        return listOf(ERROR, FS_MIGRATION_ERROR, PROVISIONING_ERROR, FINAL_SYNC_ERROR).contains(this)
+        return when(this) {
+            ERROR, FS_MIGRATION_ERROR, PROVISIONING_ERROR, FINAL_SYNC_ERROR -> true
+            else -> false
+        }
     }
 
     override fun toString(): String {
