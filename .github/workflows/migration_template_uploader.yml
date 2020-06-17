@@ -21,7 +21,7 @@ jobs:
 #        if: github.ref == env.MASTER_BRANCH
         run: make rendertemplate -C ./templates/migration-stack
       - name: chksum template
-        run: sum migration-helper.yml
+        run: cat ./templates/migration-helper.yml
         env:
           SOURCE_DIR: './templates/migration-stack'
       - name: Upload Migration stack template
