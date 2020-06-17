@@ -70,6 +70,7 @@ class QuickstartDeploymentServiceTest {
     static final List<Output> MOCK_OUTPUTS = new LinkedList<Output>() {{
         add(Output.builder().outputKey(SERVICE_URL_STACK_OUTPUT_KEY).outputValue(TEST_SERVICE_URL).build());
     }};
+    public static final String CRITICAL_DEPLOYMENT_FAILURE = "Critical deployment failure";
 
     @Mock
     CfnApi mockCfnApi;
@@ -185,7 +186,7 @@ class QuickstartDeploymentServiceTest {
 
         Thread.sleep(100);
 
-        verify(mockMigrationService).error("TODO");
+        verify(mockMigrationService).error(CRITICAL_DEPLOYMENT_FAILURE);
     }
 
     @Test
@@ -257,6 +258,7 @@ class QuickstartDeploymentServiceTest {
 
     private void givenStackDeploymentWillFail() {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
+        when(mockCfnApi.getStackErrorRootCause(STACK_NAME)).thenReturn(Optional.of(CRITICAL_DEPLOYMENT_FAILURE));
     }
 
     private void deploySimpleStack() throws InvalidMigrationStageError {
