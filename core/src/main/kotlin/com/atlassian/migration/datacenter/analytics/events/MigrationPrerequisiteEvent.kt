@@ -11,7 +11,5 @@ data class MigrationPrerequisiteEvent(
         val dbCompatible: Boolean,
         val dbType: DatabaseConfiguration.DBType,
         val osCompatible: Boolean,
-        val osType: OsType,
-        val fsSizeCompatible: Boolean,
-        val fsSize: Long
+        val osType: OsType
 )

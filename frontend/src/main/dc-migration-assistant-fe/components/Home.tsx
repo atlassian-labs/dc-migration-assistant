@@ -131,9 +131,6 @@ export const ReadyStatus: FunctionComponent = () => {
                 <li>
                     is running on <strong>Linux</strong> &nbsp; {readyString(ready?.osCompatible)}
                 </li>
-                <li>
-                    has a home directory under 400GB &nbsp; {readyString(ready?.fsSizeCompatible)}
-                </li>
             </ul>
         </SectionMessage>
     );

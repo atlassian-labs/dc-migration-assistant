@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.DescribeStackEventsRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStackResourcesResponse;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.services.cloudformation.model.ListStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.ListStacksResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
+import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException;
 import software.amazon.awssdk.services.cloudformation.model.StackResource;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
@@ -53,7 +56,10 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.CREATE_FAILED;
 
 public class CfnApi {
     private static final Logger logger = LoggerFactory.getLogger(CfnApi.class);
@@ -117,6 +123,58 @@ public class CfnApi {
             default:
                 return InfrastructureDeploymentState.CREATE_FAILED;
         }
+    }
+
+    /**
+     * Tries to get the root cause of a stack creation failure. Gets the earliest, non-embedded stack, CREATE_FAILED
+     * event reason.
+     * @param stackName the name of the stack to get the error message for
+     * @return an optional containing the error message for the first stack deployment failure event.
+     */
+    public Optional<String> getStackErrorRootCause(String stackName) {
+        try {
+            List<StackEvent> events = this.getClient()
+                    .describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build())
+                    .get()
+                    .stackEvents();
+
+            List<StackEvent> failedEvents =  events.stream()
+                    .filter(stackEvent ->
+                            CREATE_FAILED.equals(stackEvent.resourceStatus()))
+                    .collect(Collectors.toList());
+
+            if (failedEvents.isEmpty()) {
+                return Optional.empty();
+            }
+
+            StackEvent earliestEvent = getEarliestEventFromStackEvents(failedEvents);
+
+            if (isEmbeddedStackError(earliestEvent)) {
+                return getStackErrorRootCause(earliestEvent.physicalResourceId());
+            }
+
+            return Optional.of(earliestEvent.resourceStatusReason());
+
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("unable to get stack events", e);
+            return Optional.empty();
+        }
+    }
+
+    private boolean isEmbeddedStackError(StackEvent stackEvent) {
+        return stackEvent.resourceType().equals("AWS::CloudFormation::Stack") && stackEvent.resourceStatusReason().contains("Embedded stack");
+    }
+
+    @NotNull
+    private StackEvent getEarliestEventFromStackEvents(List<StackEvent> failedEvents) {
+        final AtomicReference<StackEvent> earliestEventRef = new AtomicReference<>(failedEvents.get(0));
+
+        failedEvents.forEach(stackEvent -> {
+            if (earliestEventRef.get().timestamp().isAfter(stackEvent.timestamp())) {
+                earliestEventRef.set(stackEvent);
+            }
+        });
+        return earliestEventRef.get();
     }
 
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) {

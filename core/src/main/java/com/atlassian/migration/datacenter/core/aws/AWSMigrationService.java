@@ -130,19 +130,13 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public MigrationReadyStatus getReadyStatus()
     {
-        long MAX_FS_SIZE = 1024L * 1024L * 1024L * 400L;
-        long size = FileUtils.sizeOfDirectory(localHome.toFile());
-
-
-        Boolean fs = size < MAX_FS_SIZE;
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
-        MigrationReadyStatus status = new MigrationReadyStatus(db, os, fs);
+        MigrationReadyStatus status = new MigrationReadyStatus(db, os);
 
         eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
                                                               db, applicationConfiguration.getDatabaseConfiguration().getType(),
-                                                              os, OsType.fromSystem(),
-                                                              fs, size));
+                                                              os, OsType.fromSystem()));
 
         return status;
     }
