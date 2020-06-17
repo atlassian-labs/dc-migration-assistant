@@ -62,6 +62,13 @@ enum class MigrationStage {
 
 
     fun isValidTransition(to: MigrationStage): Boolean {
+        when (this) {
+            PROVISIONING_ERROR -> return to == PROVISION_APPLICATION
+            else -> {
+            }
+        }
+
+
         return when (to) {
             ERROR -> true
             else -> {

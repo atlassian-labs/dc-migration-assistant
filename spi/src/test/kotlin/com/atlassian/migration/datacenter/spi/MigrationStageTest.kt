@@ -41,6 +41,12 @@ internal class MigrationStageTest {
     }
 
     @Test
+    fun shouldAllowTransitionFromStageSpecificErrorStageToStageSpecificStartStage() {
+        assertTrue(PROVISIONING_ERROR.isValidTransition(PROVISION_APPLICATION))
+        assertFalse(PROVISIONING_ERROR.isValidTransition(PROVISION_APPLICATION_WAIT))
+    }
+
+    @Test
     fun testIsAfterStage(){
         assertTrue(FINISHED.isAfter(NOT_STARTED))
         assertTrue(VALIDATE.isAfter(FINAL_SYNC_WAIT))
