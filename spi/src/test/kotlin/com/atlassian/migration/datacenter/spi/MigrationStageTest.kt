@@ -16,9 +16,9 @@
 package com.atlassian.migration.datacenter.spi
 
 import com.atlassian.migration.datacenter.spi.MigrationStage.*
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 internal class MigrationStageTest {
     @Test
@@ -37,7 +37,7 @@ internal class MigrationStageTest {
 
     @Test
     fun testInvalidTransition() {
-        Assertions.assertFalse(DB_MIGRATION_UPLOAD.isValidTransition(DB_MIGRATION_EXPORT))
+        assertFalse(DB_MIGRATION_UPLOAD.isValidTransition(DB_MIGRATION_EXPORT))
     }
 
     @Test
@@ -48,10 +48,20 @@ internal class MigrationStageTest {
         assertTrue(PROVISION_MIGRATION_STACK_WAIT.isAfter(PROVISION_MIGRATION_STACK))
         assertTrue(ERROR.isAfter(PROVISION_APPLICATION))
 
-        Assertions.assertFalse(NOT_STARTED.isAfter(FINISHED))
-        Assertions.assertFalse(DB_MIGRATION_EXPORT_WAIT.isAfter(FINAL_SYNC_WAIT))
-        Assertions.assertFalse(NOT_STARTED.isAfter(PROVISION_APPLICATION))
-        Assertions.assertFalse(FS_MIGRATION_COPY.isAfter(FS_MIGRATION_COPY_WAIT))
-        Assertions.assertFalse(FS_MIGRATION_COPY_WAIT.isAfter(FS_MIGRATION_COPY_WAIT))
+        assertFalse(NOT_STARTED.isAfter(FINISHED))
+        assertFalse(DB_MIGRATION_EXPORT_WAIT.isAfter(FINAL_SYNC_WAIT))
+        assertFalse(NOT_STARTED.isAfter(PROVISION_APPLICATION))
+        assertFalse(FS_MIGRATION_COPY.isAfter(FS_MIGRATION_COPY_WAIT))
+        assertFalse(FS_MIGRATION_COPY_WAIT.isAfter(FS_MIGRATION_COPY_WAIT))
+    }
+
+    @Test
+    fun testIsErrorStage(){
+        assertTrue(ERROR.isErrorStage())
+        assertTrue(PROVISIONING_ERROR.isErrorStage())
+        assertTrue(FS_MIGRATION_ERROR.isErrorStage())
+        assertTrue(FINAL_SYNC_ERROR.isErrorStage())
+        assertFalse(NOT_STARTED.isErrorStage())
+        assertFalse(VALIDATE.isErrorStage())
     }
 }
