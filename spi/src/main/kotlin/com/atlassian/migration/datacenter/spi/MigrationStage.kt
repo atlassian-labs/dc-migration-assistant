@@ -39,25 +39,16 @@ enum class MigrationStage {
     FINISHED(VALIDATE),
     ERROR();
 
-    private val validFrom: MigrationStage?
     private val validFromStages: List<MigrationStage>
     var exception: Throwable?
 
     constructor() {
         exception = null;
-        this.validFrom = null;
         this.validFromStages = listOf()
-    }
-
-    constructor(validFrom: MigrationStage) {
-        this.exception = null
-        this.validFrom = validFrom
-        this.validFromStages = listOf(validFrom)
     }
 
     constructor(vararg validFromStages: MigrationStage) {
         exception = null;
-        validFrom = null;
         this.validFromStages = validFromStages.asList()
     }
 
@@ -74,9 +65,12 @@ enum class MigrationStage {
     fun isAfter(stage: MigrationStage): Boolean {
         if (this == stage || this == NOT_STARTED) return false
         if (this == FINISHED || this == ERROR) return true
-        this.validFrom!!.let { it: MigrationStage ->
-            return if (it == stage) true else it.isAfter(stage)
-        }
+        return this.validFromStages.map {
+            when (it) {
+                stage -> true
+                else -> it.isAfter(stage)
+            }
+        }.contains(true)
     }
 
     // Hacky, but OK for now.
