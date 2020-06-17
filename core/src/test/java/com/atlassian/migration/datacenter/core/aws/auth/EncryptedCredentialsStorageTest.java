@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws.auth;
 
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -29,14 +28,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,16 +41,16 @@ public class EncryptedCredentialsStorageTest {
 
     EncryptedCredentialsStorage encryptedCredentialsStorage;
 
-    @Mock
-    static JiraHome jiraHome;
+    static Path jiraHome = new File(".").toPath();
+
     @Mock
     PluginSettingsFactory pluginSettingsFactory;
     private PluginSettings pluginSettings;
 
     @AfterAll
     static void tearDown() {
-        File keyFile = new File(jiraHome.getHome().getAbsolutePath().concat("/").concat("keyFile"));
-        File saltFile = new File(jiraHome.getHome().getAbsolutePath().concat("/").concat("saltFile"));
+        File keyFile = new File(jiraHome.toFile().getAbsolutePath().concat("/").concat("keyFile"));
+        File saltFile = new File(jiraHome.toFile().getAbsolutePath().concat("/").concat("saltFile"));
         if (keyFile.exists()) {
             keyFile.delete();
         }
@@ -83,7 +80,6 @@ public class EncryptedCredentialsStorageTest {
             }
         };
 
-        when(jiraHome.getHome()).thenReturn(new File("."));
         when(this.pluginSettingsFactory.createGlobalSettings()).thenReturn(pluginSettings);
 
         this.encryptedCredentialsStorage = new EncryptedCredentialsStorage(() -> this.pluginSettingsFactory, new EncryptionManager(jiraHome));

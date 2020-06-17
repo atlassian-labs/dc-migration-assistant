@@ -18,10 +18,11 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.migration.datacenter.analytics.OsType;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationFailedEvent;
+import com.atlassian.migration.datacenter.analytics.events.MigrationPrerequisiteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
@@ -40,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
+import java.nio.file.Path;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
@@ -52,16 +54,16 @@ public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
-    private JiraHome jiraHome;
+    private Path localHome;
     private EventPublisher eventPublisher;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, JiraHome jiraHome, EventPublisher eventPublisher) {
+    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, Path jiraHome, EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
-        this.jiraHome = jiraHome;
+        this.localHome = jiraHome;
         this.eventPublisher = eventPublisher;
     }
 
@@ -117,24 +119,32 @@ public class AWSMigrationService implements MigrationService {
 
         if (!currentStage.isValidTransition(to)) {
             eventPublisher.publish(new MigrationTransitionFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                                      currentStage.toString(), to.toString()));
+                                                                      currentStage, to));
             throw InvalidMigrationStageError.errorWithMessage(currentStage, to);
         }
         setCurrentStage(migration, to);
         eventPublisher.publish(new MigrationTransitionEvent(applicationConfiguration.getPluginVersion(),
-                                                            currentStage.toString(), to.toString()));
+                                                            currentStage, to));
     }
 
     @Override
     public MigrationReadyStatus getReadyStatus()
     {
         long MAX_FS_SIZE = 1024L * 1024L * 1024L * 400L;
-        long size = FileUtils.sizeOfDirectory(jiraHome.getHome());
+        long size = FileUtils.sizeOfDirectory(localHome.toFile());
+
 
         Boolean fs = size < MAX_FS_SIZE;
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
-        return new MigrationReadyStatus(db, os, fs);
+        MigrationReadyStatus status = new MigrationReadyStatus(db, os, fs);
+
+        eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
+                                                              db, applicationConfiguration.getDatabaseConfiguration().getType(),
+                                                              os, OsType.fromSystem(),
+                                                              fs, size));
+
+        return status;
     }
 
     @Override
@@ -151,8 +161,7 @@ public class AWSMigrationService implements MigrationService {
         context.save();
 
         eventPublisher.publish(new MigrationFailedEvent(applicationConfiguration.getPluginVersion(),
-                                                        failStage.toString(), message,
-                                                        now - context.getStartEpoch()));
+                                                        failStage, now - context.getStartEpoch()));
     }
 
     @Override

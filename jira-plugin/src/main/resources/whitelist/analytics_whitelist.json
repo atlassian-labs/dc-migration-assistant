@@ -1,5 +1,5 @@
 {
-  "atl.dc.migration.started":[
+  "atl.dc.migration.created":[
     "pluginVersion"
   ],
   "atl.dc.migration.complete": [
@@ -8,18 +8,152 @@
   ],
   "atl.dc.migration.failed": [
     "pluginVersion",
-    "failedStage",
-    "error",
+    {
+      "failedStage": [
+        "NOT_STARTED",
+        "AUTHENTICATION",
+        "PROVISION_APPLICATION",
+        "PROVISION_APPLICATION_WAIT",
+        "PROVISION_MIGRATION_STACK",
+        "PROVISION_MIGRATION_STACK_WAIT",
+        "FS_MIGRATION_COPY",
+        "FS_MIGRATION_COPY_WAIT",
+        "OFFLINE_WARNING",
+        "DB_MIGRATION_EXPORT",
+        "DB_MIGRATION_EXPORT_WAIT",
+        "DB_MIGRATION_UPLOAD",
+        "DB_MIGRATION_UPLOAD_WAIT",
+        "DATA_MIGRATION_IMPORT",
+        "DATA_MIGRATION_IMPORT_WAIT",
+        "FINAL_SYNC_WAIT",
+        "VALIDATE",
+        "FINISHED",
+        "ERROR"
+      ]
+    },
     "runTimeSeconds"
   ],
   "atl.dc.migration.transition": [
     "pluginVersion",
-    "fromStage",
-    "toStage",
+    {
+      "fromStage": [
+        "NOT_STARTED",
+        "AUTHENTICATION",
+        "PROVISION_APPLICATION",
+        "PROVISION_APPLICATION_WAIT",
+        "PROVISION_MIGRATION_STACK",
+        "PROVISION_MIGRATION_STACK_WAIT",
+        "FS_MIGRATION_COPY",
+        "FS_MIGRATION_COPY_WAIT",
+        "OFFLINE_WARNING",
+        "DB_MIGRATION_EXPORT",
+        "DB_MIGRATION_EXPORT_WAIT",
+        "DB_MIGRATION_UPLOAD",
+        "DB_MIGRATION_UPLOAD_WAIT",
+        "DATA_MIGRATION_IMPORT",
+        "DATA_MIGRATION_IMPORT_WAIT",
+        "FINAL_SYNC_WAIT",
+        "VALIDATE",
+        "FINISHED",
+        "ERROR"
+      ]
+    },
+    {
+      "toStage": [
+        "NOT_STARTED",
+        "AUTHENTICATION",
+        "PROVISION_APPLICATION",
+        "PROVISION_APPLICATION_WAIT",
+        "PROVISION_MIGRATION_STACK",
+        "PROVISION_MIGRATION_STACK_WAIT",
+        "FS_MIGRATION_COPY",
+        "FS_MIGRATION_COPY_WAIT",
+        "OFFLINE_WARNING",
+        "DB_MIGRATION_EXPORT",
+        "DB_MIGRATION_EXPORT_WAIT",
+        "DB_MIGRATION_UPLOAD",
+        "DB_MIGRATION_UPLOAD_WAIT",
+        "DATA_MIGRATION_IMPORT",
+        "DATA_MIGRATION_IMPORT_WAIT",
+        "FINAL_SYNC_WAIT",
+        "VALIDATE",
+        "FINISHED",
+        "ERROR"
+      ]
+    }
   ],
   "atl.dc.migration.transition.failed": [
     "pluginVersion",
-    "fromStage",
-    "toStage",
+    {
+      "fromStage": [
+        "NOT_STARTED",
+        "AUTHENTICATION",
+        "PROVISION_APPLICATION",
+        "PROVISION_APPLICATION_WAIT",
+        "PROVISION_MIGRATION_STACK",
+        "PROVISION_MIGRATION_STACK_WAIT",
+        "FS_MIGRATION_COPY",
+        "FS_MIGRATION_COPY_WAIT",
+        "OFFLINE_WARNING",
+        "DB_MIGRATION_EXPORT",
+        "DB_MIGRATION_EXPORT_WAIT",
+        "DB_MIGRATION_UPLOAD",
+        "DB_MIGRATION_UPLOAD_WAIT",
+        "DATA_MIGRATION_IMPORT",
+        "DATA_MIGRATION_IMPORT_WAIT",
+        "FINAL_SYNC_WAIT",
+        "VALIDATE",
+        "FINISHED",
+        "ERROR"
+      ]
+    },
+    {
+      "toStage": [
+        "NOT_STARTED",
+        "AUTHENTICATION",
+        "PROVISION_APPLICATION",
+        "PROVISION_APPLICATION_WAIT",
+        "PROVISION_MIGRATION_STACK",
+        "PROVISION_MIGRATION_STACK_WAIT",
+        "FS_MIGRATION_COPY",
+        "FS_MIGRATION_COPY_WAIT",
+        "OFFLINE_WARNING",
+        "DB_MIGRATION_EXPORT",
+        "DB_MIGRATION_EXPORT_WAIT",
+        "DB_MIGRATION_UPLOAD",
+        "DB_MIGRATION_UPLOAD_WAIT",
+        "DATA_MIGRATION_IMPORT",
+        "DATA_MIGRATION_IMPORT_WAIT",
+        "FINAL_SYNC_WAIT",
+        "VALIDATE",
+        "FINISHED",
+        "ERROR"
+      ]
+    }
+  ],
+  "atl.dc.migration.prerequisites": [
+    "pluginVersion",
+    "dbCompatible",
+    {
+      "dbType": [
+        "POSTGRESQL",
+        "MYSQL",
+        "SQLSERVER",
+        "ORACLE",
+        "H2"
+      ]
+    },
+    "osCompatible",
+    {
+      "osType": [
+        "Linux",
+        "Mac",
+        "Windows",
+        "UnixOther",
+        "Other"
+      ]
+    },
+    "fsSizeCompatible",
+    "fsSize"
   ]
 }

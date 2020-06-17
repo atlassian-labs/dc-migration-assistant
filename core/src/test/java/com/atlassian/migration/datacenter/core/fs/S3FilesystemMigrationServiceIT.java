@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
@@ -73,8 +72,6 @@ class S3FilesystemMigrationServiceIT {
     @Mock
     AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
     @Mock
-    JiraHome jiraHome;
-    @Mock
     MigrationRunner migrationRunner;
     @Mock
     S3SyncFileSystemDownloadManager fileSystemDownloader;
@@ -106,7 +103,7 @@ class S3FilesystemMigrationServiceIT {
         CreateBucketResponse resp = s3AsyncClient.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
 
-        bulkCopy = new S3BulkCopy(() -> s3AsyncClient, migrationHelperDeploymentService, jiraHome);
+        bulkCopy = new S3BulkCopy(() -> s3AsyncClient, migrationHelperDeploymentService, dir);
     }
 
     private Path genRandFile() throws IOException {
@@ -117,8 +114,7 @@ class S3FilesystemMigrationServiceIT {
     }
 
     @Test
-    void testSuccessfulDirectoryMigration(@TempDir Path dir) throws Exception {
-        when(jiraHome.getHome()).thenReturn(dir.toFile());
+    void testSuccessfulDirectoryMigration() throws Exception {
         when(migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
 
         Environment environment = mock(Environment.class);

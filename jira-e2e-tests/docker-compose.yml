@@ -19,6 +19,8 @@ services:
   jira:
     build:
       context: ./jira
+      args:
+        - JIRA_VERSION
     depends_on:
       - postgresql
     ports:
@@ -30,7 +32,7 @@ services:
       - 'ATL_DB_DRIVER=org.postgresql.Driver'
       - 'ATL_DB_TYPE=postgres72'
       - 'ATL_TOMCAT_CONTEXTPATH=/jira'
-      - 'JVM_SUPPORT_RECOMMENDED_ARGS=-Dspring.profiles.active=allowAnyTransition'
+      - 'JVM_SUPPORT_RECOMMENDED_ARGS=-Dspring.profiles.active=allowAnyTransition,gaFeature -Djira.onboarding.cyoa=false -Datlassian.darkfeature.jira.onboarding.cyoa=false -Datlassian.darkfeature.jira.onboarding.feature.disabled=true  -Datlassian.mail.senddisabled=false -Djira.startup.warnings.disable=true -Dtroubleshooting.dev.mode=true'
     command: >
       bash -c '
           waitport postgresql 5432 &&

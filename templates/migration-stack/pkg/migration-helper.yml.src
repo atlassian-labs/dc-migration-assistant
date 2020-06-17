@@ -155,7 +155,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          install_prerequisites: [create_efs_script,mount_efs,create_helper_user,prepare_efs_sync_script,install_psql_client,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
+          install_prerequisites: [create_efs_script,mount_efs,create_helper_user,create_log_directory,prepare_efs_sync_script,install_psql_client,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
         create_efs_script:
           files:
             /opt/atlassian/dc-migration-assistant/mount-efs.sh:
@@ -228,6 +228,12 @@ Resources:
               test: "grep -qv jira /etc/passwd"
               command: "useradd -u 2001 jira"
               ignoreErrors: false
+        create_log_directory:
+          commands:
+            01_create_log_dir:
+              command: "mkdir -p /var/log/atlassian/dc-migration-assistant"
+            02_ownership:
+              command: "chown -R jira:jira /var/log/atlassian/"
         prepare_efs_sync_script:
           packages:
             yum:
@@ -238,7 +244,6 @@ Resources:
                 - |
                   #!/bin/bash
                   LOG_DIR="/var/log/atlassian/dc-migration-assistant"
-                  mkdir -p $LOG_DIR
                   SYNC_LOG_FILE="$LOG_DIR/sync-log.txt"
                   SYNC_LOG_ERROR_FILE="$LOG_DIR/sync-error.txt"
                   echo "beginning s3 sync with shared home" >> $SYNC_LOG_FILE
@@ -263,7 +268,6 @@ Resources:
                   DATABASE_DOWNLOAD_DIR="/efs/downloads/db.dump"
                   mkdir -p $DATABASE_DOWNLOAD_DIR
                   LOG_DIR="/var/log/atlassian/dc-migration-assistant"
-                  mkdir -p $LOG_DIR
                   DB_DUMP_LOG_FILE="$LOG_DIR/pg_dump-log.txt"
                   SECRET_PASSWORD=`aws secretsmanager  get-secret-value --secret-id ${SecretIdentifier} --region ${AWS::Region} --output text --query "SecretString"`
                   aws s3 sync s3://${MigrationBucket}/db.dump/ $DATABASE_DOWNLOAD_DIR --region ${AWS::Region} | tee $DB_DUMP_LOG_FILE

@@ -28,9 +28,13 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public class DirectoryStreamCrawler implements Crawler {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryStreamCrawler.class);
+
+    private static final String ignorePattern = "^(dbconfig\\.xml|caches|import|plugins/.bundled_plugins|plugins/.osgi-plugins)";
+    private static final Pattern defaultIgnoreList = Pattern.compile(ignorePattern);
 
     private FileSystemMigrationReport report;
 
@@ -43,7 +47,7 @@ public class DirectoryStreamCrawler implements Crawler {
         try {
             final DirectoryStream<Path> paths;
             paths = Files.newDirectoryStream(start);
-            listDirectories(queue, paths);
+            listDirectories(start, queue, paths);
         } catch (NoSuchFileException e) {
             logger.error("Failed to find path " + start, e);
             report.reportFileNotMigrated(new FailedFileMigration(start, e.getMessage()));
@@ -61,12 +65,19 @@ public class DirectoryStreamCrawler implements Crawler {
         }
     }
 
-    private void listDirectories(UploadQueue<Path> queue, DirectoryStream<Path> paths) {
+    private void listDirectories(Path base, UploadQueue<Path> queue, DirectoryStream<Path> paths) {
+        int off = base.getNameCount();
         paths.forEach(p -> {
+            // NOTE: This should be possible with the directoryStream regex glob,
+            // but in practice doesn't play well with nested directory patterns.
+            String subpath = p.subpath(off, p.getNameCount()).toString();
+            if (defaultIgnoreList.matcher(subpath).matches())
+                return;
+
             if (Files.isDirectory(p)) {
                 logger.trace("Found directory while crawling home: {}", p);
                 try (final DirectoryStream<Path> newPaths = Files.newDirectoryStream(p.toAbsolutePath())) {
-                    listDirectories(queue, newPaths);
+                    listDirectories(base, queue, newPaths);
                 } catch (Exception e) {
                     logger.error("Error when traversing directory {}, with exception {}", p, e);
                     report.reportFileNotMigrated(new FailedFileMigration(p, e.getMessage()));

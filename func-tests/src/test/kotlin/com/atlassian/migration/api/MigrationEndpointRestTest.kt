@@ -17,15 +17,31 @@
 package com.atlassian.migration.api
 
 import com.atlassian.migration.test.BaseRestTest
+import io.restassured.RestAssured
+import io.restassured.http.ContentType
 import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
-import org.hamcrest.CoreMatchers.anyOf
 import org.hamcrest.CoreMatchers.equalTo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import javax.ws.rs.core.Response
 
 class MigrationEndpointRestTest : BaseRestTest() {
+
+    @BeforeEach
+    fun `Enable response logging`(){
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails()
+        Given {
+            spec(requestSpec)
+        } When {
+            delete("migration/reset")
+        } Then {
+            statusCode(
+                    equalTo(Response.Status.OK.statusCode)
+            )
+        }
+    }
 
     @Test
     fun `Migration endpoint should return 404 if not initialised or 200 when it was created`() {
@@ -35,11 +51,36 @@ class MigrationEndpointRestTest : BaseRestTest() {
             get("/migration")
         } Then {
             statusCode(
-                anyOf(
-                    equalTo(Response.Status.NOT_FOUND.statusCode),
-                    equalTo(Response.Status.OK.statusCode)
-                )
+                equalTo(Response.Status.OK.statusCode)
             )
+        }
+    }
+
+    @Test
+    fun `Migration can be started`() {
+        Given {
+            spec(requestSpec).contentType(ContentType.JSON)
+        } When {
+            post("/migration")
+            get("/migration")
+        } Then {
+            statusCode(
+                    equalTo(Response.Status.OK.statusCode)
+            ).body("stage", equalTo("authentication"))
+        }
+    }
+
+    @Test
+    fun `Only one concurrent migration can be started`() {
+        Given {
+            spec(requestSpec).contentType(ContentType.JSON)
+        } When {
+            post("/migration")
+            post("/migration")
+        } Then {
+            statusCode(
+                    equalTo(Response.Status.CONFLICT.statusCode)
+            ).body("error", equalTo("migration already exists"))
         }
     }
 }

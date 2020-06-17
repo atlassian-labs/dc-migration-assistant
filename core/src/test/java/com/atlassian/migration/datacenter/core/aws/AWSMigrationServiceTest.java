@@ -19,7 +19,6 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -38,6 +37,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.nio.file.Paths;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
@@ -71,15 +72,13 @@ public class AWSMigrationServiceTest {
     @Mock
     private ApplicationConfiguration applicationConfiguration;
     @Mock
-    private JiraHome jiraHome;
-    @Mock
     private EventPublisher eventPublisher;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, jiraHome, eventPublisher);
+        sut = new AWSMigrationService(ao, applicationConfiguration, Paths.get("."), eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
     }

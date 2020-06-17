@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
 import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
@@ -54,7 +55,7 @@ class FinalSyncEndpoint(
         )
     }
 
-    data class FSSyncStatus(val uploaded: Int, val downloaded: Int)
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int, val hasProgressedToNextStage: Boolean)
     data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 
     @PUT
@@ -93,12 +94,15 @@ class FinalSyncEndpoint(
     fun getMigrationStatus(): Response {
         val elapsed = databaseMigrationService.elapsedTime
                 .orElse(Duration.ZERO)
+        val currentStage = migrationService.currentStage
         val db = DatabaseMigrationStatus(
-                stageToStatus(migrationService.currentStage),
+                stageToStatus(currentStage),
                 elapsed
         )
+        val isCurrentStageAfterFinalSync = currentStage.isAfter(MigrationStage.FINAL_SYNC_WAIT)
         val fsSyncStatus = finalSyncService.getFinalSyncStatus()
-        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount)
+
+        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount, isCurrentStageAfterFinalSync)
         val status = FinalSyncStatus(db, fs)
 
         return try {

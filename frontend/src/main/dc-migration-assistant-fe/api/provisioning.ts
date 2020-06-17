@@ -84,7 +84,7 @@ export const provisioning = {
                 if (resp.status) {
                     const statusResp = resp as StackStatusResponse;
                     const { phase, status } = statusResp;
-                    switch (status.state) {
+                    switch (status) {
                         case 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT':
                             return ProvisioningStatus.PreProvisionMigrationStack;
                         case 'CREATE_IN_PROGRESS':
@@ -99,8 +99,7 @@ export const provisioning = {
                         case 'CREATE_FAILED':
                             throw new Error(
                                 I18n.getText(
-                                    'atlassian.migration.datacenter.provision.aws.status.failed',
-                                    status.reason
+                                    'atlassian.migration.datacenter.provision.aws.status.failed'
                                 )
                             );
                         default:

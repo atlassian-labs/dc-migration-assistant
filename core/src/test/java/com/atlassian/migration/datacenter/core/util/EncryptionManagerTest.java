@@ -16,41 +16,38 @@
 
 package com.atlassian.migration.datacenter.core.util;
 
-import com.atlassian.jira.config.util.JiraHome;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EncryptionManagerTest {
 
-    @Mock
-    static JiraHome mockHome;
+    private EncryptionManager sut;
 
-    EncryptionManager sut;
+    @TempDir
+    static Path home;
 
     @BeforeEach
     void setUp() {
-        when(mockHome.getHome()).thenReturn(new File("."));
-
-        sut = new EncryptionManager(mockHome);
+        sut = new EncryptionManager(home);
     }
 
     @AfterAll
     static void tearDown() {
-        File keyFile = new File(mockHome.getHome().getAbsolutePath().concat("/").concat("keyFile"));
-        File saltFile = new File(mockHome.getHome().getAbsolutePath().concat("/").concat("saltFile"));
+        File keyFile = new File(home.toFile().getAbsolutePath().concat("/").concat("keyFile"));
+        File saltFile = new File(home.toFile().getAbsolutePath().concat("/").concat("saltFile"));
         if (keyFile.exists()) {
             keyFile.delete();
         }

@@ -40,6 +40,7 @@ export enum MigrationStage {
     DB_MIGRATION_UPLOAD_WAIT = 'db_migration_upload_wait',
     DATA_MIGRATION_IMPORT = 'data_migration_import',
     DATA_MIGRATION_IMPORT_WAIT = 'data_migration_import_wait',
+    FINAL_SYNC_WAIT = 'final_sync_wait',
     VALIDATE = 'validate',
     CUTOVER = 'cutover',
     FINISHED = 'finished',

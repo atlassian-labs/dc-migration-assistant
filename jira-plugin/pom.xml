@@ -129,6 +129,11 @@
                             <id>jira</id>
                             <version>${amps.jira.version}</version>
                             <productDataVersion>${amps.jira.version}</productDataVersion>
+                            <jvmArgs>
+                                -XX:+UseG1GC -Datlassian.darkfeature.jira.onboarding.feature.disabled=true
+                                -Datlassian.mail.senddisabled=false -Djira.startup.warnings.disable=true
+                                -Dtroubleshooting.dev.mode=true -Xmx1536m -Xms512m -XX:ReservedCodeCacheSize=256m -XX:MaxMetaspaceSize=512m
+                            </jvmArgs>
                         </product>
                     </products>
                 </configuration>

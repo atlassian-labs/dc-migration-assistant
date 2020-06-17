@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.fs.copy;
 
-import com.atlassian.jira.config.util.JiraHome;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.fs.Crawler;
 import com.atlassian.migration.datacenter.core.fs.DirectoryStreamCrawler;
@@ -25,7 +24,6 @@ import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
 import com.atlassian.migration.datacenter.core.fs.S3Uploader;
 import com.atlassian.migration.datacenter.core.fs.Uploader;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -45,16 +43,16 @@ public class S3BulkCopy {
     private FileSystemMigrationReport report;
     private final Supplier<S3AsyncClient> clientSupplier;
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
-    private final JiraHome jiraHome;
+    private final Path home;
     private FilesystemUploader fsUploader;
 
     public S3BulkCopy(
             Supplier<S3AsyncClient> clientSupplier,
             AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
-            JiraHome jiraHome) {
+            Path home) {
         this.clientSupplier = clientSupplier;
         this.migrationHelperDeploymentService = migrationHelperDeploymentService;
-        this.jiraHome = jiraHome;
+        this.home = home;
     }
 
     public void copySharedHomeToS3() throws FilesystemUploader.FileUploadException {
@@ -100,6 +98,6 @@ public class S3BulkCopy {
         if (!OVERRIDE_UPLOAD_DIRECTORY.equals("")) {
             return Paths.get(OVERRIDE_UPLOAD_DIRECTORY);
         }
-        return jiraHome.getHome().toPath();
+        return home;
     }
 }

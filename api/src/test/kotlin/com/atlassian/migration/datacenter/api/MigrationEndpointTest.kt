@@ -74,10 +74,11 @@ class MigrationEndpointTest {
     }
 
     @Test
-    fun testNotFoundWhenMigrationDoesNotExist() {
+    fun testNotStartedWhenMigrationDoesNotExist() {
         every { migrationService.currentStage } returns MigrationStage.NOT_STARTED
         val response = sut.getMigrationStatus()
-        assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        assertThat(response.entity.toString(), Matchers.containsString(MigrationStage.NOT_STARTED.toString()))
     }
 
     @Test

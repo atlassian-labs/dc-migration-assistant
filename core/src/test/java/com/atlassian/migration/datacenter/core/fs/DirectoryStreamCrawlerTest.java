@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,18 +44,29 @@ class DirectoryStreamCrawlerTest {
     private Crawler directoryStreamCrawler;
     private UploadQueue<Path> queue;
     private Set<Path> expectedPaths;
+    private Set<Path> ignoredPaths;
     private FileSystemMigrationReport report;
 
     @BeforeEach
     void createFiles() throws Exception {
         queue = new UploadQueue<>(10);
         expectedPaths = new HashSet<>();
+        ignoredPaths = new HashSet<>();
         report = new DefaultFileSystemMigrationReport();
         directoryStreamCrawler = new DirectoryStreamCrawler(report);
 
+        final Path sub1 = Files.createDirectory(tempDir.resolve("subdirectory"));
+        final Path sub2 = Files.createDirectory(tempDir.resolve("subdirectory/import"));
         expectedPaths.add(Files.write(tempDir.resolve("newfile.txt"), "newfile content".getBytes()));
-        final Path subdirectory = Files.createDirectory(tempDir.resolve("subdirectory"));
-        expectedPaths.add(Files.write(subdirectory.resolve("subfile.txt"), "subfile content in the subdirectory".getBytes()));
+        expectedPaths.add(Files.write(sub1.resolve("subfile.txt"), "subfile content in the subdirectory".getBytes()));
+        expectedPaths.add(Files.write(sub2.resolve("subfile2.txt"), "subfile content in the subdirectory".getBytes()));
+
+        final Path ignored1 = Files.createDirectory(tempDir.resolve("import"));
+        final Path ignored2 = Files.createDirectories(tempDir.resolve("plugins/.osgi-plugins"));
+        ignoredPaths.add(Files.write(tempDir.resolve("dbconfig.xml"), "subfile".getBytes()));
+        ignoredPaths.add(Files.write(ignored1.resolve("ignore1.txt"), "subfile".getBytes()));
+        ignoredPaths.add(Files.write(ignored2.resolve("ignore2.txt"), "subfile".getBytes()));
+
     }
 
     @Test
@@ -63,6 +75,7 @@ class DirectoryStreamCrawlerTest {
         directoryStreamCrawler.crawlDirectory(tempDir, queue);
 
         expectedPaths.forEach(path -> assertTrue(queue.contains(path), String.format("Expected %s is absent from crawler queue", path)));
+        ignoredPaths.forEach(path -> assertFalse(queue.contains(path), String.format("Expected %s should have been ignored", path)));
     }
 
     @Test
