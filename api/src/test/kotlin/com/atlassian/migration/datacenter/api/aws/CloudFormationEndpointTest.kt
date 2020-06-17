@@ -117,7 +117,7 @@ internal class CloudFormationEndpointTest {
 
     @Test
     fun shouldGetHandleErrorWhenStatusCannotBeRetrieved() {
-        val expectedErrorMessage = "stack Id not found"
+        val expectedErrorMessage = "critical failure - infrastructure not found"
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_APPLICATION_WAIT
         every { deploymentService.deploymentStatus } throws StackInstanceNotFoundException.builder()
             .message(expectedErrorMessage).build()
@@ -125,7 +125,7 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
-        assertEquals(expectedErrorMessage, (response.entity as Map<*, *>)["error"])
+        assertEquals(expectedErrorMessage, readResponseIntoMap(response)["error"])
     }
 
     @Test
