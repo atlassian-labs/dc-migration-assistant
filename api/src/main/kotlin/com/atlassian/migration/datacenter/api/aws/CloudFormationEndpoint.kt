@@ -124,10 +124,10 @@ class CloudFormationEndpoint(
                 }
 
                 val errorOptional = cfnApi.getStackErrorRootCause(deploymentId)
-                entity["error"] = if (errorOptional.isEmpty) {
-                    "unknown deployment error has occurred. Check the cloudformation console for details"
-                } else {
+                entity["error"] = if (errorOptional.isPresent) {
                     errorOptional.get()
+                } else {
+                    "unknown deployment error has occurred. Check the cloudformation console for details"
                 }
                 val stack = cfnApi.getStack(deploymentId).get()
                 entity["stackUrl"] =
