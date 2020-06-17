@@ -15,6 +15,8 @@
  */
 package com.atlassian.migration.datacenter.api.aws
 
+import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
+import java.util.Optional
 import javax.ws.rs.core.Response
 
 @ExtendWith(MockKExtension::class)
@@ -46,6 +49,12 @@ internal class CloudFormationEndpointTest {
 
     @MockK(relaxUnitFun = true)
     lateinit var migrationSerivce: MigrationService
+
+    @MockK
+    lateinit var context: MigrationContext
+
+    @MockK
+    lateinit var cfnApi: CfnApi
 
     @InjectMockKs
     lateinit var endpoint: CloudFormationEndpoint
@@ -162,10 +171,9 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
-        val readValue = ObjectMapper().readValue(response.entity as String, typeRef)
+        val responseData = readResponseIntoMap(response)
 
-        assertThat(readValue["status"]!!, equalTo(expectedStatus))
+        assertThat(responseData["status"]!!, equalTo(expectedStatus))
     }
 
     @Test
@@ -198,11 +206,25 @@ internal class CloudFormationEndpointTest {
         every { helperDeploymentService.deploymentStatus } returns expectedStatus
         every { migrationSerivce.currentStage } returns MigrationStage.PROVISION_MIGRATION_STACK_WAIT
 
+        every { migrationSerivce.currentContext } returns context
+        val helperDeploymentId = "helper-deployment"
+        every { context.helperStackDeploymentId } returns helperDeploymentId
+
+        val permissionError = "you dont have permission"
+        every { cfnApi.getStackErrorRootCause(helperDeploymentId) } returns Optional.of(permissionError)
+
         val response = endpoint.infrastructureStatus()
 
         assertEquals(Response.Status.OK.statusCode, response.status)
 
-        assertThat(response.entity as String, containsString("CREATE_FAILED"))
+        val responseData = readResponseIntoMap(response)
+
+        assertEquals(responseData["status"],"CREATE_FAILED")
+        assertEquals(responseData["error"], permissionError)
     }
 
+    private fun readResponseIntoMap(response: Response): HashMap<String, String> {
+        val typeRef: TypeReference<HashMap<String, String>> = object : TypeReference<HashMap<String, String>>() {}
+        return ObjectMapper().readValue(response.entity as String, typeRef)
+    }
 }

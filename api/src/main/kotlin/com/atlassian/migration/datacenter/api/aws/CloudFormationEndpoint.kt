@@ -15,17 +15,23 @@
  */
 package com.atlassian.migration.datacenter.api.aws
 
+import com.atlassian.migration.datacenter.core.aws.CfnApi
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
-import javax.ws.rs.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.GET
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -33,7 +39,11 @@ import javax.ws.rs.core.Response
  * REST API Endpoint for managing AWS provisioning.
  */
 @Path("/aws/stack")
-class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymentService, private val migrationService: MigrationService, private val helperDeploymentService: MigrationInfrastructureDeploymentService) {
+class CloudFormationEndpoint(
+        private val deploymentService: ApplicationDeploymentService,
+        private val migrationService: MigrationService,
+        private val helperDeploymentService: MigrationInfrastructureDeploymentService,
+        private val cfnApi: CfnApi) {
     companion object {
         private val log = LoggerFactory.getLogger(CloudFormationEndpoint::class.java)
         private val mapper = ObjectMapper().setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY)
@@ -48,7 +58,7 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
     fun provisionInfrastructure(provisioningConfig: ProvisioningConfig): Response {
         return try {
             val stackName = provisioningConfig.stackName
-            when(provisioningConfig.deploymentMode) {
+            when (provisioningConfig.deploymentMode) {
                 ProvisioningConfig.DeploymentMode.WITH_NETWORK -> deploymentService.deployApplicationWithNetwork(stackName, provisioningConfig.params)
                 ProvisioningConfig.DeploymentMode.STANDALONE -> deploymentService.deployApplication(stackName, provisioningConfig.params)
             }
@@ -57,9 +67,9 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
         } catch (e: InvalidMigrationStageError) {
             log.error("Migration stage is not valid.", e)
             Response
-                .status(Response.Status.CONFLICT)
-                .entity(mapOf("error" to e.message))
-                .build()
+                    .status(Response.Status.CONFLICT)
+                    .entity(mapOf("error" to e.message))
+                    .build()
         }
     }
 
@@ -72,6 +82,18 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
         if (currentMigrationStage == MigrationStage.PROVISION_APPLICATION_WAIT) {
             return try {
                 val status = deploymentService.deploymentStatus
+                if (status == InfrastructureDeploymentState.CREATE_FAILED) {
+                    val stackName = migrationService.currentContext.applicationDeploymentId
+                    return Response.ok(
+                            mapper.writeValueAsString(
+                                    mapOf(
+                                            "status" to status,
+                                            "phase" to "app_infra",
+                                            "error" to cfnApi.getStackErrorRootCause(stackName).get()
+                                    )
+                            )
+                    ).build()
+                }
                 Response.ok(mapper.writeValueAsString(mapOf("status" to status, "phase" to "app_infra"))).build()
             } catch (e: Exception) {
                 Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
@@ -83,6 +105,18 @@ class CloudFormationEndpoint(private val deploymentService: ApplicationDeploymen
         if (currentMigrationStage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT) {
             return try {
                 val status = helperDeploymentService.deploymentStatus
+                if (status == InfrastructureDeploymentState.CREATE_FAILED) {
+                    val stackName = migrationService.currentContext.helperStackDeploymentId
+                    return Response.ok(
+                            mapper.writeValueAsString(
+                                    mapOf(
+                                            "status" to status,
+                                            "phase" to "app_infra",
+                                            "error" to cfnApi.getStackErrorRootCause(stackName).get()
+                                    )
+                            )
+                    ).build()
+                }
                 Response.ok(mapper.writeValueAsString(mapOf("status" to status, "phase" to "migration_infra"))).build()
             } catch (e: Exception) {
                 Response.status(Response.Status.NOT_FOUND).entity(mapOf("error" to e.message)).build()
