@@ -155,7 +155,7 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         configSets:
-          install_prerequisites: [create_efs_script,mount_efs,create_helper_user,create_log_directory,prepare_efs_sync_script,install_psql_client,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
+          install_prerequisites: [dylan_was_here, create_efs_script,mount_efs,create_helper_user,create_log_directory,prepare_efs_sync_script,install_psql_client,create_rds_restore_script,download_java_helper_app,start_java_helper_app]
         create_efs_script:
           files:
             /opt/atlassian/dc-migration-assistant/mount-efs.sh:

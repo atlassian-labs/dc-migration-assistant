@@ -3,7 +3,7 @@ name: UploadMigrationTemplate
 on: [push]
 
 env:
-  MASTER_BRANCH: ${{ secrets.MASTER_BRANCH }}
+  MASTER_BRANCH: refs/heads/master
   AWS_S3_BUCKET: trebuchet-dylan
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
