@@ -41,6 +41,7 @@ internal class CfnApiTest {
     lateinit var sut: CfnApi
 
     private val testStack = "test-stack"
+    private val stackResourceType = "AWS::CloudFormation::Stack"
 
     @BeforeEach
     internal fun setUp() {
@@ -93,11 +94,10 @@ internal class CfnApiTest {
     fun shouldFollowEventsForFailuresInNestedStacks() {
         val earliestError = "Dashboard 'tcat-per-jira-37c49438-dashboard' already exists"
         val nestedStackId = "arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b"
-        val stackResourceType = "AWS::CloudFormation::Stack"
 
         givenErrorsExistForStack(testStack, {
             it.resourceType(stackResourceType)
-                    .resourceStatusReason("Embedded stack arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b was not successfully created: The following resource(s) failed to create: [Dashboard].")
+                    .resourceStatusReason("Embedded stack $nestedStackId was not successfully created: The following resource(s) failed to create: [Dashboard].")
                     .physicalResourceId(nestedStackId)
                     .timestamp(Instant.now())
         })
@@ -121,10 +121,40 @@ internal class CfnApiTest {
 
     @Test
     fun shouldFollowEventsForMultiplyNestedStacks() {
+        val nestedStack = "arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-DB"
+        val doublyNestedStack = "$nestedStack-12345512-PostgresDB-ADKLJ2135KD3"
+        givenErrorsExistForStack(testStack,
+                {
+                    it
+                            .resourceStatusReason("Embedded stack $nestedStack was not successfully created")
+                            .resourceType(stackResourceType)
+                            .physicalResourceId(nestedStack)
+                            .timestamp(Instant.now())
+                }
+        )
+        givenErrorsExistForStack(nestedStack,
+                {
+                    it
+                            .resourceStatusReason("Embedded stack $doublyNestedStack was not successfully created")
+                            .resourceType(stackResourceType)
+                            .physicalResourceId(doublyNestedStack)
+                            .timestamp(Instant.now().minusSeconds(10))
+                }
+        )
+        val rootFailure = "Permission denied to create resource AWS::RDS::Instance"
+        givenErrorsExistForStack(doublyNestedStack,
+                {
+                    it
+                            .resourceStatusReason(rootFailure)
+                            .resourceType("AWS::RDS::Instance")
+                            .timestamp(Instant.now().minusSeconds(20))
+                }
+        )
 
+        assertEquals(rootFailure, sut.getStackErrorRootCause(testStack).get())
     }
 
-    fun givenErrorsExistForStack(stackName: String, vararg builderAcceptors: (StackEvent.Builder) -> StackEvent.Builder) {
+    private fun givenErrorsExistForStack(stackName: String, vararg builderAcceptors: (StackEvent.Builder) -> StackEvent.Builder) {
         val errors = builderAcceptors.map {
             it.invoke(
                     StackEvent.builder()
