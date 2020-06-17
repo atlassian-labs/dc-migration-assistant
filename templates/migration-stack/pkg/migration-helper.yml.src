@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Jira / Confluence Server to DC (AWS) Helper
-Parameters:
 
+Parameters:
   NetworkPrivateSubnet:
     Description: "Private SubnetId where Migration helper will be placed - Must have connection to desitnation Storage"
     Type: String
@@ -45,7 +45,6 @@ Parameters:
     Default: '/efs/jira/shared'
 
 Resources:
-
   #S3 Bucket for Database Transfer
   #Stack deletion fails when the bucket is non-empty. To fix this, we need a lambda that cleans the bucket - https://stackoverflow.com/questions/40383470/can-i-force-cloudformation-to-delete-non-empty-s3-bucket
   # Until then, set the Deletion policy to retain
@@ -361,6 +360,7 @@ Resources:
       Path: /
       Roles:
         - !Ref HelperInstanceProfileRole
+        
   HelperInstanceProfileRole:
     Type: AWS::IAM::Role
     Properties:
@@ -429,6 +429,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
+        
   HelperSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -444,6 +445,7 @@ Resources:
       HelperSG: !Ref HelperSecurityGroup
       EFSSG: !Ref EFSSecurityGroup
       RDSSG: !Ref RDSSecurityGroup
+      
   MigrationStackResourceAccess:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -496,6 +498,7 @@ Resources:
             except Exception as e:
                 responseData = {'Error': str(e)}
                 cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+                
   MigrationStackResourceAccessExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -589,4 +592,3 @@ Outputs:
   MigrationBucket:
     Description: "The name of the s3 bucket to be used for facilitating this migration"
     Value: !Ref MigrationBucket
-

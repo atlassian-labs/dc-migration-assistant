@@ -3,12 +3,12 @@ name: UploadMigrationTemplate
 on: [push]
 
 env:
-  MASTER_BRANCH: ${{ secrets.MASTER_BRANCH }}
-  AWS_S3_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
+  MASTER: refs/heads/master
+  AWS_S3_BUCKET: trebuchet-public-resources
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: 'us-east-1'
-  
+
 jobs:
   upload:
     runs-on: ubuntu-latest
@@ -18,10 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Generate migration stack template
-        if: github.ref == env.MASTER_BRANCH
-        run: make rendertemplate -C ./templates/migration-stack
+        if: github.ref == env.MASTER
+        run: |
+          make rendertemplate -C ./templates/migration-stack
+          echo "migration-helper.yml md5 is: [`md5sum ./templates/migration-stack/migration-helper.yml`]"
+          echo "Outputting migration-helper.yml contents to stdout now..."
+          cat ./templates/migration-stack/migration-helper.yml
       - name: Upload Migration stack template
-        if: github.ref == env.MASTER_BRANCH
+        if: github.ref == env.MASTER
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read --exclude '*' --include 'migration-helper.yml'
