@@ -21,7 +21,7 @@ jobs:
 #        if: github.ref == env.MASTER_BRANCH
         run: make rendertemplate -C ./templates/migration-stack
       - name: chksum template
-        run: chksum migration-helper.yml
+        run: sum migration-helper.yml
       - name: Upload Migration stack template
 #        if: github.ref == env.MASTER_BRANCH
         uses: jakejarvis/s3-sync-action@master
