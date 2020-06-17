@@ -41,6 +41,8 @@ type InfrastructureDeploymentState =
 type StackStatusResponse = {
     status: InfrastructureDeploymentState;
     phase?: 'app_infra' | 'migration_infra';
+    error?: string;
+    stackUrl?: string;
 };
 
 type StackStatusErrorResponse = {

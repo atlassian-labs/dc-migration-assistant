@@ -80,7 +80,7 @@ public abstract class CloudformationDeploymentService {
 
         if (isFailedToCreateDeploymentState(status)) {
             //FIXME: implement getting a good error
-            String reason = "TODO";
+            String reason = cfnApi.getStackErrorRootCause(stackName).orElse("Deployment failed for unknown reason. Try checking the cloudformation console");
             logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", reason);
             handleFailedDeployment(reason);
             deploymentWatcher.cancel(true);
@@ -102,7 +102,7 @@ public abstract class CloudformationDeploymentService {
             }
             if (isFailedToCreateDeploymentState(status)) {
                 //FIXME: implement getting a good error
-                String reason = "TODO";
+                String reason = cfnApi.getStackErrorRootCause(stackName).orElse("Deployment failed for unknown reason. Try checking the cloudformation console");
                 logger.error("stack {} creation failed with reason {}", stackName, reason);
                 handleFailedDeployment(reason);
                 stackCompleteFuture.complete("");
