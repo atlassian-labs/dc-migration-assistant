@@ -16,6 +16,7 @@
 package com.atlassian.migration.datacenter.api.aws
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.core.aws.region.RegionService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
+import java.net.URLEncoder
 import javax.ws.rs.Consumes
 import javax.ws.rs.GET
 import javax.ws.rs.POST
@@ -44,7 +46,8 @@ class CloudFormationEndpoint(
         private val applicationDeploymentService: ApplicationDeploymentService,
         private val migrationService: MigrationService,
         private val helperDeploymentService: MigrationInfrastructureDeploymentService,
-        private val cfnApi: CfnApi) {
+        private val cfnApi: CfnApi,
+        private val regionService: RegionService) {
     companion object {
         private val log = LoggerFactory.getLogger(CloudFormationEndpoint::class.java)
         private val mapper = ObjectMapper().setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY)
@@ -126,6 +129,9 @@ class CloudFormationEndpoint(
                 } else {
                     errorOptional.get()
                 }
+                val stack = cfnApi.getStack(deploymentId).get()
+                entity["stackUrl"] =
+                        "https://console.aws.amazon.com/cloudformation/home?region=${regionService.region}#/stacks/stackinfo?filteringText=${URLEncoder.encode(deploymentId, "utf-8")}&filteringStatus=failed&viewNested=true&stackId=${URLEncoder.encode(stack.stackId(), "utf-8")}"
             }
 
             return Response.ok(mapper.writeValueAsString(entity)).build()
