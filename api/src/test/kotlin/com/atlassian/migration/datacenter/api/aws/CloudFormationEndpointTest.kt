@@ -221,6 +221,10 @@ internal class CloudFormationEndpointTest {
         val helperDeploymentId = "helper-deployment"
         every { context.helperStackDeploymentId } returns helperDeploymentId
 
+        val testRegion = "us-east-1"
+        every { regionService.region } returns testRegion
+        every { cfnApi.getStack(helperDeploymentId) } returns Optional.of(Stack.builder().stackId("arn:aws:cloudformation:$testRegion:887764444972:stack/$helperDeploymentId/cf721e30-aab0-11ea-8ca3-122e54527a47").build())
+
         val permissionError = "you dont have permission"
         every { cfnApi.getStackErrorRootCause(helperDeploymentId) } returns Optional.of(permissionError)
 
