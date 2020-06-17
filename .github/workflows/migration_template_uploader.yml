@@ -29,5 +29,5 @@ jobs:
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read --exclude '*' --include 'migration-helper.yml'
-#        env:
-#          SOURCE_DIR: './templates/migration-stack'
+        env:
+          SOURCE_DIR: './templates/migration-stack'
