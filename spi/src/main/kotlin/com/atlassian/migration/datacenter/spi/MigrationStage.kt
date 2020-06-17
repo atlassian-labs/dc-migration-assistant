@@ -19,7 +19,7 @@ package com.atlassian.migration.datacenter.spi
  * Represents all possible states of an on-premise to cloud migration.
  */
 enum class MigrationStage {
-    NOT_STARTED,
+    NOT_STARTED(),
     AUTHENTICATION(NOT_STARTED),
     PROVISION_APPLICATION(AUTHENTICATION),
     PROVISION_APPLICATION_WAIT(PROVISION_APPLICATION),
@@ -37,23 +37,38 @@ enum class MigrationStage {
     FINAL_SYNC_WAIT(DATA_MIGRATION_IMPORT),
     VALIDATE(FINAL_SYNC_WAIT),
     FINISHED(VALIDATE),
-    ERROR;
+    ERROR();
 
     private val validFrom: MigrationStage?
+    private val validFromStages: List<MigrationStage>
     var exception: Throwable?
 
     constructor() {
         exception = null;
-        validFrom = null;
+        this.validFrom = null;
+        this.validFromStages = listOf()
     }
 
     constructor(validFrom: MigrationStage) {
-        exception = null
+        this.exception = null
         this.validFrom = validFrom
+        this.validFromStages = listOf(validFrom)
     }
 
+    constructor(vararg validFromStages: MigrationStage) {
+        exception = null;
+        validFrom = null;
+        this.validFromStages = validFromStages.asList()
+    }
+
+
     fun isValidTransition(to: MigrationStage): Boolean {
-        return to.validFrom?.equals(this) ?: true
+        return when (to) {
+            ERROR -> true
+            else -> {
+                to.validFromStages.any { it == this }
+            }
+        }
     }
 
     fun isAfter(stage: MigrationStage): Boolean {
