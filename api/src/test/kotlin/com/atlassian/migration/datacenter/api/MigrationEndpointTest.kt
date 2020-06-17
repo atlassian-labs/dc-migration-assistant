@@ -58,6 +58,24 @@ class MigrationEndpointTest {
     }
 
     @Test
+    fun shouldBeErrorWhenStageIsASpecificErrorStage() {
+        every { migrationService.currentStage } returns MigrationStage.FINAL_SYNC_ERROR
+
+        val response = sut.getMigrationStatus()
+
+        assertThat(response.entity.toString(), Matchers.containsString(MigrationStage.ERROR.toString()))
+    }
+
+    @Test
+    fun shouldBeErrorWhenStageIsError() {
+        every { migrationService.currentStage } returns MigrationStage.ERROR
+
+        val response = sut.getMigrationStatus()
+
+        assertThat(response.entity.toString(), Matchers.containsString(MigrationStage.ERROR.toString()))
+    }
+
+    @Test
     fun testOKAndMigrationContextWhenMigrationExists() {
         val expectedServiceUrl = "i_am_a_service_url"
 

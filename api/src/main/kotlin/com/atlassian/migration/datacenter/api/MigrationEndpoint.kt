@@ -37,8 +37,14 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun getMigrationStatus(): Response {
+        val currentStage = migrationService.currentStage
+
+        val responseEntity = mapOf("stage" to
+                if (currentStage.isErrorStage())
+                    MigrationStage.ERROR.toString() else currentStage.toString())
+
         return Response
-                .ok(mapOf("stage" to migrationService.currentStage.toString()))
+                .ok(responseEntity)
                 .build()
     }
 

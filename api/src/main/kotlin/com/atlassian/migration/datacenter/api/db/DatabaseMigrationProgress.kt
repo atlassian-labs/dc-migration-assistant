@@ -24,8 +24,10 @@ fun stageToStatus(stage: MigrationStage): DbMigrationStatus {
         PROVISION_APPLICATION_WAIT,
         PROVISION_MIGRATION_STACK,
         PROVISION_MIGRATION_STACK_WAIT,
+        PROVISIONING_ERROR,
         FS_MIGRATION_COPY,
         FS_MIGRATION_COPY_WAIT,
+        FS_MIGRATION_ERROR,
         OFFLINE_WARNING
         -> DbMigrationStatus.NOT_STARTED
 
@@ -46,6 +48,7 @@ fun stageToStatus(stage: MigrationStage): DbMigrationStatus {
         FINISHED
         -> DbMigrationStatus.DONE
 
+        FINAL_SYNC_ERROR,
         ERROR
         -> DbMigrationStatus.FAILED
     }
