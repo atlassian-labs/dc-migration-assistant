@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState, useEffect, ReactNode } from 'react';
+import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
@@ -23,7 +23,7 @@ import { Redirect } from 'react-router-dom';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
 import { MigrationTransferActions } from './MigrationTransferPageActions';
-import { ProgressCallback, Progress } from './Progress';
+import { Progress, ProgressCallback } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
 import { migrationErrorPath } from '../../utils/RoutePaths';
@@ -31,6 +31,10 @@ import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 
 const POLL_INTERVAL_MILLIS = 3000;
+
+export interface RetryCallback {
+    (): Promise<Response>;
+}
 
 export type MigrationTransferProps = {
     /**
@@ -77,6 +81,9 @@ export type MigrationTransferProps = {
     getProgress: ProgressCallback;
 
     getDetails?: () => Promise<CommandResult>;
+
+    onRetry?: RetryCallback;
+    retryText?: string;
 };
 
 const TransferPageContainer = styled.div`
@@ -123,12 +130,15 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     inProgressStages,
     startMigrationPhase,
     getDetails: getCommandresult,
+    retryText,
+    onRetry,
 }) => {
     const [progressList, setProgressList] = useState<Array<Progress>>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
     const [finished, setFinished] = useState<boolean>(false);
+    const [failed, setFailed] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
 
     const updateProgress = async (): Promise<void> => {
@@ -164,7 +174,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         migration
             .getMigrationStage()
             .then(stage => {
-                if (inProgressStages.includes(stage)) {
+                if (stage === MigrationStage.ERROR) {
+                    setFailed(true);
+                } else if (inProgressStages.includes(stage)) {
                     setStarted(true);
                     updateProgress();
                 }
@@ -203,7 +215,11 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     }, [started]);
 
     if (progressList.some(progress => progress?.failed)) {
-        return <Redirect to={migrationErrorPath} push />;
+        setLoading(false);
+        setFailed(true);
+        if (!retryText) {
+            return <Redirect to={migrationErrorPath} push />;
+        }
     }
 
     const transferError = progressList
@@ -269,6 +285,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                             onRefresh={updateProgress}
                             started={started}
                             loading={loading}
+                            failed={failed}
+                            retryText={retryText}
+                            onRetry={onRetry}
                         />
                     </TransferActionsContainer>
                 </>

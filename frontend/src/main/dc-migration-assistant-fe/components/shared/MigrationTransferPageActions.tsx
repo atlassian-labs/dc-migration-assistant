@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 import Button from '@atlaskit/button';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import { CancelButton } from './CancelButton';
+import { RetryCallback } from './MigrationTransferPage';
+import { awsBasePath } from '../../utils/RoutePaths';
 
 export type MigrationTransferActionsProps = {
     /**
@@ -52,6 +54,11 @@ export type MigrationTransferActionsProps = {
      * Should be true if any of the above properties are being fetched
      */
     loading: boolean;
+
+    failed?: boolean;
+    retryText?: string;
+
+    onRetry?: RetryCallback;
 };
 
 /**
@@ -71,7 +78,12 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     onRefresh: updateTransferProgress,
     started,
     loading,
+    failed,
+    onRetry,
+    retryText,
 }) => {
+    const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
+
     const defaultButtonStyle = {
         padding: '5px',
     };
@@ -103,6 +115,18 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
             </Link>
         );
         ActionButton = NextButton;
+    } else if (failed && retryText) {
+        ActionButton = (
+            <Button
+                style={marginButtonStyle}
+                isLoading={loading}
+                onClick={() => {
+                    onRetry().then(() => setShouldRedirect(true));
+                }}
+            >
+                {retryText}
+            </Button>
+        );
     } else if (started) {
         const RefreshButton = (
             <Button style={marginButtonStyle} isLoading={loading} onClick={updateTransferProgress}>
@@ -114,6 +138,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
 
     return (
         <>
+            {shouldRedirect && <Redirect to={awsBasePath} push />}
             {ActionButton}
             <CancelButton />
         </>
