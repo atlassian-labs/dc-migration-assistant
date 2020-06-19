@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import React, { FunctionComponent, ReactElement } from 'react';
 import Flag from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/glyph/error';
@@ -50,6 +50,7 @@ const ErrorContainer = styled.div`
     left: 75%;
     right: 1%;
     overflow: inherit;
+    z-index: 1;
 `;
 
 export const ErrorFlag: FunctionComponent<AuthenticationErrorProps> = ({

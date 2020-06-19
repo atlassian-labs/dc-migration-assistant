@@ -79,6 +79,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
      * @param deploymentId the stack name
      * @param params       the parameters for the cloudformation template. The key should be the parameter name and the value
      *                     should be the parameter value.
+     * @throws InfrastructureDeploymentError when quickstart fails to deploy
      */
     @Override
     public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
@@ -93,6 +94,16 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         context.save();
     }
 
+    /**
+     * Commences the deployment of the AWS Quick Start. It will transition the state machine upon completion of the
+     * deployment. If the deployment finishes successfully we transition to the next stage, otherwise we transition
+     * to an error. The migration will also transition to an error if the deployment takes longer than an hour.
+     *
+     * @param deploymentId the stack name
+     * @param params       the parameters for the cloudformation template. The key should be the parameter name and the value
+     *                     should be the parameter value.
+     * @throws InfrastructureDeploymentError when quickstart fails to deploy
+     */
     @Override
     public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
         logger.info("received request to deploy application and virtual network");
@@ -114,7 +125,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         context.setDeploymentMode(mode);
     }
 
-    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InvalidMigrationStageError {
+    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InfrastructureDeploymentError, InvalidMigrationStageError {
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
@@ -157,6 +168,9 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             logger.error("tried to transition migration from {} but got error: {}.", MigrationStage.PROVISION_APPLICATION_WAIT, invalidMigrationStageError.getMessage());
             migrationService.error(invalidMigrationStageError.getMessage());
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            logger.error("failed to deploy migration infrastructure", infrastructureDeploymentError);
+            migrationService.error(infrastructureDeploymentError.getMessage());
         }
     }
 

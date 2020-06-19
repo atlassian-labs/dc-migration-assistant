@@ -20,7 +20,6 @@ import Toggle from '@atlaskit/toggle';
 import TextField from '@atlaskit/textfield';
 import { ErrorMessage, Field, HelperMessage } from '@atlaskit/form';
 import { I18n } from '@atlassian/wrm-react-i18n';
-// eslint-disable-next-line import/extensions
 import { QuickstartParameter } from './QuickStartTypes';
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 

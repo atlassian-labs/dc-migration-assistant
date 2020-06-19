@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.spi.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.jetbrains.annotations.NotNull;
@@ -177,7 +178,15 @@ public class CfnApi {
         return earliestEventRef.get();
     }
 
-    public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) {
+    /**
+     * Begins the provisioning of a cloudformation stack
+     * @param templateUrl S3 URL of the template to use for deployment
+     * @param stackName The name to give to the stack
+     * @param params any parameters for the quickstart form
+     * @return an optional containing the stack name when deployment is successful
+     * @throws InfrastructureDeploymentError if the deployment is not successful. Will contain the cause of the error.
+     */
+    public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
         logger.trace("received request to create stack {} from template {}", stackName, templateUrl);
         Set<Parameter> parameters = params.entrySet()
                 .stream()
@@ -203,13 +212,16 @@ public class CfnApi {
 
             if (!response.sdkHttpResponse().isSuccessful()) {
                 logger.error("create stack {} http response failed with reason: {}", stackName, response.sdkHttpResponse().statusText());
-                return Optional.empty();
+                throw new InfrastructureDeploymentError(response.sdkHttpResponse().statusText().isPresent() ? response.sdkHttpResponse().statusText().get() : "Stack creation failed for unknown reason");
             }
             logger.info("stack {} creation succeeded", stackName);
             return Optional.ofNullable(response.stackId());
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Error deploying cloudformation stack {}", stackName, e);
-            return Optional.empty();
+            if (e.getCause() != null) {
+                throw new InfrastructureDeploymentError(e.getCause().getMessage(), e.getCause());
+            }
+            throw new InfrastructureDeploymentError(e.getMessage(), e);
         }
     }
 

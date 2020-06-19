@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
@@ -62,12 +63,16 @@ class CloudFormationEndpoint(
     fun provisionInfrastructure(provisioningConfig: ProvisioningConfig): Response {
         return try {
             val stackName = provisioningConfig.stackName
-            when (provisioningConfig.deploymentMode) {
-                ProvisioningConfig.DeploymentMode.WITH_NETWORK -> applicationDeploymentService.deployApplicationWithNetwork(stackName, provisioningConfig.params)
-                ProvisioningConfig.DeploymentMode.STANDALONE -> applicationDeploymentService.deployApplication(stackName, provisioningConfig.params)
+            try {
+                when (provisioningConfig.deploymentMode) {
+                    ProvisioningConfig.DeploymentMode.WITH_NETWORK -> applicationDeploymentService.deployApplicationWithNetwork(stackName, provisioningConfig.params)
+                    ProvisioningConfig.DeploymentMode.STANDALONE -> applicationDeploymentService.deployApplication(stackName, provisioningConfig.params)
+                }
+                //Should be updated to URI location after get stack details Endpoint is built
+                Response.status(Response.Status.ACCEPTED).entity(stackName).build()
+            } catch (e: InfrastructureDeploymentError) {
+                Response.status(Response.Status.BAD_REQUEST).entity(mapOf("error" to e.message)).build()
             }
-            //Should be updated to URI location after get stack details Endpoint is built
-            Response.status(Response.Status.ACCEPTED).entity(stackName).build()
         } catch (e: InvalidMigrationStageError) {
             log.error("Migration stage is not valid.", e)
             Response

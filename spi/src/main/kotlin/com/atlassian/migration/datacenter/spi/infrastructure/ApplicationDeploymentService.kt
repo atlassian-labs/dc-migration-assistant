@@ -22,12 +22,12 @@ interface ApplicationDeploymentService : DeploymentService {
     /**
      * Deploys the application into an existing virtual network
      */
-    @Throws(InvalidMigrationStageError::class)
+    @Throws(InvalidMigrationStageError::class, InfrastructureDeploymentError::class)
     fun deployApplication(deploymentId: String, params: Map<String, String>)
 
     /**
      * Deploys application in its own virtual network
      */
-    @Throws(InvalidMigrationStageError::class)
+    @Throws(InvalidMigrationStageError::class, InfrastructureDeploymentError::class)
     fun deployApplicationWithNetwork(deploymentId: String, params: Map<String, String>)
 }

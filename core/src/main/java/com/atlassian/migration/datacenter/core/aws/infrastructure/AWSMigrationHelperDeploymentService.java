@@ -73,6 +73,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
      * {@inheritDoc}
      * <p>
      * Will name the stack [application-stack-name]-migration
+     *
+     * @throws InfrastructureDeploymentError when deployment fails
      */
     @Override
     public void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError {
