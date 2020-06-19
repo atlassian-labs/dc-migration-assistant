@@ -84,6 +84,7 @@ export type MigrationTransferProps = {
 
     onRetry?: RetryCallback;
     retryText?: string;
+    onRetryRoute?: string;
 };
 
 const TransferPageContainer = styled.div`
@@ -132,6 +133,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     getDetails: getCommandresult,
     retryText,
     onRetry,
+    onRetryRoute,
 }) => {
     const [progressList, setProgressList] = useState<Array<Progress>>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -140,6 +142,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const [finished, setFinished] = useState<boolean>(false);
     const [failed, setFailed] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
+    const errorStages = [MigrationStage.ERROR];
 
     const updateProgress = async (): Promise<void> => {
         return getProgress()
@@ -174,7 +177,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         migration
             .getMigrationStage()
             .then(stage => {
-                if (stage === MigrationStage.ERROR) {
+                if (errorStages.includes(stage)) {
                     setFailed(true);
                 } else if (inProgressStages.includes(stage)) {
                     setStarted(true);
@@ -288,6 +291,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                             failed={failed}
                             retryText={retryText}
                             onRetry={onRetry}
+                            onRetryRoute={onRetryRoute}
                         />
                     </TransferActionsContainer>
                 </>

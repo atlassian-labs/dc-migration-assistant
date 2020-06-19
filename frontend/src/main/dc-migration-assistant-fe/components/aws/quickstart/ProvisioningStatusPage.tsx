@@ -21,7 +21,7 @@ import { MigrationTransferPage, RetryCallback } from '../../shared/MigrationTran
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
-import { fsPath } from '../../../utils/RoutePaths';
+import { asiConfigurationPath, fsPath } from '../../../utils/RoutePaths';
 import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 
 const getDeploymentProgress: ProgressCallback = async () => {
@@ -120,6 +120,7 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
             nextRoute={fsPath}
             onRetry={retryProvisioningCallback}
             retryText={I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text')}
+            onRetryRoute={asiConfigurationPath}
         />
     );
 };

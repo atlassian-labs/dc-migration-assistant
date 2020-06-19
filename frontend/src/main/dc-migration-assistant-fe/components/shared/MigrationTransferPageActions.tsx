@@ -57,8 +57,8 @@ export type MigrationTransferActionsProps = {
 
     failed?: boolean;
     retryText?: string;
-
     onRetry?: RetryCallback;
+    onRetryRoute?: string;
 };
 
 /**
@@ -80,6 +80,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     loading,
     failed,
     onRetry,
+    onRetryRoute,
     retryText,
 }) => {
     const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
@@ -120,7 +121,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
             <Button
                 style={marginButtonStyle}
                 isLoading={loading}
-                onClick={() => {
+                onClick={(): void => {
                     onRetry().then(() => setShouldRedirect(true));
                 }}
             >
@@ -138,7 +139,7 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
 
     return (
         <>
-            {shouldRedirect && <Redirect to={awsBasePath} push />}
+            {shouldRedirect && <Redirect to={onRetryRoute} push />}
             {ActionButton}
             <CancelButton />
         </>
