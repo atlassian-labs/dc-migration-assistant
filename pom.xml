@@ -181,6 +181,11 @@
                 <artifactId>jackson-module-kotlin</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+            <dependency>
+                <groupId>net.swiftzer.semver</groupId>
+                <artifactId>semver</artifactId>
+                <version>${semver.version}</version>
+            </dependency>
 
             <!-- Test Dependencies. Scope is not required in the dependencyManagement section -->
             <dependency>
@@ -522,6 +527,7 @@
         <hamcrest.version>2.0.0.0</hamcrest.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <kotlin.version>1.3.70</kotlin.version>
+        <semver.version>1.1.1</semver.version>
         <jackson.version>2.10.3</jackson.version>
         <jacoco.version>0.8.5</jacoco.version>
         <javax.annotation.api.version>1.3.2</javax.annotation.api.version>

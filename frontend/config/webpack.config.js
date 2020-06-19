@@ -65,7 +65,7 @@ const devConfig = env => {
             },
             output: {
                 publicPath: `http://${DEV_SERVER_HOST}:${DEV_SERVER_PORT}/`,
-                filename: '[name].js',
+                filename: '[name].[contenthash].js',
                 chunkFilename: '[name].chunk.js',
             },
         },
@@ -86,7 +86,7 @@ const prodConfig = {
         ],
     },
     output: {
-        filename: 'bundled.main.js',
+        filename: '[name].[contenthash].js',
     },
 };
 

@@ -15,6 +15,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -23,8 +24,12 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import java.nio.file.Path;
 
 public class AllowAnyTransitionMigrationServiceFacade extends AWSMigrationService implements MigrationService {
-    public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, Path home, EventPublisher eventPublisher) {
-        super(activeObjects, applicationConfiguration, home, eventPublisher);
+    public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects,
+                                                    ApplicationConfiguration applicationConfiguration,
+                                                    DatabaseExtractor databaseExtractor,
+                                                    Path home,
+                                                    EventPublisher eventPublisher) {
+        super(activeObjects, applicationConfiguration, databaseExtractor, home, eventPublisher);
     }
 
     @Override

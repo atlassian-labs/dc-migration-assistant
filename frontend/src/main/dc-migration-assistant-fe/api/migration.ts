@@ -59,7 +59,8 @@ type GetMigrationSummaryResult = {
 export type MigrationReadyStatus = {
     dbCompatible: boolean;
     osCompatible: boolean;
-    fsSizeCompatible: boolean;
+    pgDumpAvailable: boolean;
+    pgDumpCompatible: boolean;
 };
 
 export const migration = {

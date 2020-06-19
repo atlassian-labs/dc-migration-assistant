@@ -27,6 +27,7 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEv
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
@@ -35,7 +36,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
-import org.apache.commons.io.FileUtils;
+import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,15 +55,21 @@ public class AWSMigrationService implements MigrationService {
     private static final Logger log = LoggerFactory.getLogger(AWSMigrationService.class);
     private ActiveObjects ao;
     private ApplicationConfiguration applicationConfiguration;
+    private DatabaseExtractor databaseExtractor;
     private Path localHome;
     private EventPublisher eventPublisher;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
-    public AWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, Path jiraHome, EventPublisher eventPublisher) {
+    public AWSMigrationService(ActiveObjects ao,
+                               ApplicationConfiguration applicationConfiguration,
+                               DatabaseExtractor databaseExtractor,
+                               Path jiraHome,
+                               EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
+        this.databaseExtractor = databaseExtractor;
         this.localHome = jiraHome;
         this.eventPublisher = eventPublisher;
     }
@@ -132,11 +139,22 @@ public class AWSMigrationService implements MigrationService {
     {
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
-        MigrationReadyStatus status = new MigrationReadyStatus(db, os);
+        SemVer pgDumpVer = databaseExtractor.getClientVersion();
+        SemVer pgServerVer = databaseExtractor.getServerVersion();
+        Boolean pgDumpAvail = pgDumpVer != null;
+
+       // From the pg_dump manpage: "pg_dump cannot dump from PostgreSQL servers newer than its own
+       // major version; it will refuse to even try, rather than risk making an invalid dump. Also,
+       // it is not guaranteed that pg_dump's output can be loaded into a server of an older major
+       // version — not even if the dump was taken from a server of that version."
+        Boolean pgVerCompat = pgDumpAvail && pgServerVer != null && pgDumpVer.getMajor() >= pgServerVer.getMajor();
+
+        MigrationReadyStatus status = new MigrationReadyStatus(db, os, pgDumpAvail, pgVerCompat);
 
         eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
                                                               db, applicationConfiguration.getDatabaseConfiguration().getType(),
-                                                              os, OsType.fromSystem()));
+                                                              os, OsType.fromSystem(),
+                                                              pgVerCompat));
 
         return status;
     }

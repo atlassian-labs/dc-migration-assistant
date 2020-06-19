@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.atlassian.migration.datacenter.core.db
 
-package com.atlassian.migration.datacenter.core.db;
+import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+import net.swiftzer.semver.SemVer
+import java.nio.file.Path
 
+interface DatabaseExtractor {
+    val clientVersion: SemVer?
+    val serverVersion: SemVer?
 
-import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
+    @Throws(DatabaseMigrationFailure::class)
+    fun startDatabaseDump(target: Path?): Process?
 
-import java.nio.file.Path;
+    @Throws(DatabaseMigrationFailure::class)
+    fun startDatabaseDump(target: Path?, parallel: Boolean?): Process?
 
-public interface DatabaseExtractor {
-    Process startDatabaseDump(Path target) throws DatabaseMigrationFailure;
-
-    Process startDatabaseDump(Path target, Boolean parallel) throws DatabaseMigrationFailure;
-
-    void dumpDatabase(Path to) throws DatabaseMigrationFailure;
+    @Throws(DatabaseMigrationFailure::class)
+    fun dumpDatabase(to: Path?)
 }

@@ -25,6 +25,7 @@ import styled from 'styled-components';
 import Panel from '@atlaskit/panel';
 import { Redirect } from 'react-router-dom';
 
+import { yamlParse } from 'yaml-cfn';
 import { createQuickstartFormField } from './quickstartToAtlaskit';
 import { QuickstartParameterGroup, QuickstartTemplateForm } from './QuickStartTypes';
 
@@ -33,7 +34,6 @@ import { quickstartStatusPath } from '../../../utils/RoutePaths';
 import { CancelButton } from '../../shared/CancelButton';
 import { DeploymentMode } from './QuickstartRoutes';
 import { provisioning } from '../../../api/provisioning';
-import { yamlParse } from 'yaml-cfn';
 
 const STACK_NAME_FIELD_NAME = 'stackName';
 

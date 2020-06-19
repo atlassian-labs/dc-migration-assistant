@@ -21,6 +21,7 @@ import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
+import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -72,13 +73,15 @@ public class AWSMigrationServiceTest {
     @Mock
     private ApplicationConfiguration applicationConfiguration;
     @Mock
+    private DatabaseExtractor databaseExtractor;
+    @Mock
     private EventPublisher eventPublisher;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AWSMigrationService(ao, applicationConfiguration, Paths.get("."), eventPublisher);
+        sut = new AWSMigrationService(ao, applicationConfiguration, databaseExtractor, Paths.get("."), eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
     }
