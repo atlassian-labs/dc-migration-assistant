@@ -114,7 +114,7 @@ export const provisioning = {
                     }
                 }
                 if (resp.error) {
-                    // hanle error
+                    // handle error
                     const errorResponse = resp as StackStatusErrorResponse;
                     throw new Error(errorResponse.error);
                 }

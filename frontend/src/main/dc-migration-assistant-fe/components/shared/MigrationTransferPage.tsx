@@ -178,6 +178,9 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             .getMigrationStage()
             .then(stage => {
                 if (errorStages.includes(stage)) {
+                    setProgressFetchingError(
+                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
+                    );
                     setFailed(true);
                 } else if (inProgressStages.includes(stage)) {
                     setStarted(true);
