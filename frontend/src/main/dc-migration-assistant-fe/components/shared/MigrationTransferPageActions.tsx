@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useState } from 'react';
-import Button from '@atlaskit/button';
+import React, { FunctionComponent, ReactFragment, useState } from 'react';
+import Button, { ButtonGroup } from '@atlaskit/button';
 import { Link, Redirect } from 'react-router-dom';
+import styled from 'styled-components';
+import { Checkbox } from '@atlaskit/checkbox';
 import { CancelButton } from './CancelButton';
 import { RetryCallback } from './MigrationTransferPage';
-import { awsBasePath } from '../../utils/RoutePaths';
 
 export type MigrationTransferActionsProps = {
     /**
@@ -61,6 +62,22 @@ export type MigrationTransferActionsProps = {
     onRetryRoute?: string;
 };
 
+const CheckboxContainer = styled.div`
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+`;
+
+const PageActionContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+`;
+
+const ButtonRow = styled.div`
+    margin: 15px 0px 0px 0px;
+`;
+
 /**
  * A component which renders the actions that can be taken at a given step of the migration.
  * The "Cancel" action is always available and cancels the current step. There are three other
@@ -83,10 +100,12 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
     onRetryRoute,
     retryText,
 }) => {
-    const [shouldRedirect, setShouldRedirect] = useState<boolean>(false);
+    const [shouldRedirectToPhaseStart, setShouldRedirectToPhaseStart] = useState<boolean>(false);
+    const [retryable, setRetryable] = useState<boolean>(false);
 
     const defaultButtonStyle = {
         padding: '5px',
+        display: 'flex',
     };
 
     const marginButtonStyle = {
@@ -121,8 +140,9 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
             <Button
                 style={marginButtonStyle}
                 isLoading={loading}
+                isDisabled={!retryable}
                 onClick={(): void => {
-                    onRetry().then(() => setShouldRedirect(true));
+                    onRetry().then(() => setShouldRedirectToPhaseStart(true));
                 }}
             >
                 {retryText}
@@ -137,11 +157,33 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
         ActionButton = RefreshButton;
     }
 
+    const PageActionButtonGroup: ReactFragment = (
+        <PageActionContainer>
+            {retryText && failed && (
+                <CheckboxContainer>
+                    <Checkbox
+                        value="true"
+                        label="Everything looks good, Let's try again"
+                        onChange={(event: any): void => {
+                            setRetryable(event.target.checked);
+                        }}
+                        name="retryAgree"
+                    />
+                </CheckboxContainer>
+            )}
+            <ButtonRow>
+                <ButtonGroup>
+                    {ActionButton}
+                    <CancelButton />
+                </ButtonGroup>
+            </ButtonRow>
+        </PageActionContainer>
+    );
+
     return (
         <>
-            {shouldRedirect && <Redirect to={onRetryRoute} push />}
-            {ActionButton}
-            <CancelButton />
+            {shouldRedirectToPhaseStart && <Redirect to={onRetryRoute} push />}
+            {PageActionButtonGroup}
         </>
     );
 };
