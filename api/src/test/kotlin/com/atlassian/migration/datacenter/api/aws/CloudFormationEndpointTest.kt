@@ -248,6 +248,8 @@ internal class CloudFormationEndpointTest {
         val response = endpoint.resetProvisioningStage()
         assertEquals(Response.Status.OK.statusCode, response.status)
         verify { migrationSerivce.transition(MigrationStage.PROVISION_APPLICATION) }
+        verify { deploymentService.clearPersistedStackDetails() }
+        verify { helperDeploymentService.clearPersistedStackDetails() }
     }
 
     @Test

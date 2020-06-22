@@ -120,8 +120,8 @@ class CloudFormationEndpoint(
         return when (val currentStage = migrationService.currentStage) {
             MigrationStage.ERROR, //Only until we change transitioning to errors in provisioning steps
             MigrationStage.PROVISIONING_ERROR -> {
-                applicationDeploymentService.clearPersistedStackDetails
-                helperDeploymentService.clearPersistedStackDetails
+                applicationDeploymentService.clearPersistedStackDetails()
+                helperDeploymentService.clearPersistedStackDetails()
                 migrationService.transition(MigrationStage.PROVISION_APPLICATION)
                 Response.ok().build()
             }
