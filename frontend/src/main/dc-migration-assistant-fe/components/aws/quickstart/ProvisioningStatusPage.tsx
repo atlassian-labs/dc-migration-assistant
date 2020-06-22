@@ -17,12 +17,11 @@
 import React, { FunctionComponent, useEffect, ReactNode } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 
-import { MigrationTransferPage, RetryCallback } from '../../shared/MigrationTransferPage';
+import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
 import { provisioning, ProvisioningStatus } from '../../../api/provisioning';
 import { MigrationStage } from '../../../api/migration';
 import { asiConfigurationPath, fsPath } from '../../../utils/RoutePaths';
-import { callAppRest, RestApiPathConstants } from '../../../utils/api';
 
 const buildErrorFromMessageAndUrl = (message: string, stackurl: string): ReactNode => {
     return (
@@ -102,10 +101,6 @@ type DeploymentMode = {
     deploymentMode: string;
 };
 
-const retryProvisioningCallback: RetryCallback = () => {
-    return callAppRest('POST', RestApiPathConstants.awsStackResetRestPath);
-};
-
 export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ deploymentMode }) => {
     /*
      * Pages that are navigated to from long content pages
@@ -142,7 +137,7 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
             startMigrationPhase={Promise.resolve}
             nextRoute={fsPath}
-            onRetry={retryProvisioningCallback}
+            onRetry={provisioning.retry}
             retryText={I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text')}
             onRetryRoute={asiConfigurationPath}
         />

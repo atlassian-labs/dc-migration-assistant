@@ -37,6 +37,7 @@ enum RestApiPathConstants {
     GetASIInfoPath = `aws/global-infrastructure/asi`,
     CreateStackPath = `aws/stack/create`,
     CleanupStackPath = `aws/cleanup`,
+    StackResetRestPath = `aws/stack/reset`,
 }
 
 type InfrastructureDeploymentState =
@@ -168,5 +169,8 @@ export const provisioning = {
             }
             return Promise.reject();
         });
+    },
+    retry: async (): Promise<Response> => {
+        return callAppRest('POST', RestApiPathConstants.StackResetRestPath);
     },
 };

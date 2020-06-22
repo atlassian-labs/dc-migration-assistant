@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import React, {FunctionComponent, ReactNode, useEffect, useState} from 'react';
+import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
-import {I18n} from '@atlassian/wrm-react-i18n';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
-import {MigrationTransferActions} from './MigrationTransferPageActions';
-import {Progress, ProgressCallback} from './Progress';
-import {migration, MigrationStage} from '../../api/migration';
-import {MigrationProgress} from './MigrationTransferProgress';
-import {CommandDetails as CommandResult} from '../../api/final-sync';
-import {MigrationErrorSection} from './MigrationErrorSection';
+import { MigrationTransferActions } from './MigrationTransferPageActions';
+import { Progress, ProgressCallback } from './Progress';
+import { migration, MigrationStage } from '../../api/migration';
+import { MigrationProgress } from './MigrationTransferProgress';
+import { CommandDetails as CommandResult } from '../../api/final-sync';
+import { MigrationErrorSection } from './MigrationErrorSection';
 
 const POLL_INTERVAL_MILLIS = 8000;
 
