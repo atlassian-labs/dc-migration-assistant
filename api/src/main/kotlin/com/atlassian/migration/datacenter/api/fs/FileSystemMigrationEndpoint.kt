@@ -15,6 +15,8 @@
  */
 package com.atlassian.migration.datacenter.api.fs
 
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
+import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
@@ -28,7 +30,10 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Path("/migration/fs")
-class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService, private val attachmentSyncManager: AttachmentSyncManager) {
+class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService,
+                                  private val attachmentSyncManager: AttachmentSyncManager,
+                                  private val reportManager: FileSystemMigrationReportManager)
+{
     private val mapper: ObjectMapper = ObjectMapper()
 
     @PUT
@@ -37,9 +42,10 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @Path("/start")
     fun runFileMigration(): Response {
         return if (fsMigrationService.isRunning) {
+            val report = reportManager.getCurrentReport(ReportType.Filesystem)
             Response
                 .status(Response.Status.CONFLICT)
-                .entity(mapOf("status" to fsMigrationService.report!!.status))
+                .entity(mapOf("status" to report!!.status))
                 .build()
         } else try {
             val started = fsMigrationService.scheduleMigration()
@@ -75,7 +81,7 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     fun getFilesystemMigrationStatus(): Response {
-        val report = fsMigrationService.report
+        val report = reportManager.getCurrentReport(ReportType.Filesystem)
             ?: return Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(mapOf("error" to "no file system migration exists"))

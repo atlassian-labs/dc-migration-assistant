@@ -16,6 +16,10 @@
 
 package com.atlassian.migration.datacenter.core.aws.db;
 
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.ReportType;
+import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,6 +32,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DatabaseArtifactS3UploadServiceTest {
@@ -41,8 +46,16 @@ public class DatabaseArtifactS3UploadServiceTest {
     @Mock
     DatabaseUploadStageTransitionCallback databaseUploadStageTransitionCallback;
 
+    @Mock
+    FileSystemMigrationReportManager reportManager;
+
     @InjectMocks
     DatabaseArtifactS3UploadService sut;
+
+    @BeforeEach
+    void setup() {
+        when(reportManager.resetReport(ReportType.Database)).thenReturn(new DefaultFileSystemMigrationReport());
+    }
 
     @Test
     void serviceShouldInstantiateS3ClientFromSupplier() throws Exception {

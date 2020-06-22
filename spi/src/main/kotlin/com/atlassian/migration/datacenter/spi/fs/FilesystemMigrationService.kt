@@ -39,13 +39,6 @@ interface FilesystemMigrationService {
     fun startMigration()
 
     /**
-     * Provides filesystem migration report that can be used to monitor the operation
-     *
-     * @return migration report
-     */
-    val report: FileSystemMigrationReport?
-
-    /**
      * Return true if the filesystem migration is in non-terminal state
      *
      * @return true if the filesystem migration is in progress

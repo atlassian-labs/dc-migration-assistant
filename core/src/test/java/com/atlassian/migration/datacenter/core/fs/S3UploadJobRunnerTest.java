@@ -42,8 +42,12 @@ class S3UploadJobRunnerTest {
     @Mock
     JobRunnerRequest jobRunnerRequest;
 
+    @Mock
+    FileSystemMigrationReportManager reportManager;
+
     @InjectMocks
     S3UploadJobRunner s3UploadJobRunner;
+
 
     @Test
     void shouldNotRunJobWhenJobIsAlreadyRunning() {
@@ -69,7 +73,7 @@ class S3UploadJobRunnerTest {
 
         when(filesystemMigrationService.isRunning()).thenReturn(false);
 
-        when(filesystemMigrationService.getReport()).thenReturn(report);
+        when(reportManager.getCurrentReport(ReportType.Filesystem)).thenReturn(report);
         Mockito.doNothing().when(filesystemMigrationService).startMigration();
 
         JobRunnerResponse jobRunnerResponse = s3UploadJobRunner.runJob(jobRunnerRequest);

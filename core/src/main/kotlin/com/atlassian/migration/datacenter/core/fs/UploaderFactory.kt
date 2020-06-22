@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs;
+package com.atlassian.migration.datacenter.core.fs
 
-import java.nio.file.Path;
+import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
 
-public interface FilesystemUploader
-{
-    void uploadDirectory(Path dir) throws FileUploadException;
-
-    void abort();
+interface UploaderFactory {
+    fun newUploader(report: FileSystemMigrationReport): Uploader
 }

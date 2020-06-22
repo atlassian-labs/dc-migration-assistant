@@ -24,6 +24,8 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRes
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
@@ -81,6 +83,8 @@ class DatabaseMigrationServiceIT {
     @Mock(lenient = true)
     ApplicationConfiguration configuration;
 
+    FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
+
     @Mock
     SSMApi ssmApi;
 
@@ -129,7 +133,7 @@ class DatabaseMigrationServiceIT {
         DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration), archiveStageTransitionCallback);
 
         MigrationStageCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
-        DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback);
+        DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback, reportManager);
         s3UploadService.postConstruct();
 
         when(ssmApi.runSSMDocument(anyString(), anyString(), anyMap())).thenReturn("my-commnd");

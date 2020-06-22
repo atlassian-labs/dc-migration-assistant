@@ -17,6 +17,8 @@
 package com.atlassian.migration.datacenter.core.fs.captor
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
+import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig
 import com.atlassian.migration.datacenter.core.fs.S3Uploader
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener
@@ -36,7 +38,8 @@ class S3FinalSyncRunner(
         private val home: Path,
         private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService,
         private val queueWatcher: QueueWatcher,
-        private val attachmentListener: JiraIssueAttachmentListener)
+        private val attachmentListener: JiraIssueAttachmentListener,
+        private val reportManager: FileSystemMigrationReportManager)
     : MigrationJobRunner {
 
     companion object {
@@ -58,7 +61,7 @@ class S3FinalSyncRunner(
         attachmentListener.stop()
 
         val config = S3UploadConfig(migrationHelperDeploymentService.migrationS3BucketName, client.get(), home)
-        val report = DefaultFileSystemMigrationReport()
+        val report = reportManager.resetReport(ReportType.Final)
         val uploader = S3Uploader(config, report)
 
         log.info("Starting final file sync migration job")

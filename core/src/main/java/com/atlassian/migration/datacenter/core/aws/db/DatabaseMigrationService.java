@@ -19,7 +19,7 @@ package com.atlassian.migration.datacenter.core.aws.db;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner;
-import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
+import com.atlassian.migration.datacenter.core.fs.FileUploadException;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -81,7 +81,7 @@ public class DatabaseMigrationService {
 
         try {
             report = s3UploadService.upload(pathToDatabaseFile, bucketName);
-        } catch (FilesystemUploader.FileUploadException e) {
+        } catch (FileUploadException e) {
             migrationService.error(e);
             throw new DatabaseMigrationFailure("Error when uploading database dump to S3", e);
         }

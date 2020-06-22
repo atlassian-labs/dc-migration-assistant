@@ -21,7 +21,7 @@ import com.atlassian.migration.datacenter.core.util.UploadQueue;
 import java.nio.file.Path;
 
 public interface Uploader {
-    void upload(UploadQueue<Path> queue) throws FilesystemUploader.FileUploadException;
+    void upload(UploadQueue<Path> queue) throws FileUploadException;
 
     Integer maxConcurrent();
 }

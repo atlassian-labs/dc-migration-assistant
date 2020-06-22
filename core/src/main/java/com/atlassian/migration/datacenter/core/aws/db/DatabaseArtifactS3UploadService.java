@@ -18,11 +18,14 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.aws.MigrationStageCallback;
 import com.atlassian.migration.datacenter.core.fs.Crawler;
+import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploader;
 import com.atlassian.migration.datacenter.core.fs.DirectoryStreamCrawler;
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.FileUploadException;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploader;
+import com.atlassian.migration.datacenter.core.fs.ReportType;
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig;
 import com.atlassian.migration.datacenter.core.fs.S3Uploader;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -35,12 +38,14 @@ public class DatabaseArtifactS3UploadService {
     private final Supplier<S3AsyncClient> s3AsyncClientSupplier;
     private final MigrationStageCallback migrationStageCallback;
     private S3AsyncClient s3AsyncClient;
-    private final FileSystemMigrationReport fileSystemMigrationReport;
+    private final FileSystemMigrationReportManager reportManager;
 
-    public DatabaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier, MigrationStageCallback migrationStageCallback) {
+    public DatabaseArtifactS3UploadService(Supplier<S3AsyncClient> s3AsyncClientSupplier,
+                                           MigrationStageCallback migrationStageCallback,
+                                           FileSystemMigrationReportManager reportManager) {
         this.s3AsyncClientSupplier = s3AsyncClientSupplier;
-        this.fileSystemMigrationReport = new DefaultFileSystemMigrationReport();
         this.migrationStageCallback = migrationStageCallback;
+        this.reportManager = reportManager;
     }
 
     @PostConstruct
@@ -48,16 +53,19 @@ public class DatabaseArtifactS3UploadService {
         this.s3AsyncClient = this.s3AsyncClientSupplier.get();
     }
 
-    public FileSystemMigrationReport upload(Path target, String targetBucketName) throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+    public FileSystemMigrationReport upload(Path target, String targetBucketName) throws InvalidMigrationStageError, FileUploadException
+    {
         s3AsyncClient = s3AsyncClientSupplier.get();
         this.migrationStageCallback.assertInStartingStage();
-        FilesystemUploader filesystemUploader = buildFileSystemUploader(target, targetBucketName, fileSystemMigrationReport, s3AsyncClient);
+
+        FileSystemMigrationReport report = reportManager.resetReport(ReportType.Database);
+        FilesystemUploader filesystemUploader = buildFileSystemUploader(target, targetBucketName, report, s3AsyncClient);
 
         this.migrationStageCallback.transitionToServiceWaitStage();
         filesystemUploader.uploadDirectory(target);
 
         this.migrationStageCallback.transitionToServiceNextStage();
-        return fileSystemMigrationReport;
+        return report;
     }
 
     //TODO: Use builder pattern instead of creating dependencies like this.
@@ -65,6 +73,6 @@ public class DatabaseArtifactS3UploadService {
         S3UploadConfig config = new S3UploadConfig(targetBucketName, s3Client, target.getParent());
         S3Uploader uploader = new S3Uploader(config, migrationReport);
         Crawler crawler = new DirectoryStreamCrawler(migrationReport);
-        return new FilesystemUploader(crawler, uploader);
+        return new DefaultFilesystemUploader(crawler, uploader);
     }
 }

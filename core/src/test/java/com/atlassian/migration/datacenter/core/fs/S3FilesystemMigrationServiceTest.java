@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,13 +71,15 @@ class S3FilesystemMigrationServiceTest {
     @InjectMocks
     S3FilesystemMigrationService fsService;
 
+    FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
+
     @BeforeEach
     void setUp() {
         attachmentListener = new JiraIssueAttachmentListener(
                 mock(EventPublisher.class),
                 mock(AttachmentCaptor.class)
         );
-        fsService = new S3FilesystemMigrationService(mockEnv, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy);
+        fsService = new S3FilesystemMigrationService(mockEnv, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
     }
 
     @Test
@@ -100,16 +103,15 @@ class S3FilesystemMigrationServiceTest {
     }
 
     @Test
-    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FilesystemUploader.FileUploadException {
+    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FileUploadException
+    {
         givenNoSpringProfileActive();
 
         final String errorMessage = "Failed to migrate content. File not found: abc";
         when(this.migrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
         doThrow(
-                new FilesystemUploader.FileUploadException(errorMessage)
-        )
-                .when(bulkCopy)
-                .copySharedHomeToS3();
+            new FileUploadException(errorMessage)
+        ).when(bulkCopy).copySharedHomeToS3();
 
         fsService.startMigration();
 
@@ -125,7 +127,8 @@ class S3FilesystemMigrationServiceTest {
             fsService.startMigration();
         });
 
-        assertEquals(FilesystemMigrationStatus.NOT_STARTED, fsService.getReport().getStatus());
+        FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
+        assertEquals(FilesystemMigrationStatus.NOT_STARTED, report.getStatus());
     }
 
     @Test
@@ -134,7 +137,8 @@ class S3FilesystemMigrationServiceTest {
 
         fsService.startMigration();
 
-        assertEquals(fsService.getReport().getStatus(), FilesystemMigrationStatus.NOT_STARTED);
+        FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
+        assertEquals(report.getStatus(), FilesystemMigrationStatus.NOT_STARTED);
     }
 
     @Test
@@ -161,7 +165,8 @@ class S3FilesystemMigrationServiceTest {
         fsService.abortMigration();
 
         verify(migrationService).error("File system migration was aborted");
-        assertEquals(fsService.getReport().getStatus(), FilesystemMigrationStatus.FAILED);
+        FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
+        assertEquals(report.getStatus(), FilesystemMigrationStatus.FAILED);
     }
 
     @Test

@@ -19,7 +19,6 @@ package com.atlassian.migration.datacenter.core.fs;
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -48,22 +47,22 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     private final JiraIssueAttachmentListener attachmentListener;
     private final S3BulkCopy bulkCopy;
 
-    private FileSystemMigrationReport report;
+    private FileSystemMigrationReportManager reportManager;
 
     public S3FilesystemMigrationService(Environment environment,
                                         S3SyncFileSystemDownloadManager fileSystemDownloadManager,
                                         MigrationService migrationService,
                                         MigrationRunner migrationRunner,
                                         JiraIssueAttachmentListener attachmentListener,
-                                        S3BulkCopy bulkCopy) {
+                                        S3BulkCopy bulkCopy,
+                                        FileSystemMigrationReportManager reportManager) {
         this.environment = environment;
         this.migrationService = migrationService;
         this.migrationRunner = migrationRunner;
         this.fileSystemDownloadManager = fileSystemDownloadManager;
         this.attachmentListener = attachmentListener;
         this.bulkCopy = bulkCopy;
-
-        this.report = new DefaultFileSystemMigrationReport();
+        this.reportManager = reportManager;
     }
 
     @Override
@@ -72,16 +71,11 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     }
 
     @Override
-    public FileSystemMigrationReport getReport() {
-        return report;
-    }
-
-    @Override
     public boolean scheduleMigration() throws InvalidMigrationStageError {
         migrationService.assertCurrentStage(FS_MIGRATION_COPY);
 
         JobId jobId = getScheduledJobId();
-        S3UploadJobRunner jobRunner = new S3UploadJobRunner(this);
+        S3UploadJobRunner jobRunner = new S3UploadJobRunner(this, reportManager);
 
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
 
@@ -113,8 +107,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
             }
         }
 
-        report = new DefaultFileSystemMigrationReport();
-        bulkCopy.bindMigrationReport(report);
+        FileSystemMigrationReport report = reportManager.resetReport(ReportType.Filesystem);
 
         logger.info("commencing upload of shared home");
         try {
@@ -147,6 +140,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         }
 
         logger.warn("Aborting running filesystem migration");
+        FileSystemMigrationReport report = reportManager.resetReport(ReportType.Filesystem);
         report.setStatus(FAILED);
         bulkCopy.abortCopy();
 

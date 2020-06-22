@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs;
+package com.atlassian.migration.datacenter.core.fs
 
-import java.nio.file.Path;
+import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
 
-public interface FilesystemUploader
+class DefaultFilesystemUploaderFactory(private val uploaderFactory: UploaderFactory)
+    : FilesystemUploaderFactory
 {
-    void uploadDirectory(Path dir) throws FileUploadException;
+    override fun newUploader(report: FileSystemMigrationReport): FilesystemUploader {
+        // TODO: Should probably be a factory too
+        val crawler: Crawler = DirectoryStreamCrawler(report)
+        val uploader = uploaderFactory.newUploader(report)
 
-    void abort();
+        return DefaultFilesystemUploader(crawler, uploader)
+    }
 }

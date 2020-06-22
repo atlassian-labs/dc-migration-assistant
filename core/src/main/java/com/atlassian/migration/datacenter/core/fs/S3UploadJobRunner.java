@@ -40,9 +40,13 @@ public class S3UploadJobRunner implements MigrationJobRunner
     public static final String KEY = "com.atlassian.migration.datacenter.fs.S3UploadJobRunner";
     private static Logger log = LoggerFactory.getLogger(S3UploadJobRunner.class);
     private final FilesystemMigrationService fsMigrationService;
+    private final FileSystemMigrationReportManager reportManager;
 
-    public S3UploadJobRunner(FilesystemMigrationService fsMigrationService) {
+    public S3UploadJobRunner(FilesystemMigrationService fsMigrationService,
+                             FileSystemMigrationReportManager reportManager)
+    {
         this.fsMigrationService = fsMigrationService;
+        this.reportManager = reportManager;
     }
 
     @Nullable
@@ -60,7 +64,7 @@ public class S3UploadJobRunner implements MigrationJobRunner
             return JobRunnerResponse.failed(e);
         }
 
-        final FileSystemMigrationReport report = fsMigrationService.getReport();
+        final FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
         log.info("Finished S3 migration job: {}", report);
 
         return JobRunnerResponse.success("S3 upload completed.");

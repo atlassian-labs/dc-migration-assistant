@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.api.fs
 
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
@@ -39,6 +40,9 @@ internal class FileSystemMigrationEndpointTest {
 
     @MockK
     lateinit var attachmentSyncManager: AttachmentSyncManager
+
+    @MockK
+    lateinit var reportManager: FileSystemMigrationReportManager
 
     @InjectMockKs
     lateinit var endpoint: FileSystemMigrationEndpoint

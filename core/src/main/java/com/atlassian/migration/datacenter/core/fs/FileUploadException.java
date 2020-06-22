@@ -16,11 +16,15 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import java.nio.file.Path;
+import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure;
 
-public interface FilesystemUploader
+public class FileUploadException extends FileSystemMigrationFailure
 {
-    void uploadDirectory(Path dir) throws FileUploadException;
+    public FileUploadException(String message) {
+        super(message);
+    }
 
-    void abort();
+    public FileUploadException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

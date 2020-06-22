@@ -15,6 +15,8 @@
  */
 package com.atlassian.migration.datacenter.api.fs
 
+import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
+import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
@@ -44,13 +46,16 @@ import kotlin.test.assertTrue
 @ExtendWith(MockKExtension::class)
 class FileSystemMigrationProgressEndpointTest {
     @MockK
-    lateinit var fsMigrationService: FilesystemMigrationService
-
-    @MockK
     lateinit var report: FileSystemMigrationReport
 
     @MockK
+    lateinit var reportManager: FileSystemMigrationReportManager
+
+    @MockK
     lateinit var attachmentSyncManager: AttachmentSyncManager
+
+    @MockK
+    lateinit var fsMigrationService: FilesystemMigrationService
 
     @InjectMockKs
     lateinit var endpoint: FileSystemMigrationEndpoint
@@ -65,7 +70,7 @@ class FileSystemMigrationProgressEndpointTest {
         val failedFileMigration = FailedFileMigration(testFile, testReason)
         val failedFilesCollection = hashSetOf<FailedFileMigration>()
         failedFilesCollection.add(failedFileMigration)
-        every { fsMigrationService.report } returns mockk {
+        every { reportManager.getCurrentReport(ReportType.Filesystem) } returns mockk {
             every { status } returns FilesystemMigrationStatus.UPLOADING
             every { getNumberOfCommencedFileUploads() } returns 1L
             every { getNumberOfFilesFound() } returns 1L
@@ -100,7 +105,7 @@ class FileSystemMigrationProgressEndpointTest {
 
     @Test
     fun shouldHandleVeryLargeReport() {
-        every { fsMigrationService.report } returns report
+        every { reportManager.getCurrentReport(ReportType.Filesystem) } returns report
         every { report.status } returns FilesystemMigrationStatus.UPLOADING
         every { report.elapsedTime } returns Duration.ofMinutes(1)
         every { report.getNumberOfFilesFound() } returns 1000000L
@@ -141,7 +146,7 @@ class FileSystemMigrationProgressEndpointTest {
 
     @Test
     fun shouldReturnBadRequestWhenNoReportExists() {
-        every { fsMigrationService.report } returns null
+        every { reportManager.getCurrentReport(ReportType.Filesystem) } returns null
 
         val response = endpoint.getFilesystemMigrationStatus()
 
@@ -157,7 +162,7 @@ class FileSystemMigrationProgressEndpointTest {
         val reportMock = mockk<FileSystemMigrationReport>()
         every { reportMock.status } returns FilesystemMigrationStatus.UPLOADING
         every { fsMigrationService.isRunning } returns true
-        every { fsMigrationService.report } returns reportMock
+        every { reportManager.getCurrentReport(ReportType.Filesystem) } returns reportMock
 
         val response = endpoint.runFileMigration()
 
