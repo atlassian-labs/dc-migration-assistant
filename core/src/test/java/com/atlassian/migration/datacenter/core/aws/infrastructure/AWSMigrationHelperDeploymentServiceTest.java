@@ -247,31 +247,24 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     //Migration context stub object/data-class may make this test simpler
     private void expectStackDetailsToBePersistedInMigrationContext() {
-        doNothing().when(mockContext).setFsRestoreSsmDocument("");
         doNothing().when(mockContext).setFsRestoreSsmDocument(FS_DOWNLOAD_DOC);
         lenient().when(mockContext.getFsRestoreSsmDocument()).thenReturn(FS_DOWNLOAD_DOC);
 
-        doNothing().when(mockContext).setFsRestoreStatusSsmDocument("");
         doNothing().when(mockContext).setFsRestoreStatusSsmDocument(FS_DOWNLOAD_STATUS_DOC);
         lenient().when(mockContext.getFsRestoreStatusSsmDocument()).thenReturn(FS_DOWNLOAD_STATUS_DOC);
 
-        doNothing().when(mockContext).setRdsRestoreSsmDocument("");
         doNothing().when(mockContext).setRdsRestoreSsmDocument(DB_RESTORE_DOC);
         lenient().when(mockContext.getRdsRestoreSsmDocument()).thenReturn(DB_RESTORE_DOC);
 
-        doNothing().when(mockContext).setMigrationStackAsgIdentifier("");
         doNothing().when(mockContext).setMigrationStackAsgIdentifier(MIGRATION_ASG);
         lenient().when(mockContext.getMigrationStackAsgIdentifier()).thenReturn(MIGRATION_ASG);
 
-        doNothing().when(mockContext).setMigrationBucketName("");
         doNothing().when(mockContext).setMigrationBucketName(MIGRATION_BUCKET);
         lenient().when(mockContext.getMigrationBucketName()).thenReturn(MIGRATION_BUCKET);
 
-        doNothing().when(mockContext).setMigrationQueueUrl("");
         doNothing().when(mockContext).setMigrationQueueUrl(QUEUE_PHYSICAL_RESOURCE_ID);
         lenient().when(mockContext.getMigrationQueueUrl()).thenReturn(QUEUE_PHYSICAL_RESOURCE_ID);
 
-        doNothing().when(mockContext).setMigrationDLQueueUrl("");
         doNothing().when(mockContext).setMigrationDLQueueUrl(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
         lenient().when(mockContext.getMigrationDLQueueUrl()).thenReturn(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID);
 
