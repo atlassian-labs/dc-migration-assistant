@@ -231,4 +231,9 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
         currentContext.save();
     }
+
+    @Override
+    public void clearPersistedStackDetails() {
+        resetStackOutputs();
+    }
 }

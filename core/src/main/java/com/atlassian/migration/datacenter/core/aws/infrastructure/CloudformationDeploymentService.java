@@ -77,9 +77,7 @@ public abstract class CloudformationDeploymentService {
 
     protected InfrastructureDeploymentState getDeploymentStatus(String stackName) {
         requireNonNull(stackName);
-        InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
-
-        return status;
+        return cfnApi.getStatus(stackName);
     }
 
     private void beginWatchingDeployment(String stackName) {

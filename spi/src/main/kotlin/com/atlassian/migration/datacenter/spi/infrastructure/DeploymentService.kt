@@ -16,5 +16,6 @@
 package com.atlassian.migration.datacenter.spi.infrastructure
 
 interface DeploymentService {
+    fun clearPersistedStackDetails()
     val deploymentStatus: InfrastructureDeploymentState
 }
