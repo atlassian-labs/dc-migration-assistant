@@ -79,14 +79,6 @@ public abstract class CloudformationDeploymentService {
         requireNonNull(stackName);
         InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
 
-        if (isFailedToCreateDeploymentState(status)) {
-            //FIXME: implement getting a good error
-            String reason = cfnApi.getStackErrorRootCause(stackName).orElse("Deployment failed for unknown reason. Try checking the cloudformation console");
-            logger.error("discovered that cloudformation stack deployment failed when getting status. Reason is: {}", reason);
-            handleFailedDeployment(reason);
-            deploymentWatcher.cancel(true);
-        }
-
         return status;
     }
 

@@ -82,7 +82,7 @@ class MigrationEndpointTest {
         every { migrationService.currentStage } returns MigrationStage.VALIDATE
         every { migrationService.currentContext } returns migrationContext
         every { migrationContext.serviceUrl } returns expectedServiceUrl
-        every { migrationContext.errorMessage } returns "foobar"
+        every { migrationContext.getErrorMessage() } returns "foobar"
 
         val response = sut.getMigrationSummary()
 
@@ -154,7 +154,7 @@ class MigrationEndpointTest {
         every { migrationService.currentStage } returns MigrationStage.ERROR
         every { migrationService.currentContext } returns migrationContext
         every { migrationContext.serviceUrl } returns "foobar"
-        every { migrationContext.errorMessage } returns expectedError
+        every { migrationContext.getErrorMessage() } returns expectedError
 
         val response = sut.getMigrationSummary()
 

@@ -149,6 +149,7 @@
                                 -XX:+UseG1GC -Datlassian.darkfeature.jira.onboarding.feature.disabled=true
                                 -Datlassian.mail.senddisabled=false -Djira.startup.warnings.disable=true
                                 -Dtroubleshooting.dev.mode=true -Xmx1536m -Xms512m -XX:ReservedCodeCacheSize=256m -XX:MaxMetaspaceSize=512m
+                                -Dspring.profiles.active=${amps.spring.profiles}
                             </jvmArgs>
                         </product>
                     </products>

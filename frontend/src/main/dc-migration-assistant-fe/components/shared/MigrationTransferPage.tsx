@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, ReactNode, useEffect, useState } from 'react';
+import React, {FunctionComponent, ReactNode, useEffect, useState} from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
-import { Redirect } from 'react-router-dom';
-import { I18n } from '@atlassian/wrm-react-i18n';
+import {I18n} from '@atlassian/wrm-react-i18n';
 
-import { MigrationTransferActions } from './MigrationTransferPageActions';
-import { Progress, ProgressCallback } from './Progress';
-import { migration, MigrationStage } from '../../api/migration';
-import { MigrationProgress } from './MigrationTransferProgress';
-import { migrationErrorPath } from '../../utils/RoutePaths';
-import { CommandDetails as CommandResult } from '../../api/final-sync';
-import { MigrationErrorSection } from './MigrationErrorSection';
+import {MigrationTransferActions} from './MigrationTransferPageActions';
+import {Progress, ProgressCallback} from './Progress';
+import {migration, MigrationStage} from '../../api/migration';
+import {MigrationProgress} from './MigrationTransferProgress';
+import {CommandDetails as CommandResult} from '../../api/final-sync';
+import {MigrationErrorSection} from './MigrationErrorSection';
 
-const POLL_INTERVAL_MILLIS = 3000;
+const POLL_INTERVAL_MILLIS = 8000;
 
 export interface RetryCallback {
     (): Promise<Response>;
@@ -142,20 +140,21 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const [finished, setFinished] = useState<boolean>(false);
     const [failed, setFailed] = useState<boolean>(false);
     const [commandResult, setCommandResult] = useState<CommandResult>();
-    const errorStages = [MigrationStage.ERROR];
 
     const updateProgress = async (): Promise<void> => {
         return getProgress()
             .then(result => {
                 setProgressList(result);
                 setLoading(false);
-                const allFinished =
-                    result.length > 0 && result.every(progress => progress?.completeness === 1);
-                setFinished(allFinished);
+                setFinished(
+                    result.length > 0 && result.every(progress => progress?.completeness === 1)
+                );
+                setFailed(result.some(progress => progress?.failed));
             })
             .catch(err => {
                 setProgressFetchingError(err.message);
                 setLoading(false);
+                setFailed(true);
             });
     };
 
@@ -177,12 +176,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         migration
             .getMigrationStage()
             .then(stage => {
-                if (errorStages.includes(stage)) {
-                    setProgressFetchingError(
-                        I18n.getText('atlassian.migration.datacenter.provision.aws.status.error')
-                    );
-                    setFailed(true);
-                } else if (inProgressStages.includes(stage)) {
+                if (inProgressStages.includes(stage)) {
                     setStarted(true);
                     updateProgress();
                 }
@@ -219,14 +213,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
         }
         return (): void => undefined;
     }, [started]);
-
-    if (progressList.some(progress => progress?.failed)) {
-        setLoading(false);
-        setFailed(true);
-        if (!retryText) {
-            return <Redirect to={migrationErrorPath} push />;
-        }
-    }
 
     const transferError = progressList
         .filter(progress => progress?.errorMessage)

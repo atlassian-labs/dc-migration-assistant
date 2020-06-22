@@ -17,13 +17,18 @@ package com.atlassian.migration.datacenter.dto
 
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import net.java.ao.Entity
+import net.java.ao.schema.StringLength
 
 interface MigrationContext : Entity {
     var migration: Migration
     var applicationDeploymentId: String
     var helperStackDeploymentId: String
     var serviceUrl: String
-    var errorMessage: String
+
+    // We use methods for these properties because the annotation cannot target a var
+    @StringLength(value = 450)
+    fun setErrorMessage(err: String)
+    fun getErrorMessage(): String
 
     var deploymentMode: ProvisioningConfig.DeploymentMode
 

@@ -221,6 +221,8 @@ internal class CloudFormationEndpointTest {
         every { migrationSerivce.currentContext } returns context
         val helperDeploymentId = "helper-deployment"
         every { context.helperStackDeploymentId } returns helperDeploymentId
+        val appDeploymentId = "appId"
+        every { context.applicationDeploymentId } returns appDeploymentId
 
         val testRegion = "us-east-1"
         every { regionService.region } returns testRegion
@@ -228,6 +230,7 @@ internal class CloudFormationEndpointTest {
 
         val permissionError = "you dont have permission"
         every { cfnApi.getStackErrorRootCause(helperDeploymentId) } returns Optional.of(permissionError)
+        every { cfnApi.getStackErrorRootCause(appDeploymentId) } returns Optional.empty()
 
         val response = endpoint.infrastructureStatus()
 
