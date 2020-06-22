@@ -78,8 +78,6 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
      */
     @Override
     public void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError {
-        resetStackOutputs();
-
         migrationService.assertCurrentStage(MigrationStage.PROVISION_MIGRATION_STACK);
 
         String migrationStackDeploymentId = constructMigrationStackDeploymentIdentifier();
@@ -216,8 +214,8 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         context.save();
     }
 
-    //Probably useful when we retry a specific migration stage (In which case we can make every retryable an interface that removes a specific part of the context? or we can remove the migration context when we restart a quickstart deployment, in which case, this can be removed)
-    private void resetStackOutputs() {
+    @Override
+    public void clearPersistedStackDetails() {
         MigrationContext currentContext = migrationService.getCurrentContext();
         currentContext.setFsRestoreSsmDocument("");
         currentContext.setFsRestoreStatusSsmDocument("");
@@ -229,11 +227,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         currentContext.setMigrationQueueUrl("");
         currentContext.setMigrationDLQueueUrl("");
 
+        currentContext.setHelperStackDeploymentId("");
         currentContext.save();
-    }
-
-    @Override
-    public void clearPersistedStackDetails() {
-        resetStackOutputs();
     }
 }

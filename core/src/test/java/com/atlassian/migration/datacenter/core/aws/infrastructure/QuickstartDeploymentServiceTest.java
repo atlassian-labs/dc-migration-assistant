@@ -102,7 +102,7 @@ class QuickstartDeploymentServiceTest {
     void setUp() {
         Properties properties = new Properties();
         final String passwordPropertyKey = "password";
-        lenient().doAnswer(invocation -> {
+        doAnswer(invocation -> {
             properties.setProperty(passwordPropertyKey, invocation.getArgument(0));
             return null;
         }).when(dbCredentialsStorageService).storeCredentials(anyString());
@@ -246,17 +246,6 @@ class QuickstartDeploymentServiceTest {
         }
 
         verify(mockContext).setDeploymentMode(mode);
-    }
-
-    @Test
-    void shouldClearPersistedStackInformation(){
-        when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
-        deploymentService.clearPersistedStackDetails();
-
-        verify(mockContext).setDeploymentMode(null);
-        verify(mockContext).setApplicationDeploymentId("");
-        verify(mockContext).setServiceUrl("");
-        verify(mockContext).save();
     }
 
     private void givenStackDeploymentWillBeInProgress() {
