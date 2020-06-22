@@ -21,6 +21,7 @@ import styled from 'styled-components';
 import { Checkbox } from '@atlaskit/checkbox';
 import { CancelButton } from './CancelButton';
 import { RetryCallback } from './MigrationTransferPage';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 export type MigrationTransferActionsProps = {
     /**
@@ -163,7 +164,9 @@ export const MigrationTransferActions: FunctionComponent<MigrationTransferAction
                 <CheckboxContainer>
                     <Checkbox
                         value="true"
-                        label="Everything looks good, Let's try again"
+                        label={I18n.getText(
+                            'atlassian.migration.datacenter.common.aws.retry.checkbox.text'
+                        )}
                         onChange={(event: any): void => {
                             setRetryable(event.target.checked);
                         }}
