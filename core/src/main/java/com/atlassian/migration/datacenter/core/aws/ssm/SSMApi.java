@@ -17,6 +17,8 @@
 package com.atlassian.migration.datacenter.core.aws.ssm;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -53,9 +55,15 @@ public class SSMApi {
      *                            is a plain string then the list only have one element in it.
      * @return the command ID of the invoked command.
      */
-    public String runSSMDocument(String documentName, String targetEc2InstanceId, Map<String, List<String>> commandParameters) {
+    public String runSSMDocument(String documentName, String targetEc2InstanceId, Map<String, List<String>> commandParameters) throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         logger.debug("running document {} against instance {} with parameters {}", documentName, targetEc2InstanceId, commandParameters.entrySet());
         SsmClient client = clientFactory.get();
+        final String migrationS3BucketName;
+        try {
+            migrationS3BucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new S3SyncFileSystemDownloader.CannotLaunchCommandException("cannot get migration bucket for publishing SSM command logs", infrastructureDeploymentError);
+        }
         SendCommandRequest request = SendCommandRequest.builder()
                 .documentName(documentName)
                 .documentVersion("$LATEST")
@@ -63,7 +71,7 @@ public class SSMApi {
                 .parameters(commandParameters)
                 .timeoutSeconds(600)
                 .comment("command run by Jira DC Migration Assistant")
-                .outputS3BucketName(migrationHelperDeploymentService.getMigrationS3BucketName())
+                .outputS3BucketName(migrationS3BucketName)
                 .outputS3KeyPrefix(ssmS3KeyPrefix)
                 .build();
 

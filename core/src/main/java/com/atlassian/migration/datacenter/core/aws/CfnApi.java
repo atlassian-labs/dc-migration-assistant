@@ -225,7 +225,7 @@ public class CfnApi {
         }
     }
 
-    public void deleteStack(String stackName) {
+    public void deleteStack(String stackName) throws InfrastructureDeploymentError {
         logger.trace("received request to delete stack {}", stackName);
 
         try {

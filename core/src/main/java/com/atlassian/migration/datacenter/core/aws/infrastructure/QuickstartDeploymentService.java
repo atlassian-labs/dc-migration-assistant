@@ -82,7 +82,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
      * @throws InfrastructureDeploymentError when quickstart fails to deploy
      */
     @Override
-    public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
+    public void deployApplication(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError, InfrastructureDeploymentError {
         logger.info("received request to deploy application");
 
         MigrationContext context = migrationService.getCurrentContext();
@@ -105,7 +105,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
      * @throws InfrastructureDeploymentError when quickstart fails to deploy
      */
     @Override
-    public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError {
+    public void deployApplicationWithNetwork(@NotNull String deploymentId, @NotNull Map<String, String> params) throws InvalidMigrationStageError, InfrastructureDeploymentError {
         logger.info("received request to deploy application and virtual network");
 
         MigrationContext context = migrationService.getCurrentContext();
@@ -125,7 +125,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         context.setDeploymentMode(mode);
     }
 
-    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InfrastructureDeploymentError, InvalidMigrationStageError {
+    private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InvalidMigrationStageError, InfrastructureDeploymentError {
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");

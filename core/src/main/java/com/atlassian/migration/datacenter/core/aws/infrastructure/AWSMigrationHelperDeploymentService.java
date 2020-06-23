@@ -77,7 +77,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
      * @throws InfrastructureDeploymentError when deployment fails
      */
     @Override
-    public void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError {
+    public void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError, InfrastructureDeploymentError {
         migrationService.assertCurrentStage(MigrationStage.PROVISION_MIGRATION_STACK);
 
         String migrationStackDeploymentId = constructMigrationStackDeploymentIdentifier();
@@ -90,11 +90,16 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     protected void handleSuccessfulDeployment() {
-        String stackId = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getHelperStackDeploymentId(), "com.atlassian.migration.migrationStack.id");
+        String stackId;
+        try {
+            stackId = getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getHelperStackDeploymentId(), "com.atlassian.migration.migrationStack.id");
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new RuntimeException(infrastructureDeploymentError);
+        }
 
         Optional<Stack> maybeStack = cfnApi.getStack(stackId);
         if (!maybeStack.isPresent()) {
-            throw new InfrastructureDeploymentError("stack was not found by DescribeStack even though it succeeded");
+            throw new RuntimeException(new InfrastructureDeploymentError("stack was not found by DescribeStack even though it succeeded"));
         }
 
         Stack stack = maybeStack.get();
@@ -137,31 +142,31 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         migrationService.error(error);
     }
 
-    public String getFsRestoreDocument() {
+    public String getFsRestoreDocument() throws InfrastructureDeploymentError {
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getFsRestoreSsmDocument(), "com.atlassian.migration.s3sync.documentName");
     }
 
-    public String getFsRestoreStatusDocument() {
+    public String getFsRestoreStatusDocument() throws InfrastructureDeploymentError {
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getFsRestoreStatusSsmDocument(), "com.atlassian.migration.s3sync.statusDocumentName");
     }
 
-    public String getDbRestoreDocument() {
+    public String getDbRestoreDocument() throws InfrastructureDeploymentError {
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getRdsRestoreSsmDocument(), "com.atlassian.migration.psql.documentName");
     }
 
-    public String getMigrationS3BucketName() {
+    public String getMigrationS3BucketName() throws InfrastructureDeploymentError {
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationBucketName(), "S3_TARGET_BUCKET_NAME");
     }
 
-    public String getQueueResource() {
+    public String getQueueResource() throws InfrastructureDeploymentError {
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationQueueUrl(), "com.atlassian.migration.queue.migrationQueueName");
     }
 
-    public String getDeadLetterQueueResource() {
+    public String getDeadLetterQueueResource() throws InfrastructureDeploymentError {
         return getMigrationStackPropertyOrOverride(() -> migrationService.getCurrentContext().getMigrationDLQueueUrl(), "com.atlassian.migration.queue.deadLetterQueueName");
     }
 
-    public String getMigrationHostInstanceId() {
+    public String getMigrationHostInstanceId() throws InfrastructureDeploymentError {
         final String documentOverride = System.getProperty("com.atlassian.migration.hostInstanceId");
         if (documentOverride != null) {
             return documentOverride;
@@ -183,7 +188,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         return migrationInstance.instanceId();
     }
 
-    private String getMigrationStackPropertyOrOverride(Supplier<String> supplier, String migrationStackPropertySystemOverrideKey) {
+    private String getMigrationStackPropertyOrOverride(Supplier<String> supplier, String migrationStackPropertySystemOverrideKey) throws InfrastructureDeploymentError {
         final String documentOverride = System.getProperty(migrationStackPropertySystemOverrideKey);
 
         if (documentOverride != null) {
@@ -192,7 +197,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
         return ensureStackOutputIsSet(supplier);
     }
 
-    private String ensureStackOutputIsSet(Supplier<String> supplier) {
+    private String ensureStackOutputIsSet(Supplier<String> supplier) throws InfrastructureDeploymentError {
         String value = supplier.get();
         if (StringUtils.isBlank(value))
             throw new InfrastructureDeploymentError("migration stack outputs are not set");

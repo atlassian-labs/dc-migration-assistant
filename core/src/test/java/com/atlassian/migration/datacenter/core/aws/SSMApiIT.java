@@ -21,6 +21,7 @@ import cloud.localstack.docker.LocalstackDockerExtension;
 import cloud.localstack.docker.annotation.LocalstackDockerProperties;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
@@ -62,7 +63,7 @@ public class SSMApiIT {
 
     @Test
     @Disabled("Requires true authentication to AWS and a specific EC2 instance to be running")
-    void shouldSendSsmCommandToAWS() {
+    void shouldSendSsmCommandToAWS() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         final String documentName = "AWS-RunShellScript";
         // Node ID of ConfluenceGiveMeAllTheData Confluence Node in us-east-1
         final String targetEc2InstanceId = "i-0d536acd983bade05";

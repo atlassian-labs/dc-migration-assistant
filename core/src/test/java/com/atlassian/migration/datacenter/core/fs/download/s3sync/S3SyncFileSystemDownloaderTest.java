@@ -18,7 +18,7 @@ package com.atlassian.migration.datacenter.core.fs.download.s3sync;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
-import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader.IndeterminateS3SyncStatusException;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +59,7 @@ class S3SyncFileSystemDownloaderTest {
     S3SyncFileSystemDownloader sut;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws InfrastructureDeploymentError {
         lenient().when(migrationHelperDeploymentService.getFsRestoreDocument()).thenReturn("fs-restore-doc");
         lenient().when(migrationHelperDeploymentService.getFsRestoreStatusDocument()).thenReturn("fs-restore-status-do");
         lenient().when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn("i-0123456789");
@@ -105,7 +105,7 @@ class S3SyncFileSystemDownloaderTest {
     }
 
     @Test
-    void shouldGetStatusOfSsmCommand() throws IndeterminateS3SyncStatusException {
+    void shouldGetStatusOfSsmCommand() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         givenSyncCommandIsRunning();
 
         givenStatusCommandCompletesSuccessfullyWithOutput(SYNC_STATUS_SUCCESS_COMPLETE_JSON);
@@ -118,7 +118,7 @@ class S3SyncFileSystemDownloaderTest {
     }
 
     @Test
-    void shouldGetStatusWhenSyncIsPartiallyCompleteButNoLongerCalculating() throws IndeterminateS3SyncStatusException {
+    void shouldGetStatusWhenSyncIsPartiallyCompleteButNoLongerCalculating() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         givenSyncCommandIsRunning();
 
         givenStatusCommandCompletesSuccessfullyWithOutput(SYNC_STATUS_DETERMINED_PARTIAL_JSON);
@@ -133,7 +133,7 @@ class S3SyncFileSystemDownloaderTest {
     }
 
     @Test
-    void shouldGetStatusWhenSyncIsCompleteWithErrors() throws IndeterminateS3SyncStatusException {
+    void shouldGetStatusWhenSyncIsCompleteWithErrors() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         givenSyncCommandIsRunning();
 
         givenStatusCommandCompletesSuccessfullyWithOutput(SYNC_STATUS_COMPLETE_ERROR_JSON);
@@ -149,7 +149,7 @@ class S3SyncFileSystemDownloaderTest {
     }
 
     @Test
-    void shouldGetStatusWhenSyncIsPartiallyCompleteWithErrors() throws IndeterminateS3SyncStatusException {
+    void shouldGetStatusWhenSyncIsPartiallyCompleteWithErrors() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         givenSyncCommandIsRunning();
 
         givenStatusCommandCompletesSuccessfullyWithOutput(SYNC_STATUS_PARTIAL_CALCULATING_WITH_ERROR_JSON);
@@ -165,7 +165,7 @@ class S3SyncFileSystemDownloaderTest {
         assertThat(status.getErrors(), hasItem("Oh dang it broke\n"));
     }
 
-    private void givenSyncCommandIsRunning() {
+    private void givenSyncCommandIsRunning() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         when(mockSsmApi.runSSMDocument(anyString(), anyString(), anyMap())).thenReturn("status-command-invocation");
     }
 
@@ -177,7 +177,7 @@ class S3SyncFileSystemDownloaderTest {
         when(mockSsmApi.getSSMCommand(anyString(), anyString())).thenReturn(mockStatusResponse);
     }
 
-    private S3SyncCommandStatus whenStatusCommandIsInvoked() throws IndeterminateS3SyncStatusException {
+    private S3SyncCommandStatus whenStatusCommandIsInvoked() throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
         return sut.getFileSystemDownloadStatus();
     }
 }

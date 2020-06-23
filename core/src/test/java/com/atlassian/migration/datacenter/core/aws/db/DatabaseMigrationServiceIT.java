@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
@@ -127,8 +128,7 @@ class DatabaseMigrationServiceIT {
 
 
     @Test
-    void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError
-    {
+    void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         MigrationStageCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
         DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(DatabaseExtractorFactory.getExtractor(configuration), archiveStageTransitionCallback);
 

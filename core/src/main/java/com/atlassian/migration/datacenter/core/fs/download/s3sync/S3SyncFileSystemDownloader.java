@@ -20,6 +20,7 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHe
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.ssm.SuccessfulSSMCommandConsumer;
 import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +46,14 @@ public class S3SyncFileSystemDownloader {
     }
 
     public void initiateFileSystemDownload() throws CannotLaunchCommandException {
-        String fsRestoreDocument = migrationHelperDeploymentService.getFsRestoreDocument();
-        String migrationHost = getMigrationHostId();
+        String fsRestoreDocument;
+        String migrationHost;
+        try {
+            fsRestoreDocument = migrationHelperDeploymentService.getFsRestoreDocument();
+            migrationHost = getMigrationHostId();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new CannotLaunchCommandException("cannot get FS restore SSM document", infrastructureDeploymentError);
+        }
 
         String commandID = ssmApi.runSSMDocument(fsRestoreDocument, migrationHost, Collections.emptyMap());
 
@@ -66,9 +73,15 @@ public class S3SyncFileSystemDownloader {
      *
      * @return the status of the S3 sync or null if the status was not able to be retrieved.
      */
-    public S3SyncCommandStatus getFileSystemDownloadStatus() {
-        String fsRestoreStatusDocument = migrationHelperDeploymentService.getFsRestoreStatusDocument();
-        String migrationHostId = getMigrationHostId();
+    public S3SyncCommandStatus getFileSystemDownloadStatus() throws CannotLaunchCommandException {
+        String fsRestoreStatusDocument;
+        String migrationHostId;
+        try {
+            fsRestoreStatusDocument = migrationHelperDeploymentService.getFsRestoreStatusDocument();
+            migrationHostId = getMigrationHostId();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new CannotLaunchCommandException("cannot get FS restore SSM docuÍment", infrastructureDeploymentError);
+        }
 
         String statusCommandId = ssmApi.runSSMDocument(fsRestoreStatusDocument, migrationHostId, Collections.emptyMap());
 
@@ -85,7 +98,7 @@ public class S3SyncFileSystemDownloader {
         }
     }
 
-    private String getMigrationHostId() {
+    private String getMigrationHostId() throws InfrastructureDeploymentError {
         return migrationHelperDeploymentService.getMigrationHostInstanceId();
     }
 

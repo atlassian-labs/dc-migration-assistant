@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationErrorReport;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.scheduler.config.JobId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,12 @@ public class DatabaseMigrationService {
 
         FileSystemMigrationErrorReport report;
 
-        String bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
+        String bucketName = null;
+        try {
+            bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new DatabaseMigrationFailure("error getting migration bucket", infrastructureDeploymentError);
+        }
 
         try {
             report = s3UploadService.upload(pathToDatabaseFile, bucketName);

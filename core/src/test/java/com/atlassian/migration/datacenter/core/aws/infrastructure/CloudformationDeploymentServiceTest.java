@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,14 +66,14 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldDeployQuickStart() {
+    void shouldDeployQuickStart() throws InfrastructureDeploymentError {
         deploySimpleStack();
 
         verify(mockCfnApi).provisionStack(TEMPLATE_URL, STACK_NAME, STACK_PARAMS);
     }
 
     @Test
-    void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
+    void shouldReturnInProgressWhileDeploying() throws InfrastructureDeploymentError {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
 
         deploySimpleStack();
@@ -82,7 +83,7 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException {
+    void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
         final String badStatus = "it broke";
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
 
@@ -99,7 +100,7 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException {
+    void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException, InfrastructureDeploymentError {
         final String badStatus = "it broke";
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.DELETE_IN_PROGRESS);
 
@@ -116,7 +117,7 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldCallHandleSuccessfulDeploymentWhenDeploymentFails() throws InterruptedException {
+    void shouldCallHandleSuccessfulDeploymentWhenDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         deploySimpleStack();
@@ -127,7 +128,7 @@ class CloudformationDeploymentServiceTest {
         assertFalse(deploymentFailed);
     }
 
-    private void deploySimpleStack() {
+    private void deploySimpleStack() throws InfrastructureDeploymentError {
         sut.deployCloudformationStack(TEMPLATE_URL, STACK_NAME, STACK_PARAMS);
     }
 

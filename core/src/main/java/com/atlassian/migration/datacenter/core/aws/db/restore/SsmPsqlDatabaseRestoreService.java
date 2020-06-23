@@ -21,13 +21,19 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHe
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.aws.ssm.SuccessfulSSMCommandConsumer;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.EnsureSuccessfulSSMCommandConsumer;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
 import java.util.Collections;
 
 public class SsmPsqlDatabaseRestoreService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SsmPsqlDatabaseRestoreService.class);
 
     private final int maxCommandRetries;
 
@@ -53,12 +59,22 @@ public class SsmPsqlDatabaseRestoreService {
 
     public void restoreDatabase()
             throws DatabaseMigrationFailure, InvalidMigrationStageError {
-        String dbRestorePlaybook = migrationHelperDeploymentService.getDbRestoreDocument();
-        String migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
+        String dbRestorePlaybook;
+        String migrationInstanceId;
+        try {
+            dbRestorePlaybook = migrationHelperDeploymentService.getDbRestoreDocument();
+            migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            throw new DatabaseMigrationFailure("unable to get outputs from migration stack", infrastructureDeploymentError);
+        }
 
         this.migrationStageCallback.assertInStartingStage();
 
-        this.commandId = ssm.runSSMDocument(dbRestorePlaybook, migrationInstanceId, Collections.emptyMap());
+        try {
+            this.commandId = ssm.runSSMDocument(dbRestorePlaybook, migrationInstanceId, Collections.emptyMap());
+        } catch (S3SyncFileSystemDownloader.CannotLaunchCommandException e) {
+            throw new DatabaseMigrationFailure("unable to run db restore SSM playbook");
+        }
 
         SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
                 migrationInstanceId);
@@ -81,15 +97,32 @@ public class SsmPsqlDatabaseRestoreService {
         if (getCommandId() == null) {
             throw new SsmCommandNotInitialisedException("SSM command was not executed");
         }
-        String migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
+        String migrationInstanceId;
+        try {
+            migrationInstanceId = migrationHelperDeploymentService.getMigrationHostInstanceId();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            final String msg = "migration host is lost";
+            logger.error(msg, infrastructureDeploymentError);
+            throw new SsmCommandNotInitialisedException(msg, infrastructureDeploymentError);
+        }
 
         final GetCommandInvocationResponse response = ssm.getSSMCommand(getCommandId(), migrationInstanceId);
 
         final SsmCommandResult ssmCommandOutputs = new SsmCommandResult();
         ssmCommandOutputs.errorMessage = response.standardErrorContent();
+
+        final String migrationS3BucketName;
+        try {
+            migrationS3BucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
+        } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            final String msg = "unable to get migration s3 bucket";
+            logger.error(msg, infrastructureDeploymentError);
+            throw new SsmCommandNotInitialisedException(msg);
+        }
+
         ssmCommandOutputs.consoleUrl = String.format(
                 "https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                migrationHelperDeploymentService.getMigrationS3BucketName(),
+                migrationS3BucketName,
                 ssm.getSsmS3KeyPrefix(),
                 response.commandId(),
                 response.instanceId(),
@@ -114,6 +147,10 @@ public class SsmPsqlDatabaseRestoreService {
     public static class SsmCommandNotInitialisedException extends Exception {
         public SsmCommandNotInitialisedException(String message) {
             super(message);
+        }
+
+        public SsmCommandNotInitialisedException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

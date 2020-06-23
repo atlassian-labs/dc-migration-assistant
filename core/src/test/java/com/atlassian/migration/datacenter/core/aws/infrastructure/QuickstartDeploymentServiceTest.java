@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,7 +122,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldDeployQuickStart() throws InvalidMigrationStageError {
+    void shouldDeployQuickStart() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deploySimpleStack();
 
         verify(mockCfnApi).provisionStack(
@@ -130,7 +131,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldDeployQuickStartWithVpc() throws InvalidMigrationStageError {
+    void shouldDeployQuickStartWithVpc() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deployWithVpcStack();
 
         verify(mockCfnApi).provisionStack(
@@ -139,7 +140,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldStoreDBCredentials() throws InvalidMigrationStageError {
+    void shouldStoreDBCredentials() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
 
         verify(dbCredentialsStorageService).storeCredentials(TEST_DB_PASSWORD);
@@ -147,7 +148,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError {
+    void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
         givenStackDeploymentWillBeInProgress();
 
@@ -158,7 +159,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldTransitionToWaitingForDeploymentWhileDeploymentIsCompleting() throws InvalidMigrationStageError, InterruptedException {
+    void shouldTransitionToWaitingForDeploymentWhileDeploymentIsCompleting() throws InvalidMigrationStageError, InterruptedException, InfrastructureDeploymentError {
         givenStackDeploymentWillBeInProgress();
 
         deploySimpleStack();
@@ -169,7 +170,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldTransitionMigrationServiceStateWhenDeploymentFinishes() throws InterruptedException, InvalidMigrationStageError {
+    void shouldTransitionMigrationServiceStateWhenDeploymentFinishes() throws InterruptedException, InvalidMigrationStageError, InfrastructureDeploymentError {
         givenStackDeploymentWillComplete();
         deploySimpleStack();
 
@@ -179,7 +180,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldTransitionMigrationServiceToErrorWhenDeploymentFails() throws InterruptedException, InvalidMigrationStageError {
+    void shouldTransitionMigrationServiceToErrorWhenDeploymentFails() throws InterruptedException, InvalidMigrationStageError, InfrastructureDeploymentError {
         givenStackDeploymentWillFail();
 
         deploySimpleStack();
@@ -190,7 +191,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldDeployMigrationStackWithApplicationStackOutputsAndResources() throws InvalidMigrationStageError, InterruptedException {
+    void shouldDeployMigrationStackWithApplicationStackOutputsAndResources() throws InvalidMigrationStageError, InterruptedException, InfrastructureDeploymentError {
         givenStackDeploymentWillComplete();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
         when(mockContext.getDeploymentMode()).thenReturn(ProvisioningConfig.DeploymentMode.STANDALONE);
@@ -221,7 +222,7 @@ class QuickstartDeploymentServiceTest {
     }
 
     @Test
-    void shouldStoreServiceUrlInMigrationContext() throws InvalidMigrationStageError, InterruptedException {
+    void shouldStoreServiceUrlInMigrationContext() throws InvalidMigrationStageError, InterruptedException, InfrastructureDeploymentError {
         givenStackDeploymentWillComplete();
         when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
         final String testServiceUrl = "https://my.loadbalancer";
@@ -238,7 +239,7 @@ class QuickstartDeploymentServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = ProvisioningConfig.DeploymentMode.class, names = {"WITH_NETWORK", "STANDALONE"})
-    void shouldStoreDeploymentModeInContext(ProvisioningConfig.DeploymentMode mode) throws InvalidMigrationStageError {
+    void shouldStoreDeploymentModeInContext(ProvisioningConfig.DeploymentMode mode) throws InvalidMigrationStageError, InfrastructureDeploymentError {
         if (mode == ProvisioningConfig.DeploymentMode.WITH_NETWORK) {
             deploymentService.deployApplicationWithNetwork(STACK_NAME, STACK_PARAMS);
         } else if (mode == ProvisioningConfig.DeploymentMode.STANDALONE) {
@@ -261,11 +262,11 @@ class QuickstartDeploymentServiceTest {
         when(mockCfnApi.getStackErrorRootCause(STACK_NAME)).thenReturn(Optional.of(CRITICAL_DEPLOYMENT_FAILURE));
     }
 
-    private void deploySimpleStack() throws InvalidMigrationStageError {
+    private void deploySimpleStack() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deploymentService.deployApplication(STACK_NAME, STACK_PARAMS);
     }
 
-    private void deployWithVpcStack() throws InvalidMigrationStageError {
+    private void deployWithVpcStack() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deploymentService.deployApplicationWithNetwork(STACK_NAME, STACK_PARAMS);
     }
 }

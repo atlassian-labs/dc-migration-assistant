@@ -45,7 +45,13 @@ public class S3SyncFileSystemDownloadManager {
 
         ScheduledFuture<?> scheduledFuture = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             logger.debug("querying file system download status");
-            S3SyncCommandStatus status = downloader.getFileSystemDownloadStatus();
+            S3SyncCommandStatus status;
+            try {
+                status = downloader.getFileSystemDownloadStatus();
+            } catch (S3SyncFileSystemDownloader.CannotLaunchCommandException e) {
+                logger.warn("unable to get fs download status, will try again next tick");
+                return;
+            }
 
             long remaining = status.getFilesRemainingToDownload();
             long downloadedFiles = progress.getCountOfUploadedFiles() - remaining;

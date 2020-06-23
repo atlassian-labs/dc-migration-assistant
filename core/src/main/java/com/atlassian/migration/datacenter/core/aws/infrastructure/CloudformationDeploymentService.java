@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public abstract class CloudformationDeploymentService {
      * @param params      the parameters for the cloudformation template
      *
      */
-    protected void deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) {
+    protected void deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
         cfnApi.provisionStack(templateUrl, stackName, params);
         beginWatchingDeployment(stackName);
     }

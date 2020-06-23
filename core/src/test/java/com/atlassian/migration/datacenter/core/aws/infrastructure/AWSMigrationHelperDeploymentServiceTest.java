@@ -103,21 +103,21 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldNameMigrationStackAfterApplicationStackWithSuffixAndStoreInContext() {
+    void shouldNameMigrationStackAfterApplicationStackWithSuffixAndStoreInContext() throws InfrastructureDeploymentError {
         givenMigrationStackHasStartedDeploying();
 
         assertEquals(DEPLOYMENT_ID, deploymentId.get());
     }
 
     @Test
-    void shouldProvisionCloudFormationStack() {
+    void shouldProvisionCloudFormationStack() throws InfrastructureDeploymentError {
         givenMigrationStackHasStartedDeploying();
 
         verify(mockCfn).provisionStack("https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
     }
 
     @Test
-    void shouldReturnInProgressWhileCloudformationDeploymentIsOngoing() {
+    void shouldReturnInProgressWhileCloudformationDeploymentIsOngoing() throws InfrastructureDeploymentError {
         givenMigrationStackDeploymentWillBeInProgress();
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
@@ -126,7 +126,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldReturnCompleteWhenCloudFormationDeploymentSucceeds() throws InterruptedException {
+    void shouldReturnCompleteWhenCloudFormationDeploymentSucceeds() throws InterruptedException, InfrastructureDeploymentError {
         givenMigrationStackDeploymentWillCompleteSuccessfully();
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
@@ -137,7 +137,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldReturnErrorWhenCloudFormationDeploymentFails() throws InterruptedException {
+    void shouldReturnErrorWhenCloudFormationDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
         givenMigrationStackDeploymentWillFail();
         givenMigrationStackHasStartedDeploying();
         givenMigrationStackNameHasBeenStoredInContext();
@@ -149,7 +149,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldGatherResourcesRequiredForMigration() throws InterruptedException {
+    void shouldGatherResourcesRequiredForMigration() throws InterruptedException, InfrastructureDeploymentError {
         givenMigrationStackDeploymentWillCompleteSuccessfully();
         givenMigrationStackHasStartedDeploying();
 
@@ -159,7 +159,7 @@ class AWSMigrationHelperDeploymentServiceTest {
     }
 
     @Test
-    void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted() throws InterruptedException {
+    void shouldThrowErrorWhenAtLeastOneStackOutputHasNotBeenPersisted() throws InterruptedException, InfrastructureDeploymentError {
         givenMigrationStackDeploymentWillFail();
         givenMigrationStackHasStartedDeploying();
 
@@ -181,7 +181,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         outputGetters.forEach(outputGetter -> assertThrows(InfrastructureDeploymentError.class, outputGetter));
     }
 
-    private void assertStackOutputsAreAvailable() {
+    private void assertStackOutputsAreAvailable() throws InfrastructureDeploymentError {
         assertEquals(FS_DOWNLOAD_DOC, sut.getFsRestoreDocument());
         assertEquals(FS_DOWNLOAD_STATUS_DOC, sut.getFsRestoreStatusDocument());
         assertEquals(DB_RESTORE_DOC, sut.getDbRestoreDocument());
@@ -191,7 +191,7 @@ class AWSMigrationHelperDeploymentServiceTest {
         assertEquals(DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID, sut.getDeadLetterQueueResource());
     }
 
-    private void givenMigrationStackHasStartedDeploying() {
+    private void givenMigrationStackHasStartedDeploying() throws InfrastructureDeploymentError {
         when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
         try {
             sut.deployMigrationInfrastructure(Collections.emptyMap());

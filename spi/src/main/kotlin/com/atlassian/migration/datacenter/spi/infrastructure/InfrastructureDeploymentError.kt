@@ -15,7 +15,7 @@
  */
 package com.atlassian.migration.datacenter.spi.infrastructure
 
-class InfrastructureDeploymentError : RuntimeException {
+class InfrastructureDeploymentError : Exception {
     constructor(message: String) : super(message) {}
     constructor(message: String, cause: Throwable) : super(message, cause) {}
 }

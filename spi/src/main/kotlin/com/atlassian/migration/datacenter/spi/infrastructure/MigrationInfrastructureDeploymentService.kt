@@ -27,7 +27,8 @@ interface MigrationInfrastructureDeploymentService : DeploymentService {
      * group to the implementor
      * @param params Any parameters for the deployment
      * @throws InvalidMigrationStageError when the current stage is not [com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_MIGRATION_STACK]
+     * @throws InfrastructureDeploymentError when there is an error deploying the infrastructure
      */
-    @Throws(InvalidMigrationStageError::class)
+    @Throws(InvalidMigrationStageError::class, InfrastructureDeploymentError::class)
     fun deployMigrationInfrastructure(params: Map<String, String>)
 }

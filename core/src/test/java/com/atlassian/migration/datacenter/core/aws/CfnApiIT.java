@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.aws;
 
 import cloud.localstack.docker.LocalstackDockerExtension;
 import cloud.localstack.docker.annotation.LocalstackDockerProperties;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -113,7 +114,7 @@ class CfnApiIT {
     }
 
     @Test
-    void shouldProvisionNewCfnStack() {
+    void shouldProvisionNewCfnStack() throws InfrastructureDeploymentError {
         String random = UUID
                 .randomUUID().toString().split("-")[0];
         String stackName = String.format("trebuchet-test-%s", random);

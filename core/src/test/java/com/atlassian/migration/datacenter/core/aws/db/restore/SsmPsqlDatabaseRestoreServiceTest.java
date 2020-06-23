@@ -18,8 +18,10 @@ package com.atlassian.migration.datacenter.core.aws.db.restore;
 
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
+import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,21 +58,21 @@ class SsmPsqlDatabaseRestoreServiceTest {
     }
 
     @Test
-    void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError {
+    void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
         givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS);
 
         sut.restoreDatabase();
     }
 
     @Test
-    void shouldThrowWhenCommandStatusIsFailed() {
+    void shouldThrowWhenCommandStatusIsFailed() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
         givenCommandCompletesWithStatus(CommandInvocationStatus.FAILED);
 
         assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
     }
 
     @Test
-    void shouldReturnOutputAndErrorUrls() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InvalidMigrationStageError {
+    void shouldReturnOutputAndErrorUrls() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
         final String mockCommandId = "fake-command";
         final String mockInstance = "i-0353cc9a8ad7dafc2";
         final String errorMessage = "error-message";
@@ -98,7 +100,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
                 s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
-    private void givenCommandCompletesWithStatus(CommandInvocationStatus status) {
+    private void givenCommandCompletesWithStatus(CommandInvocationStatus status) throws InfrastructureDeploymentError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         final String mockCommandId = "fake-command";
         final String mockInstance = "i-0353cc9a8ad7dafc2";
         final String mocument = "ssm-document";
