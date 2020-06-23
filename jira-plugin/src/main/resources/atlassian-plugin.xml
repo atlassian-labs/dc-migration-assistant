@@ -44,34 +44,11 @@
         <dependency>com.atlassian.soy.soy-template-plugin:soy-deps</dependency>
     </web-resource>
 
-    <web-item key="refapp-menu-item" name="Refapp DC Migration Plugin" section="system.admin/general" weight="10"
-              application="refapp">
-        <label key="atlassian.migration.datacenter.title"/>
-        <description>Refapp admin menu item for this app</description>
-        <link linkId="dc-migration-assistant">/plugins/servlet/dc-migration-assistant</link>
-    </web-item>
-
     <web-item key="migrationAssistantItem" name="Jira DC Migration Plugin" section="admin_system_menu/advanced_menu_section"
               weight="200"
               application="jira">
         <label key="atlassian.migration.datacenter.title"/>
         <description>Jira admin menu item for this app</description>
-        <link linkId="dc-migration-assistant">/plugins/servlet/dc-migration-assistant</link>
-    </web-item>
-
-    <web-item key="bitbucket-menu-item" name="Bitbucket DC Migration Plugin" section="atl.admin/admin-support-section"
-              weight="10"
-              application="bitbucket">
-        <label key="atlassian.migration.datacenter.title"/>
-        <description>Bitbucket admin menu item for this plugin</description>
-        <link linkId="dc-migration-assistant">/plugins/servlet/dc-migration-assistant</link>
-    </web-item>
-
-    <web-item key="confluence-menu-item" name="Confluence DC Migration Plugin" section="system.admin/administration"
-              weight="10"
-              application="confluence">
-        <label key="atlassian.migration.datacenter.title"/>
-        <description>Confluence admin menu item for this plugin</description>
         <link linkId="dc-migration-assistant">/plugins/servlet/dc-migration-assistant</link>
     </web-item>
 

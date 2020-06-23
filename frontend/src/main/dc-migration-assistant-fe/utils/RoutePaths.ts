@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-unresolved
-import contextPath from 'wrm/context-path';
+import contextPathWrapper from './context-path-wrapper';
 
 const routePrefix = ((): string => {
     const awsMigrationServletPath = '/plugins/servlet/dc-migration-assistant';
-    const pathname = contextPath(); // eslint-disable-line no-undef
+    const pathname = contextPathWrapper();
 
     if (pathname.includes(awsMigrationServletPath)) {
         return pathname;

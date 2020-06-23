@@ -26,7 +26,9 @@ const FRONTEND_OUTPUT_DIR = path.join(rootDir, 'target', 'classes');
 const PLUGIN_KEY = 'com.atlassian.migration.datacenter.jira-plugin';
 const ENTRY_POINT = { 'dc-migration-assistant': path.join(FRONTEND_SRC_DIR, 'index.tsx') };
 
-const MY_I18N_FILES = ['dc-migration-assistant.properties'].map(file => path.join(I18N_SRC_DIR, 'i18n', file));
+const MY_I18N_FILES = ['dc-migration-assistant.properties'].map(file =>
+    path.join(I18N_SRC_DIR, 'i18n', file)
+);
 const WRM_OUTPUT = path.resolve(
     './',
     'target',

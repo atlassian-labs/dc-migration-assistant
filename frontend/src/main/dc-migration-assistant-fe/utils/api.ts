@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-unresolved
-import contextPath from 'wrm/context-path';
+import contextPathWrapper from './context-path-wrapper';
 
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -23,7 +22,7 @@ type FetchHeader = Record<string, string>;
 type FetchOption = string | FetchHeader;
 type FetchOptions = Record<string, FetchOption>;
 
-const addToOptionsIfexists = (
+const addToOptionsIfExists = (
     newOption: FetchOption,
     currentOptions: FetchOptions
 ): FetchOptions => {
@@ -52,9 +51,9 @@ export const callAppRest = (
         options = { ...options, body: JSON.stringify(body) };
     }
 
-    options = addToOptionsIfexists(headers, options);
+    options = addToOptionsIfExists(headers, options);
 
-    const basePath = `${contextPath()}/rest/dc-migration/1.0/${path}`;
+    const basePath = `${contextPathWrapper()}/rest/dc-migration/1.0/${path}`;
     const callPath = queryParams ? `${basePath}?${queryParams}` : basePath;
 
     return fetch(callPath, options);

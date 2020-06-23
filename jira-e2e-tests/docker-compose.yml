@@ -25,6 +25,7 @@ services:
       - postgresql
     ports:
       - '2990:8080'
+      - '5005:5005'
     environment:
       - 'ATL_JDBC_URL=jdbc:postgresql://postgresql/jira'
       - 'ATL_JDBC_USER=jiradb'
@@ -32,7 +33,7 @@ services:
       - 'ATL_DB_DRIVER=org.postgresql.Driver'
       - 'ATL_DB_TYPE=postgres72'
       - 'ATL_TOMCAT_CONTEXTPATH=/jira'
-      - 'JVM_SUPPORT_RECOMMENDED_ARGS=-Dspring.profiles.active=allowAnyTransition,gaFeature -Djira.onboarding.cyoa=false -Datlassian.darkfeature.jira.onboarding.cyoa=false -Datlassian.darkfeature.jira.onboarding.feature.disabled=true  -Datlassian.mail.senddisabled=false -Djira.startup.warnings.disable=true -Dtroubleshooting.dev.mode=true'
+      - 'JVM_SUPPORT_RECOMMENDED_ARGS=-Dspring.profiles.active=allowAnyTransition,gaFeature -Djira.onboarding.cyoa=false -Datlassian.darkfeature.jira.onboarding.cyoa=false -Datlassian.darkfeature.jira.onboarding.feature.disabled=true  -Datlassian.mail.senddisabled=false -Djira.startup.warnings.disable=true -Dtroubleshooting.dev.mode=true -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005'
     command: >
       bash -c '
           waitport postgresql 5432 &&
