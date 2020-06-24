@@ -79,7 +79,7 @@ internal class FinalSyncEndpointTest {
     fun shouldReportDbSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
-        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0)
+        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
 
         val resp = sut.getMigrationStatus()
         val json = resp.entity as String
@@ -94,14 +94,15 @@ internal class FinalSyncEndpointTest {
     fun shouldReportFsSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(0))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
-        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50)
+        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
 
         val resp = sut.getMigrationStatus()
         val json = resp.entity as String
 
         val result = mapper.readValue<FinalSyncEndpoint.FinalSyncStatus>(json)
         assertEquals(150, result.fs.uploaded)
-        assertEquals(100, result.fs.downloaded)
+        assertEquals(88, result.fs.downloaded)
+        assertEquals(12, result.fs.failed)
     }
 
     @Test

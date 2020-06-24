@@ -82,6 +82,7 @@ public class DatabaseMigrationService {
         try {
             bucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
         } catch (InfrastructureDeploymentError infrastructureDeploymentError) {
+            migrationService.error(infrastructureDeploymentError);
             throw new DatabaseMigrationFailure("error getting migration bucket", infrastructureDeploymentError);
         }
 

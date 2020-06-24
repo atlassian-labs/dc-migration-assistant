@@ -57,7 +57,7 @@ class FinalSyncEndpoint(
         )
     }
 
-    data class FSSyncStatus(val uploaded: Int, val downloaded: Int, val hasProgressedToNextStage: Boolean)
+    data class FSSyncStatus(val uploaded: Int, val downloaded: Int, val failed: Int, val hasProgressedToNextStage: Boolean)
     data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus)
 
     @PUT
@@ -124,7 +124,7 @@ class FinalSyncEndpoint(
         val isCurrentStageAfterFinalSync = currentStage.isAfter(MigrationStage.FINAL_SYNC_WAIT)
         val fsSyncStatus = finalSyncService.getFinalSyncStatus()
 
-        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount, isCurrentStageAfterFinalSync)
+        val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount - fsSyncStatus.failedFileCount, fsSyncStatus.failedFileCount, isCurrentStageAfterFinalSync)
         val status = FinalSyncStatus(db, fs)
 
         return try {

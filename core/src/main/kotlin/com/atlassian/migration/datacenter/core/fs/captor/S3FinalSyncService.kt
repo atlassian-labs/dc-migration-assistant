@@ -60,8 +60,9 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
         val uploadedFileCount =  attachmentSyncManager.capturedAttachmentCountForCurrentMigration
 
         val itemsInQueue = sqsApi.getQueueLength(migrationQueueUrl)
+        val itemsFailedToDownload = sqsApi.getQueueLength(currentContext.migrationDLQueueUrl)
 
-        return FinalFileSyncStatus(uploadedFileCount, itemsInQueue)
+        return FinalFileSyncStatus(uploadedFileCount, itemsInQueue, itemsFailedToDownload)
     }
 
     private fun getScheduledJobId(): JobId {
@@ -69,4 +70,4 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
     }
 }
 
-class FinalFileSyncStatus(val uploadedFileCount: Int, val enqueuedFileCount: Int)
+class FinalFileSyncStatus(val uploadedFileCount: Int, val enqueuedFileCount: Int, val failedFileCount: Int)
