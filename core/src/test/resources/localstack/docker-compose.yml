@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+
+  ec2_localstack:
+    build:
+      context: .
+    ports:
+      - '4597:4597'
+    environment:
+      - 'SERVICES=ec2'
+      - 'DEFAULT_REGION=us-east-1'

@@ -5,31 +5,30 @@ import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSyst
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.testcontainers.containers.DockerComposeContainer;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-import java.net.URI;
 import static org.mockito.Mockito.*;
-
-/*
- * TODO: These tests require localstack to be running before hand. Unfortunately the standard way we run localstack from the tests themselves
- * is not exposing the EC2 port 4592 (EC2) and so we get connection refused errors. As a workaround manually run localstack as follows
- * 
- * docker run -p 4597:4597 -e SERVICES=ec2 -e DEFAULT_REGION=us-east-1 localstack/localstack
- * 
- * Run in this way 4597 accepts incoming requests and the tests pass.
- */
+import java.io.File;
+import java.net.URI;
+import java.util.Objects;
 
 @ExtendWith({MockitoExtension.class})
-@Disabled
-class RemoteInstanceCommandRunnerServiceTest {
+class RemoteInstanceCommandRunnerServiceIT {
+    
+    private static final String DOCKER_COMPOSE_FILE = "localstack/docker-compose.yml";
+    private static final File dockerFile = new File(
+            Objects.requireNonNull(RemoteInstanceCommandRunnerServiceIT.class.getClassLoader().getResource(DOCKER_COMPOSE_FILE)).getFile()
+    );
+    private static final DockerComposeContainer localstackForEc2 = new DockerComposeContainer(dockerFile);
     private static final String LOCAL_EC2_ENDPOINT = "http://localhost:4597";
     public static final String JIRA_STACK_NAME = "JIRA_STACK_001";
 
@@ -49,6 +48,13 @@ class RemoteInstanceCommandRunnerServiceTest {
     private Ec2Client ec2Client;
 
     private RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
+
+    @BeforeAll
+    public static void setup() throws InterruptedException {
+        localstackForEc2.start();
+        //Wait for container to come up
+        Thread.sleep(10000);
+    }
 
     @BeforeEach
     public void setUp() {
