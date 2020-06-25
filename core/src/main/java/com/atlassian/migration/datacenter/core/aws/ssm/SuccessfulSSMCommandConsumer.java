@@ -69,7 +69,7 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
                 logger.error("interrupted while waiting for s3 sync ssm command to be delivered", e);
                 throw new UnsuccessfulSSMCommandInvocationException("Interrupted while waiting to check command status", e);
             }
-        } while (!isFinished(command.status()) || attempt == maxCommandStatusRetries);
+        } while (attempt == maxCommandStatusRetries || command == null || !isFinished(command.status()));
 
         throw new UnsuccessfulSSMCommandInvocationException(
                 String.format(

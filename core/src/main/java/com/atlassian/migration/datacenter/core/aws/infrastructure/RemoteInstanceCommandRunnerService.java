@@ -17,10 +17,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class RemoteInstanceCommandRunnerService {
-
     private static final Logger logger = LoggerFactory.getLogger(RemoteInstanceCommandRunnerService.class);
-    public static final String AWS_RUN_SHELL_SCRIPT = "AWS-RunShellScript";
-
+    private static final String AWS_RUN_SHELL_SCRIPT = "AWS-RunShellScript";
     private final SSMApi ssm;
     private final MigrationService migrationService;
     private final Supplier<Ec2Client> ec2ClientSupplier;
