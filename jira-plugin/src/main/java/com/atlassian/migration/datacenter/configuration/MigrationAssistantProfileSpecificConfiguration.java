@@ -41,11 +41,4 @@ public class MigrationAssistantProfileSpecificConfiguration {
     public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, DatabaseExtractor databaseExtractor, JiraHome jiraHome, EventPublisher eventPublisher) {
         return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, databaseExtractor, jiraHome.getHome().toPath(), eventPublisher);
     }
-
-    @Bean
-    @Profile("gaFeature")
-    @Primary
-    public SqsApi sqsApi(Supplier<SqsAsyncClient> sqsClientSupplier) {
-        return new SqsApiImpl(sqsClientSupplier);
-    }
 }

@@ -26,6 +26,7 @@ import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationSe
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.migration.datacenter.core.aws.SqsApi;
+import com.atlassian.migration.datacenter.core.aws.SqsApiImpl;
 import com.atlassian.migration.datacenter.core.aws.auth.AtlassianPluginAWSCredentialsProvider;
 import com.atlassian.migration.datacenter.core.aws.auth.EncryptedCredentialsStorage;
 import com.atlassian.migration.datacenter.core.aws.auth.ProbeAWSAuth;
@@ -385,21 +386,12 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public SqsApi emptyQueueSqsApi() {
-        return new SqsApi() {
-            @Override
-            public int getQueueLength(@NotNull String queueUrl) throws AwsQueueError {
-                return 0;
-            }
-
-            @Override
-            public void emptyQueue(@NotNull String queueUrl) {
-            }
-        };
+    public SqsApi sqsApi(Supplier<SqsAsyncClient> sqsClientSupplier) {
+        return new SqsApiImpl(sqsClientSupplier);
     }
 
     @Bean
-    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, QueueWatcher queueWatcher, AttachmentSyncManager attachmentSyncManager) {
+    public S3FinalSyncService s3FinalSyncService(MigrationRunner migrationRunner, S3FinalSyncRunner finalSyncRunner, MigrationService migrationService, SqsApi sqsApi, AttachmentSyncManager attachmentSyncManager) {
         return new S3FinalSyncService(migrationRunner, finalSyncRunner, migrationService, sqsApi, attachmentSyncManager);
     }
 

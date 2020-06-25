@@ -98,14 +98,8 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
 
         migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT);
 
-        for (String profile : environment.getActiveProfiles()) {
-            if (profile.equals("gaFeature")) {
-                logger.info("detected GA feature flag. Enabling file listener");
-                attachmentListener.start();
-            } else {
-                logger.trace("not enabling file listener");
-            }
-        }
+        logger.info("Enabling file listener to listen to attachment updates while migration is in progress");
+        attachmentListener.start();
 
         FileSystemMigrationReport report = reportManager.resetReport(ReportType.Filesystem);
 
