@@ -127,7 +127,7 @@ public class DatabaseMigrationService {
 
     public void abortMigration() throws InvalidMigrationStageError {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId());
+        migrationRunner.abortJobIfPresent(getScheduledJobId());
 
         if (!migrationService.getCurrentStage().isDBPhase() || s3UploadService == null) {
             throw new InvalidMigrationStageError(

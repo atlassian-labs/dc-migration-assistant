@@ -18,7 +18,6 @@ package com.atlassian.migration.datacenter.core.fs.captor
 
 import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
-import com.atlassian.migration.datacenter.dto.FileSyncRecord
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.scheduler.config.JobId
 import org.slf4j.LoggerFactory
@@ -47,7 +46,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
 
     fun abortMigration() {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId())
+        migrationRunner.abortJobIfPresent(getScheduledJobId())
 
         logger.warn("Aborting running final file sync")
 
@@ -66,7 +65,11 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
     }
 
     private fun getScheduledJobId(): JobId {
-        return JobId.of(s3FinalSyncRunner.key + migrationService.currentMigration.id)
+        return getScheduledJobIdForMigration(migrationService.currentMigration.id)
+    }
+
+    private fun getScheduledJobIdForMigration(migrationId: Int): JobId {
+        return JobId.of(s3FinalSyncRunner.key + migrationId)
     }
 }
 

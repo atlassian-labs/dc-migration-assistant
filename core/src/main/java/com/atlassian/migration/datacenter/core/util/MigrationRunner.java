@@ -64,7 +64,7 @@ public class MigrationRunner
         }
     }
 
-    public boolean abortJobIfPresesnt(JobId jobId) {
+    public boolean abortJobIfPresent(JobId jobId) {
         if (schedulerService.getJobDetails(jobId) == null) {
             return false;
         }

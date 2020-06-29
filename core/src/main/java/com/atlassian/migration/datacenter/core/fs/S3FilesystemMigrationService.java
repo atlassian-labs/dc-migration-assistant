@@ -16,9 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
+import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -74,7 +74,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     public boolean scheduleMigration() throws InvalidMigrationStageError {
         migrationService.assertCurrentStage(FS_MIGRATION_COPY);
 
-        JobId jobId = getScheduledJobId();
+        JobId jobId = getScheduledJobIdForMigration(migrationService.getCurrentMigration().getID());
         S3UploadJobRunner jobRunner = new S3UploadJobRunner(this, reportManager);
 
         boolean result = migrationRunner.runMigration(jobId, jobRunner);
@@ -125,7 +125,8 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     @Override
     public void abortMigration() throws InvalidMigrationStageError {
         // We always try to remove scheduled job if the system is in inconsistent state
-        migrationRunner.abortJobIfPresesnt(getScheduledJobId());
+        int migrationId = migrationService.getCurrentMigration().getID();
+        unscheduleMigration(migrationId);
 
         if (!isRunning()) {
             throw new InvalidMigrationStageError(
@@ -141,10 +142,12 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
         migrationService.error("File system migration was aborted");
     }
 
-
-    private JobId getScheduledJobId() {
-        return JobId.of(S3UploadJobRunner.KEY + migrationService.getCurrentMigration().getID());
+    private JobId getScheduledJobIdForMigration(int migrationId) {
+        return JobId.of(S3UploadJobRunner.KEY + migrationId);
     }
 
-
+    @Override
+    public boolean unscheduleMigration(int migrationId) {
+        return migrationRunner.abortJobIfPresent(getScheduledJobIdForMigration(migrationId));
+    }
 }

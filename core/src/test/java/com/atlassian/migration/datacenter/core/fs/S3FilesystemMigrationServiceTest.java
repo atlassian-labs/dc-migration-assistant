@@ -28,6 +28,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
+import com.atlassian.scheduler.config.JobId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -153,6 +155,15 @@ class S3FilesystemMigrationServiceTest {
         verify(migrationService).error("File system migration was aborted");
         FileSystemMigrationReport report = reportManager.getCurrentReport(ReportType.Filesystem);
         assertEquals(report.getStatus(), FilesystemMigrationStatus.FAILED);
+    }
+
+    @Test
+    void shouldUnscheduleMigrationGivenMigrationId() throws Exception {
+        int migrationId = 42;
+
+        fsService.unscheduleMigration(migrationId);
+
+        verify(migrationRunner).abortJobIfPresent(argThat(argument -> argument.equals(JobId.of(S3UploadJobRunner.KEY + migrationId))));
     }
 
     @Test
