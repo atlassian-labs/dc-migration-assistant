@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-import React, { ReactElement, FunctionComponent } from 'react';
+import React, { FunctionComponent, useState } from 'react';
 import { Moment } from 'moment';
 import SectionMessage from '@atlaskit/section-message';
 import Spinner from '@atlaskit/spinner';
 import ProgressBar, { SuccessProgressBar } from '@atlaskit/progress-bar';
+import { Redirect } from 'react-router-dom';
+import Button from '@atlaskit/button';
+import styled from 'styled-components';
+import { Checkbox } from '@atlaskit/checkbox';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 
 import { Progress } from './Progress';
@@ -27,6 +31,26 @@ import {
     calcualateDurationFromElapsedSeconds,
     calculateStartedFromElapsedSeconds,
 } from './migration-timing';
+
+const SectionMessageParagraph = styled.p`
+    margin: 0;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+`;
+
+const OperationTitle = styled.h4`
+    margin-bottom: 5px;
+`;
+
+const OperationTimingParagraph = styled.p`
+    margin: 2px 0 2px 0;
+`;
+
+const CheckboxContainer = styled.div`
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+`;
 
 export type MigrationProgressProps = {
     progress: Progress;
@@ -40,6 +64,9 @@ export type MigrationProgressProps = {
     startedMoment: Moment;
 };
 
+const LearnMoreLink =
+    'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html#HowtousetheDataCenterMigrationapptomigrateJiratoanAWScluster-errors';
+
 /**
  * A component which renders the progress of the current transfer. It renders
  * a progress bar and elapsed time. It handles when the completeness is indeterminate.
@@ -49,6 +76,12 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     loading,
     startedMoment,
 }) => {
+    const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
+    const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
+
+    const failed = (progress.errorMessage && true) || progress.failed;
+    const { onRetryRoute, retryText, onRetry } = progress?.retryProps;
+
     if (loading) {
         return (
             <>
@@ -63,8 +96,25 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
         calculateDurationFromBeginning(startedMoment) ||
         calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
 
+    if (shouldRedirectToStart) {
+        return <Redirect to={onRetryRoute} push />;
+    }
+
     return (
         <>
+            {/* Error message when operation failed */}
+            {failed && (
+                <SectionMessage appearance="error">
+                    <SectionMessageParagraph>
+                        {progress.errorMessage}{' '}
+                        <a target="_blank" rel="noreferrer noopener" href={LearnMoreLink}>
+                            {I18n.getText('atlassian.migration.datacenter.common.learn_more')}
+                        </a>
+                    </SectionMessageParagraph>
+                </SectionMessage>
+            )}
+
+            {/* Information message when operation succeeds */}
             {progress?.completeness === 1 && progress?.completeMessage && (
                 <SectionMessage appearance="confirmation">
                     <strong>{progress.completeMessage.boldPrefix}</strong>{' '}
@@ -73,33 +123,65 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
             )}
 
             <>
-                <h4>
+                <OperationTitle>
                     {progress.phase}
                     {progress.completeness === undefined &&
                         ` (${I18n.getText('atlassian.migration.datacenter.common.estimating')}...)`}
-                </h4>
+                </OperationTitle>
                 {progress.completeness !== undefined ? (
                     <SuccessProgressBar value={progress.completeness} />
                 ) : (
                     <ProgressBar isIndeterminate />
                 )}
-                <p>
-                    {I18n.getText(
-                        'atlassian.migration.datacenter.common.progress.started',
-                        (
-                            startedMoment ||
-                            calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
-                        ).format('D/MMM/YY h:mm A')
-                    )}
-                </p>
-                <p>
-                    {duration &&
-                        I18n.getText(
-                            'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                            `${duration.days * 24 + duration.hours}`,
-                            `${duration.minutes}`
-                        )}
-                </p>
+                {failed ? (
+                    // If operation failed render retry button below progress
+                    <div style={{ display: 'block', marginTop: '5px' }}>
+                        <CheckboxContainer>
+                            <Checkbox
+                                value="true"
+                                label={I18n.getText(
+                                    'atlassian.migration.datacenter.common.aws.retry.checkbox.text'
+                                )}
+                                onChange={(event: any): void => {
+                                    setRetryEnabled(event.target.checked);
+                                }}
+                                name="retryAgree"
+                            />
+                        </CheckboxContainer>
+                        <Button
+                            style={{ marginTop: '10px' }}
+                            isDisabled={!retryEnabled}
+                            onClick={(): void => {
+                                onRetry().then(() =>
+                                    setShouldRedirectToStart(onRetryRoute && true)
+                                );
+                            }}
+                        >
+                            {retryText || 'retry'}
+                        </Button>
+                    </div>
+                ) : (
+                    // If operation has not failed, render timing information - start time and duration
+                    <>
+                        <OperationTimingParagraph>
+                            {I18n.getText(
+                                'atlassian.migration.datacenter.common.progress.started',
+                                (
+                                    startedMoment ||
+                                    calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
+                                ).format('D/MMM/YY h:mm A')
+                            )}
+                        </OperationTimingParagraph>
+                        <OperationTimingParagraph>
+                            {duration &&
+                                I18n.getText(
+                                    'atlassian.migration.datacenter.common.progress.mins_elapsed',
+                                    `${duration.days * 24 + duration.hours}`,
+                                    `${duration.minutes}`
+                                )}
+                        </OperationTimingParagraph>
+                    </>
+                )}
             </>
         </>
     );

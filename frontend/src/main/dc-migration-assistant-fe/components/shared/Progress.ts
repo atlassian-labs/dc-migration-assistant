@@ -27,6 +27,25 @@ export type CompleteMessage = {
     message: string;
 };
 
+export interface RetryCallback {
+    (): Promise<void>;
+}
+
+export type RetryProperties = {
+    /**
+     * Text to display on the retry button
+     */
+    retryText: string;
+    /**
+     * A callback which will retry the operation
+     */
+    onRetry: RetryCallback;
+    /**
+     * A route to redirect the user to when
+     */
+    onRetryRoute?: string;
+};
+
 /**
  * **phase**: Text describing the current phase of the transfer e.g. uploading, downloading, importing..
  * **completeness**: A fraction representing the percentage complete the transfer is.
@@ -45,6 +64,7 @@ export type Progress = {
     errorMessage?: ReactNode;
     completeMessage?: CompleteMessage;
     failed?: boolean;
+    retryProps: RetryProperties;
 };
 
 /**
@@ -62,6 +82,8 @@ export class ProgressBuilder {
     private elapsedSeconds: number;
 
     private failed: boolean;
+
+    private retryProps: RetryProperties;
 
     setElapsedSeconds(seconds: number): ProgressBuilder {
         this.elapsedSeconds = seconds;
@@ -97,14 +119,29 @@ export class ProgressBuilder {
         return this;
     }
 
+    setRetryProps(retryProps: RetryProperties) {
+        this.retryProps = retryProps;
+
+        return this;
+    }
+
     build(): Progress {
-        if (!this.phase) {
-            throw new Error('must include phase in progress object');
+        if (!(this.phase && this.retryProps)) {
+            throw new Error('must include phase and retry props in progress object');
         }
 
-        const { phase, completeMessage, completeness, errorMessage, elapsedSeconds, failed } = this;
+        const {
+            phase,
+            completeMessage,
+            completeness,
+            errorMessage,
+            elapsedSeconds,
+            failed,
+            retryProps,
+        } = this;
 
         return {
+            retryProps,
             phase,
             completeMessage,
             completeness,

@@ -21,7 +21,7 @@ import moment from 'moment';
 import Spinner from '@atlaskit/spinner';
 import Panel from '@atlaskit/panel';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
-import { ProgressBuilder, ProgressCallback } from '../shared/Progress';
+import { ProgressBuilder, ProgressCallback, RetryProperties } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { migration, MigrationStage } from '../../api/migration';
 import { warningPath } from '../../utils/RoutePaths';
@@ -92,6 +92,10 @@ const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string =
 };
 
 const getFsMigrationProgress: ProgressCallback = async () => {
+    const retryProps: RetryProperties = {
+        retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
+        onRetry: () => Promise.reject(Error('Not implemented')),
+    };
     return fs
         .getFsMigrationStatus()
         .then(result => {
@@ -102,6 +106,7 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             builder.setPhase(getPhaseFromStatus(result));
             builder.setElapsedSeconds(result.elapsedTime.seconds);
             builder.setFailed(result.status === 'FAILED');
+            builder.setRetryProps(retryProps);
 
             if (result.status === 'DONE') {
                 builder.setCompleteMessage(
@@ -121,12 +126,14 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             // JSON parse error usually means we're querying the progress before the fs migration has started
             if (error.message.indexOf('JSON.parse') >= 0) {
                 return {
+                    retryProps,
                     phase: I18n.getText('atlassian.migration.datacenter.fs.phase.notStarted'),
                 };
             }
             return {
                 phase: I18n.getText('atlassian.migration.datacenter.generic.error'),
                 error: error.message,
+                retryProps,
             };
         })
         .then(progress => [progress]);
@@ -143,26 +150,5 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
 };
 
 export const FileSystemTransferPage: FunctionComponent = () => {
-    const [loading, setLoading] = useState<boolean>(true);
-    const [hasStarted, setHasStarted] = useState<boolean>(false);
-
-    useEffect(() => {
-        setLoading(true);
-        migration
-            .getMigrationStage()
-            .then(stage => {
-                if (stage === MigrationStage.FS_MIGRATION_COPY_WAIT) {
-                    setHasStarted(true);
-                }
-                setLoading(false);
-            })
-            .catch(() => {
-                setHasStarted(false);
-                setLoading(false);
-            });
-    }, []);
-    if (loading) {
-        return <Spinner />;
-    }
     return <MigrationTransferPage {...fsMigrationTranferPageProps} />;
 };

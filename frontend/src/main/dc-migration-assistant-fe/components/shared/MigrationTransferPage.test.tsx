@@ -40,6 +40,10 @@ const props: MigrationTransferProps = {
                     {
                         completeness: 0.5,
                         phase: 'uploading files...',
+                        retryProps: {
+                            retryText: 'Retry',
+                            onRetry: (): Promise<void> => Promise.resolve(),
+                        },
                     },
                 ]);
             }, 500);

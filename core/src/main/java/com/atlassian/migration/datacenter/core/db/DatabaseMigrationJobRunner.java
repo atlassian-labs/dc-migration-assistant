@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.db;
 
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.util.MigrationJobRunner;
+import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.scheduler.JobRunnerRequest;
 import com.atlassian.scheduler.JobRunnerResponse;
@@ -27,29 +28,25 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DatabaseMigrationJobRunner implements MigrationJobRunner
-{
+public class DatabaseMigrationJobRunner implements MigrationJobRunner {
     private static Logger log = LoggerFactory.getLogger(DatabaseMigrationJobRunner.class);
     private final DatabaseMigrationService databaseMigrationService;
     public static final String KEY = DatabaseMigrationJobRunner.class.getName();
 
     private static final AtomicBoolean isRunning = new AtomicBoolean(false);
 
-    public DatabaseMigrationJobRunner(DatabaseMigrationService databaseMigrationService)
-    {
+    public DatabaseMigrationJobRunner(DatabaseMigrationService databaseMigrationService) {
         this.databaseMigrationService = databaseMigrationService;
     }
 
     @Override
-    public String getKey()
-    {
+    public String getKey() {
         return KEY;
     }
 
     @Nullable
     @Override
-    public JobRunnerResponse runJob(JobRunnerRequest request)
-    {
+    public JobRunnerResponse runJob(JobRunnerRequest request) {
 
         if (!isRunning.compareAndSet(false, true)) {
             return JobRunnerResponse.aborted("Database migration job is already running");
@@ -60,6 +57,9 @@ public class DatabaseMigrationJobRunner implements MigrationJobRunner
             databaseMigrationService.performMigration();
         } catch (InvalidMigrationStageError e) {
             log.error("Invalid migration transition - {}", e.getMessage());
+            return JobRunnerResponse.failed(e);
+        } catch (DatabaseMigrationFailure e) {
+            log.error("Database migration failed", e);
             return JobRunnerResponse.failed(e);
         } finally {
             isRunning.set(false);

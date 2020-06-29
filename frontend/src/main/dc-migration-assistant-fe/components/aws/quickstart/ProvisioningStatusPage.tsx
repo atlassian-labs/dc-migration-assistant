@@ -43,6 +43,11 @@ const getDeploymentProgress: ProgressCallback = async () => {
         .getProvisioningStatus()
         .then(result => {
             const builder = new ProgressBuilder();
+            builder.setRetryProps({
+                onRetry: provisioning.retry,
+                retryText: I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text'),
+                onRetryRoute: asiConfigurationPath,
+            });
             switch (result.status) {
                 case ProvisioningStatus.Complete:
                     builder.setPhase('Deployment Complete');
@@ -137,9 +142,6 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
             // This page is only rendered when provisioning has already started. The deployment will be started by the QuickstartDeploy page
             startMigrationPhase={Promise.resolve}
             nextRoute={fsPath}
-            onRetry={provisioning.retry}
-            retryText={I18n.getText('atlassian.migration.datacenter.provision.aws.retry.text')}
-            onRetryRoute={asiConfigurationPath}
         />
     );
 };

@@ -170,7 +170,9 @@ export const provisioning = {
             return Promise.reject();
         });
     },
-    retry: async (): Promise<Response> => {
-        return callAppRest('POST', RestApiPathConstants.StackResetRestPath);
+    retry: async (): Promise<void> => {
+        return callAppRest('POST', RestApiPathConstants.StackResetRestPath).then(() =>
+            Promise.resolve()
+        );
     },
 };

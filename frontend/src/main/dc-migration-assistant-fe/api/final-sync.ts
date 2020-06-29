@@ -16,8 +16,10 @@
 
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { MigrationDuration } from './common';
+import { callAppRest } from '../utils/api';
 
 const finalSyncAPIBase = 'migration/final-sync';
+const finalSyncRetryBase = `${finalSyncAPIBase}/retry`;
 export const finalSyncStatusEndpoint = `${finalSyncAPIBase}/status`;
 export const finalSyncStartEndpoint = `${finalSyncAPIBase}/start`;
 export const dbLogsEndpoint = `${finalSyncAPIBase}/db-logs`;
@@ -30,6 +32,37 @@ export enum DBMigrationStatus {
     DONE = 'DONE',
     FAILED = 'FAILED',
 }
+
+const handleRetryResponse = (res: Response): Promise<void> => {
+    switch (res.status) {
+        case 202:
+            return Promise.resolve();
+        case 409:
+            return Promise.reject(
+                Error(I18n.getText('atlassian.migration.datacenter.sync.fs.retry.error'))
+            );
+        case 400:
+            return Promise.reject(
+                Error(I18n.getText('atlassian.migration.datacenter.sync.fs.retry.unnecessary'))
+            );
+        default:
+            return Promise.reject(
+                Error(
+                    I18n.getText(
+                        'atlassian.migration.datacenter.sync.fs.retry.error.unexpected',
+                        res.status
+                    )
+                )
+            );
+    }
+};
+
+export const finalSync = {
+    retryFsSync: (): Promise<void> =>
+        callAppRest('PUT', `${finalSyncRetryBase}/fs`).then(handleRetryResponse),
+    retryDbMigration: (): Promise<void> =>
+        callAppRest('PUT', `${finalSyncRetryBase}/db`).then(handleRetryResponse),
+};
 
 export const statusToI18nString = (status: DBMigrationStatus): string => {
     const name = status.toString().toLowerCase();

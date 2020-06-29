@@ -17,14 +17,24 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration.DBType
+import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
+import org.slf4j.LoggerFactory
 
 class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration) : DatabaseExtractorFactory {
+    companion object {
+        val log = LoggerFactory.getLogger(DefaultDatabaseExtractorFactory::class.java)
+    }
     override val extractor: DatabaseExtractor by lazy {
-        if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
-            PostgresExtractor(config)
-        } else {
-            UnSupportedDatabaseExtractor()
+        try {
+            if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
+                PostgresExtractor(config)
+            } else {
+                UnSupportedDatabaseExtractor()
+            }
+        } catch (e: ConfigurationReadException) {
+            log.error("error reading database configuration from application configuration", e)
+            throw DatabaseMigrationFailure("Failed reading database configuration", e)
         }
     }
 }
