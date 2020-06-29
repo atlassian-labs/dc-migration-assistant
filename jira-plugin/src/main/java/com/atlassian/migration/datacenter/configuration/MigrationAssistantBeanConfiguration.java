@@ -23,6 +23,7 @@ import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
+import com.atlassian.migration.datacenter.core.aws.CancellableMigrationServiceHandler;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.core.aws.GlobalInfrastructure;
 import com.atlassian.migration.datacenter.core.aws.SqsApi;
@@ -60,7 +61,6 @@ import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
-import com.atlassian.migration.datacenter.core.exceptions.AwsQueueError;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
@@ -88,7 +88,6 @@ import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastruc
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -437,5 +436,13 @@ public class MigrationAssistantBeanConfiguration {
             QuickstartWithVPCMigrationStackInputGatheringStrategy withVpcStrategy,
             QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneStrategy) {
         return new MigrationStackInputGatheringStrategyFactory(withVpcStrategy, standaloneStrategy);
+    }
+
+    @Bean
+    public CancellableMigrationServiceHandler cancellableMigrationServiceWrapper(EventPublisher eventPublisher, S3FinalSyncService s3FinalSyncService, FilesystemMigrationService filesystemMigrationService, DatabaseMigrationService databaseMigrationService) {
+        return new CancellableMigrationServiceHandler(eventPublisher,
+                s3FinalSyncService,
+                filesystemMigrationService,
+                databaseMigrationService);
     }
 }

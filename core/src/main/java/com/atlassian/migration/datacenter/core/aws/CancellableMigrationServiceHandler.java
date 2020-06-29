@@ -19,26 +19,26 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
-import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
+import com.atlassian.migration.datacenter.spi.CancellableMigrationService;
+import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-public class CancellableMigrationServiceWrapper implements InitializingBean, DisposableBean {
+import java.util.Arrays;
+import java.util.List;
+
+public class CancellableMigrationServiceHandler implements InitializingBean, DisposableBean {
 
     private final EventPublisher eventPublisher;
-    private final S3FinalSyncService s3FinalSyncService;
-    private final S3FilesystemMigrationService s3FilesystemMigrationService;
-    private final DatabaseMigrationService databaseMigrationService;
 
-    public CancellableMigrationServiceWrapper(EventPublisher eventPublisher,
-                                              S3FinalSyncService s3FinalSyncService,
-                                              S3FilesystemMigrationService s3FilesystemMigrationService,
-                                              DatabaseMigrationService databaseMigrationService) {
+    private final List<CancellableMigrationService> cancellableServices;
+
+     public CancellableMigrationServiceHandler(EventPublisher eventPublisher,
+                                               CancellableMigrationService... services
+                                              ) {
         this.eventPublisher = eventPublisher;
-        this.s3FinalSyncService = s3FinalSyncService;
-        this.s3FilesystemMigrationService = s3FilesystemMigrationService;
-        this.databaseMigrationService = databaseMigrationService;
+        this.cancellableServices = Arrays.asList(services);
     }
 
     @Override
@@ -49,9 +49,7 @@ public class CancellableMigrationServiceWrapper implements InitializingBean, Dis
     @EventListener
     public void onMigrationResetEvent(MigrationResetEvent event){
         int migrationId = event.getMigrationId();
-        this.s3FilesystemMigrationService.unscheduleMigration(migrationId);
-        this.s3FinalSyncService.unscheduleMigration(migrationId);
-        this.databaseMigrationService.unscheduleMigration(migrationId);
+        this.cancellableServices.forEach(x -> x.unscheduleMigration(migrationId));
     }
 
     @Override
