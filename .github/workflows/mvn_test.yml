@@ -14,11 +14,12 @@ jobs:
     strategy:
       matrix:
         java: [ 8, 11 ]
-        profile: ['integration', '!integration', 'smoketest']
+        profile: ['integration', '!integration', 'smoketest', 'functest']
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Cache maven repository
         uses: actions/cache@v1
         env:
@@ -30,6 +31,7 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
       - name: Cache npm dependencies
         uses: actions/cache@v1
         env:
@@ -41,36 +43,41 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
       - name: Setup Java ${{ matrix.java }}
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
 
       - name: Test with maven
-        if: matrix.profile != 'smoketest'
+        if: matrix.profile != 'smoketest' && matrix.profile != 'functest'
         run: mvn -B clean verify -P ${{ matrix.profile}}
 
       - name: Smoke-test with production image
-        timeout-minutes: 10
+        timeout-minutes: 20
         if: matrix.profile == 'smoketest'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
           CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
-          
         run: |
           mvn package -DskipTests
           mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
           ./postgres/inject-license
-          JIRA_VERSION=latest docker-compose up --force-recreate --build -d
+          JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
-      - name: Rest api tests with production image built by previous step
-        timeout-minutes: 15
-        if: matrix.profile == 'smoketest'
+      - name: REST API tests with production image
+        timeout-minutes: 20
+        if: matrix.profile == 'functest'
+        env:
+          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
         run: |
+          mvn package -DskipTests
+          mv jira-plugin/target/jira-plugin-1.0.0.jar jira-e2e-tests/jira/
           cd jira-e2e-tests
-          until docker-compose ps --services --filter "status=stopped" | grep cypress ; do sleep 5; done; mvn -f ../pom.xml verify -pl func-tests -Prest; docker-compose down
+          ./postgres/inject-license
+          JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from functests --abort-on-container-exit postgresql jira functests
 
       - name: Upload
         if: github.ref == env.DOGFOODING_REF && matrix.profile == '!integration' && matrix.java == 11

@@ -24,11 +24,11 @@ interface DatabaseExtractor {
     val serverVersion: SemVer?
 
     @Throws(DatabaseMigrationFailure::class)
-    fun startDatabaseDump(target: Path?): Process?
+    fun startDatabaseDump(target: Path): Process?
 
     @Throws(DatabaseMigrationFailure::class)
-    fun startDatabaseDump(target: Path?, parallel: Boolean?): Process?
+    fun startDatabaseDump(target: Path, parallel: Boolean): Process
 
     @Throws(DatabaseMigrationFailure::class)
-    fun dumpDatabase(to: Path?)
+    fun dumpDatabase(to: Path)
 }

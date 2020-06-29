@@ -26,7 +26,7 @@ open class BaseRestTest {
     private val username: String = System.getProperty("JIRA_USERNAME", "admin")
     private val password: String = System.getProperty("JIRA_PASSWORD", "admin")
 
-    val baseURI = System.getProperty("JIRA_BASE_URL", "http://localhost:2990/jira")
+    val baseURI = System.getProperty("JIRA_BASE_URL", "http://jira:8080/jira")
     val basePath = System.getProperty("JIRA_BASE_PATH", "/rest/dc-migration/1.0")
 
     val requestSpec = RequestSpecBuilder()

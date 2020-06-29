@@ -54,3 +54,19 @@ services:
           jira-wait http://jira:8080/jira/ &&
           yarn test --spec integration/smoketest.ts
       '
+
+  functests:
+    build:
+      context: ./func-tests
+    environment:
+      - JIRA_BASE_URL="http://jira:8080/jira"
+    volumes:
+      - ~/.m2:/root/.m2
+    command: >
+      bash -c '
+          cd /opt/func-tests &&
+          mvn dependency:resolve dependency:resolve-plugins &&
+          jira-wait http://jira:8080/jira/ &&
+          mvn verify
+      '
+

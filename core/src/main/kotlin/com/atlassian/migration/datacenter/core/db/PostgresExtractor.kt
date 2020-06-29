@@ -19,12 +19,13 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
 import com.impossibl.postgres.jdbc.PGDriver
 import net.swiftzer.semver.SemVer
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -103,7 +104,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         }
 
     @Throws(DatabaseMigrationFailure::class)
-    override fun startDatabaseDump(target: Path?): Process? {
+    override fun startDatabaseDump(target: Path): Process {
         return startDatabaseDump(target, false)
     }
 
@@ -121,8 +122,8 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
      * @throws DatabaseMigrationFailure on failure.
      */
     @Throws(DatabaseMigrationFailure::class)
-    override fun startDatabaseDump(target: Path?, parallel: Boolean?): Process? {
-        val numJobs = if (parallel!!) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
+    override fun startDatabaseDump(target: Path, parallel: Boolean): Process {
+        val numJobs = if (parallel) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
 
         val pgdump = pgdumpPath ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
         val config = applicationConfiguration.databaseConfiguration
@@ -142,6 +143,10 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         builder.environment()["PGPASSWORD"] = config.password
 
         return try {
+            if(Files.exists(target))  {
+                log.debug("pg_dump archive [$target] already exists. Deleting now...")
+                deleteDatabaseDump(target)
+            }
             builder.start()
         } catch (e: IOException) {
             val command = java.lang.String.join(" ", builder.command())
@@ -156,7 +161,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
      * @throws DatabaseMigrationFailure on failure, including a non-zero exit code.
      */
     @Throws(DatabaseMigrationFailure::class)
-    override fun dumpDatabase(to: Path?) {
+    override fun dumpDatabase(to: Path) {
         val proc = startDatabaseDump(to)
         val exit: Int
         exit = try {
@@ -168,5 +173,14 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
             throw DatabaseMigrationFailure("pg_dump process exited with non-zero status: $exit")
         }
     }
-
+    
+    @Throws(IOException::class)
+    fun deleteDatabaseDump(target: Path) {
+        try {
+            FileUtils.deleteDirectory(target.toFile())
+            log.debug("pg_dump archive [$target] deleted.")
+        } catch (io: IOException) {
+            throw IOException("Unable to delete existing pg_dump archive: $target", io)
+        }
+    }
 }

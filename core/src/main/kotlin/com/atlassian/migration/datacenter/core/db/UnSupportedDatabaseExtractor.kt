@@ -26,17 +26,17 @@ class UnSupportedDatabaseExtractor : DatabaseExtractor {
         get() = null
 
     @Throws(DatabaseMigrationFailure::class)
-    override fun startDatabaseDump(target: Path?): Process? {
+    override fun startDatabaseDump(target: Path): Process {
         throw UnsupportedOperationException("Not implemented")
     }
 
     @Throws(DatabaseMigrationFailure::class)
-    override fun startDatabaseDump(target: Path?, parallel: Boolean?): Process? {
+    override fun startDatabaseDump(target: Path, parallel: Boolean): Process {
         throw UnsupportedOperationException("Not implemented")
     }
 
     @Throws(DatabaseMigrationFailure::class)
-    override fun dumpDatabase(to: Path?) {
+    override fun dumpDatabase(to: Path) {
         throw UnsupportedOperationException("Not implemented")
     }
 }

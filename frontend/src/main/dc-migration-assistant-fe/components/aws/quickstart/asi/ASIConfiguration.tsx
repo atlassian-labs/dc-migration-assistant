@@ -18,8 +18,8 @@ import styled from 'styled-components';
 import { ButtonGroup } from '@atlaskit/button';
 import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
-import Spinner from '@atlaskit/spinner';
-import { ExistingASIConfiguration, ASISelector, ASIDescription } from './ExistingASIConfiguration';
+import SectionMessage from '@atlaskit/section-message';
+import { ExistingASIConfiguration, ASIDescription } from './ExistingASIConfiguration';
 import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
@@ -48,6 +48,11 @@ const Description = styled.p`
 
 const ButtonRow = styled.div`
     margin: 30px 0px 0px 0px;
+`;
+
+const SectionMessageContainer = styled.div`
+    margin-top: 20px;
+    width: 70%;
 `;
 
 export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
@@ -88,7 +93,9 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                 onSelectDeploymentMode={onSelectDeploymentMode}
             />
         ) : (
-            <ASISelector existingASIs={[]} useExisting={false} handlePrefixUpdated={updatePRefix} />
+            <SectionMessage>
+                <p>{I18n.getText('atlassian.migration.datacenter.provision.aws.asi.none')}</p>
+            </SectionMessage>
         );
     };
 
@@ -102,15 +109,29 @@ export const ASIConfiguration: FunctionComponent<ASIConfigurationProps> = ({
                 </a>
             </Description>
 
-            {loadingPrefixes ? <Spinner /> : renderASISelector()}
+            {loadingPrefixes ? (
+                <SectionMessageContainer>
+                    <SectionMessage appearance="info">
+                        <p>
+                            {I18n.getText(
+                                'atlassian.migration.datacenter.provision.aws.asi.scanning'
+                            )}
+                        </p>
+                    </SectionMessage>
+                </SectionMessageContainer>
+            ) : (
+                renderASISelector()
+            )}
+
             <ButtonRow>
                 <ButtonGroup>
                     <Button
                         onClick={handleSubmit}
                         type="submit"
                         appearance="primary"
-                        isDisabled={prefix?.length === 0}
+                        isDisabled={existingASIPrefixes?.length !== 0 && prefix?.length === 0}
                         data-test="asi-submit"
+                        isLoading={loadingPrefixes}
                     >
                         {I18n.getText('atlassian.migration.datacenter.generic.next')}
                     </Button>

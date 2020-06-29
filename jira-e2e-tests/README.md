@@ -13,6 +13,7 @@ The testing framework consists of the following parts:
 * A wrapper for official Postgres Docker image which injects a pre-configured Jira database.
 * A wrapper for the official Atlassian Jira-Software image
 * A [Cypress](https://www.cypress.io/) test-suite and Docker image
+* A functional (REST API) test-suite and Docker image
 * A Docker-Compose config to configure and run the above images and a smoke-test suite.
 
 ### Postgres container setup
@@ -73,20 +74,27 @@ Members of the DC Deployments team should have access to these in LastPass.
 ### Running locally
 
 This mostly involves setting the enviroment correctly as above and running
-`docker-compose`:
+`docker-compose`. There is a helper script in `jira-e2e-tests/helpers/run-local`
+to assist with this. By default it will run Jira and Postgres, which are
+accessible via [http://localhost:2990/jira/]:
 
-    cd jira-e2e-test
+    export JIRA_E2E_LICENSE='xxxxx'
+    ./jira-e2e-tests/helpers/run-local
+
+To run the functional or UI tests you can pass the container name to the script
+after setting any additional variables, e.g:
 
     export JIRA_E2E_LICENSE='xxxxx'
     export CYPRESS_AWS_ACCESS_KEY_ID='XXXX'
     export CYPRESS_AWS_SECRET_ACCESS_KEY='YYYY'
+    ./jira-e2e-tests/helpers/run-local cypress
 
-    cp ../jira-plugin/target/jira-plugin-1.0.0.jar jira/
-    ./postgres/inject-license
+or:
 
-    docker-compose up --build --force-recreate
+    export JIRA_E2E_LICENSE='xxxxx'
+    ./jira-e2e-tests/helpers/run-local functests
 
-Once the smoke-test is complete the Cypress container will shut-down but the
+Once the test suite is complete the test container will shut-down but the
 Jira instance and DB will remain up. This can be used to run the smoke-test or
 other Cypress tests via the UI:
 
