@@ -20,10 +20,12 @@ import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.scheduler.config.JobId
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -88,6 +90,21 @@ internal class S3FinalSyncServiceTest {
         assertEquals(40, finalSyncStatus.uploadedFileCount)
         assertEquals(0, finalSyncStatus.enqueuedFileCount)
         assertEquals(40, finalSyncStatus.failedFileCount)
+    }
+
+    @Test
+    fun shouldUnscheduleMigrationGivenId() {
+        val migrationId = 42
+        val jobRunnerKey = "com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner"
+        val slot = slot<JobId>()
+
+        every { jobRunner.key } returns jobRunnerKey
+        every { migrationRunner.abortJobIfPresent(capture(slot)) } returns true
+
+        val result = sut.unscheduleMigration(migrationId);
+
+        kotlin.test.assertTrue(result)
+        kotlin.test.assertEquals(slot.captured, JobId.of("${jobRunnerKey}$migrationId"))
     }
 
     private fun givenFilesCapturedIs(numFiles: Int) {

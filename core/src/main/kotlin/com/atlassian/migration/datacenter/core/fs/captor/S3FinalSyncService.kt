@@ -64,6 +64,11 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
         return FinalFileSyncStatus(uploadedFileCount, itemsInQueue, itemsFailedToDownload)
     }
 
+    fun unscheduleMigration(migrationId: Int): Boolean {
+        val jobId = getScheduledJobIdForMigration(migrationId)
+        return migrationRunner.abortJobIfPresent(jobId);
+    }
+
     private fun getScheduledJobId(): JobId {
         return getScheduledJobIdForMigration(migrationService.currentMigration.id)
     }
