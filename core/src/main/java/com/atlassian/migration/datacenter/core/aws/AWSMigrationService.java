@@ -114,6 +114,8 @@ public class AWSMigrationService implements MigrationService {
     public void deleteMigrations() {
         final Migration[] migrations = ao.find(Migration.class);
         for (Migration migration : migrations) {
+            int migrationId = migration.getID();
+            eventPublisher.publish(new MigrationResetEvent(migrationId));
             ao.delete(migration.getContext());
             ao.delete(migration);
             log.warn("deleted migration {}", migration);

@@ -21,9 +21,10 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-public class CancellableMigrationServiceWrapper implements InitializingBean {
+public class CancellableMigrationServiceWrapper implements InitializingBean, DisposableBean {
 
     private final EventPublisher eventPublisher;
     private final S3FinalSyncService s3FinalSyncService;
@@ -51,6 +52,11 @@ public class CancellableMigrationServiceWrapper implements InitializingBean {
         this.s3FilesystemMigrationService.unscheduleMigration(migrationId);
         this.s3FinalSyncService.unscheduleMigration(migrationId);
         this.databaseMigrationService.unscheduleMigration(migrationId);
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        this.eventPublisher.unregister(this);
     }
 }
 
