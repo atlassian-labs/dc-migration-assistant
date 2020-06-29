@@ -18,6 +18,7 @@ package com.atlassian.migration.datacenter.core.fs.captor
 
 import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
+import com.atlassian.migration.datacenter.spi.CancellableMigrationService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.scheduler.config.JobId
 import org.slf4j.LoggerFactory
@@ -27,7 +28,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
                          private val migrationService: MigrationService,
                          private val sqsApi: SqsApi,
                          private val attachmentSyncManager: AttachmentSyncManager
-) {
+): CancellableMigrationService {
     companion object {
         private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
     }
@@ -64,7 +65,7 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
         return FinalFileSyncStatus(uploadedFileCount, itemsInQueue, itemsFailedToDownload)
     }
 
-    fun unscheduleMigration(migrationId: Int): Boolean {
+    override fun unscheduleMigration(migrationId: Int): Boolean {
         val jobId = getScheduledJobIdForMigration(migrationId)
         return migrationRunner.abortJobIfPresent(jobId);
     }

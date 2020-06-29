@@ -15,13 +15,14 @@
  */
 package com.atlassian.migration.datacenter.spi.fs
 
+import com.atlassian.migration.datacenter.spi.CancellableMigrationService
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
 
 /**
  * Service managing migration process of the application home folder to a remote location.
  */
-interface FilesystemMigrationService {
+interface FilesystemMigrationService: CancellableMigrationService {
     /**
      * Schedules filesystem migration to run asynchronously using the [com.atlassian.scheduler.SchedulerService]
      *
@@ -53,12 +54,4 @@ interface FilesystemMigrationService {
     @Throws(InvalidMigrationStageError::class)
     fun abortMigration()
 
-    /**
-     * Unschedule a scheduled job for a migration
-     *
-     * @param migrationId an identifier for a migration that spawned the scheduled job
-     *
-     * @return true if the job was unscheduled, false when the job to unschedule does not exist
-     */
-    fun unscheduleMigration(migrationId: Int): Boolean
 }
