@@ -125,6 +125,11 @@ public class DatabaseMigrationService {
         return result;
     }
 
+    public Boolean unscheduleMigration(int migrationId) {
+        JobId jobId = getScheduledJobId(migrationId);
+        return migrationRunner.abortJobIfPresent(jobId);
+    }
+
     public void abortMigration() throws InvalidMigrationStageError {
         // We always try to remove scheduled job if the system is in inconsistent state
         migrationRunner.abortJobIfPresent(getScheduledJobId());
@@ -141,7 +146,10 @@ public class DatabaseMigrationService {
     }
 
     private JobId getScheduledJobId() {
-        return JobId.of(DatabaseMigrationJobRunner.KEY + migrationService.getCurrentMigration().getID());
+        return getScheduledJobId(migrationService.getCurrentMigration().getID());
     }
 
+    private JobId getScheduledJobId(int migrationId) {
+        return JobId.of(DatabaseMigrationJobRunner.KEY + migrationId);
+    }
 }

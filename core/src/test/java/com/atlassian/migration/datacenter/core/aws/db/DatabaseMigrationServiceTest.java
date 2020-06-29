@@ -18,10 +18,12 @@ package com.atlassian.migration.datacenter.core.aws.db;
 
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
+import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner;
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
+import com.atlassian.scheduler.config.JobId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -35,8 +37,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -98,6 +102,16 @@ public class DatabaseMigrationServiceTest {
         inOrder.verify(migrationService).transition(MigrationStage.DATA_MIGRATION_IMPORT);
         inOrder.verify(migrationService).transition(MigrationStage.VALIDATE);
         verifyNoMoreInteractions(migrationService);
+    }
+
+    @Test
+    public void shouldUnscheduleMigrationGivenMigrationId(){
+        int migrationId = 42;
+
+        sut.unscheduleMigration(migrationId);
+
+        verify(migrationRunner).abortJobIfPresent(argThat(argument -> argument.equals(JobId.of(DatabaseMigrationJobRunner.KEY + migrationId))));
+
     }
 
 }
