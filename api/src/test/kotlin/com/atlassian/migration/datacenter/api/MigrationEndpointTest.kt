@@ -162,4 +162,24 @@ class MigrationEndpointTest {
         val entity = response.entity as? Map<String, String>
         assertThat(entity!!["error"], equalTo(expectedError))
     }
+
+    @Test
+    fun shouldBeOkWhenFinishCurrentMigrationIsCalledAndStageIsValidate() {
+        every { migrationService.finishCurrentMigration() } just Runs
+
+        val response = sut.finishMigration()
+
+        assertThat(response.status, equalTo(Response.Status.OK.statusCode))
+    }
+
+    @Test
+    fun shouldBeBadRequestWhenFinishCurrentMigrationIsCalledAndStageIsNotValidate() {
+        val message = "bad stage"
+        every { migrationService.finishCurrentMigration() } throws InvalidMigrationStageError(message)
+
+        val response = sut.finishMigration()
+
+        assertThat(response.status, equalTo(Response.Status.BAD_REQUEST.statusCode))
+        assertThat((response.entity as Map<String, String>)["message"], equalTo(message))
+    }
 }

@@ -108,12 +108,24 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         return Response.ok().build()
     }
 
+    @POST
+    @Path("/finish")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun finishMigration(): Response {
+        return try {
+            migrationService.finishCurrentMigration()
+            Response.ok().build()
+        } catch (e: InvalidMigrationStageError) {
+            Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to e.message)).build()
+        }
+    }
+
     private fun migrationContextResponseEntity(): Map<String, String> {
         val currentContext = migrationService.currentContext
 
         return mapOf(
-            "instanceUrl" to currentContext.serviceUrl,
-            "error" to currentContext.getErrorMessage()
+                "instanceUrl" to currentContext.serviceUrl,
+                "error" to currentContext.getErrorMessage()
         )
     }
 }
