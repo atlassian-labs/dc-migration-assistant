@@ -23,11 +23,11 @@ import org.junit.jupiter.api.Tag
 
 @Tag("rest")
 open class BaseRestTest {
-    private val username: String = System.getProperty("JIRA_USERNAME", "admin")
-    private val password: String = System.getProperty("JIRA_PASSWORD", "admin")
+    val username: String = System.getenv("JIRA_USERNAME") ?: "admin"
+    val password: String = System.getenv("JIRA_PASSWORD") ?: "admin"
 
-    val baseURI = System.getProperty("JIRA_BASE_URL", "http://jira:8080/jira")
-    val basePath = System.getProperty("JIRA_BASE_PATH", "/rest/dc-migration/1.0")
+    val baseURI = System.getenv("JIRA_BASE_URL") ?: "http://jira:8080/jira"
+    val basePath = System.getenv("JIRA_BASE_PATH") ?: "/rest/dc-migration/1.0"
 
     val requestSpec = RequestSpecBuilder()
         .log(LogDetail.ALL)
