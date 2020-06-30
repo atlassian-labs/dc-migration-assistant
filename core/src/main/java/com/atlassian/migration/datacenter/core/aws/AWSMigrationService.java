@@ -191,19 +191,20 @@ public class AWSMigrationService implements MigrationService {
     }
 
     @Override
-    public void finish() throws InvalidMigrationStageError
-    {
-        // TODO: This may require additional operations
-
-        Long now = System.currentTimeMillis() / 1000L;
-        transition(MigrationStage.FINISHED);
+    public void finishCurrentMigration() throws InvalidMigrationStageError {
+        long now = System.currentTimeMillis() / 1000L;
+        log.info("Finishing current migration. Migration has run for {} seconds", now);
 
         MigrationContext context = getCurrentContext();
+
+        transition(MigrationStage.FINISHED);
+
         context.setEndEpoch(now);
         context.save();
 
-        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(),
-                                                          now - context.getStartEpoch()));
+        long migrationRunTimeInSeconds = now - context.getStartEpoch();
+
+        eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(), migrationRunTimeInSeconds));
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {

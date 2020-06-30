@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.event.api.EventPublisher;
+import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
@@ -32,6 +33,7 @@ import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsE
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.scheduler.SchedulerService;
 import net.java.ao.EntityManager;
+import net.java.ao.Query;
 import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,12 +48,15 @@ import java.util.Arrays;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FINISHED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.PROVISION_APPLICATION_WAIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
@@ -250,6 +255,24 @@ public class AWSMigrationServiceTest {
         assertNumberOfMigrations(0);
         assertNumberOfMigrationContexts(0);
     }
+
+    @Test
+    public void shouldFinishCurrentMigrationWhenCurrentStageIsValidate() throws InvalidMigrationStageError {
+        Migration migration = initializeAndCreateSingleMigrationWithStage(MigrationStage.VALIDATE);
+
+        MigrationContext migrationContext = migration.getContext();
+        migrationContext.setMigration(migration);
+        migrationContext.setStartEpoch((System.currentTimeMillis() - 1000000L) / 1000L);
+        migrationContext.save();
+
+        sut.finishCurrentMigration();
+
+        Migration finishedMigration = ao.find(Migration.class, Query.select().where("ID = ?", migration.getID()))[0];
+        assertEquals(FINISHED, finishedMigration.getStage());
+        assertTrue(finishedMigration.getContext().getEndEpoch() > finishedMigration.getContext().getStartEpoch());
+        verify(eventPublisher).publish(any(MigrationCompleteEvent.class));
+    }
+
 
     private void assertNumberOfMigrations(int i) {
         assertEquals(i, ao.find(Migration.class).length);

@@ -103,5 +103,5 @@ interface MigrationService {
      * @see MigrationStage.FINISHED
      */
     @Throws(InvalidMigrationStageError::class)
-    fun finish()
+    fun finishCurrentMigration()
 }
