@@ -24,6 +24,7 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationCreatedEvent
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.events.MigrationResetEvent;
@@ -45,6 +46,7 @@ import org.mockito.junit.MockitoRule;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
@@ -276,14 +278,21 @@ public class AWSMigrationServiceTest {
 
     @Test
     public void shouldDeleteAllMigrationsAndAssociatedContexts() throws Exception {
-        sut.createMigration();
+        Migration migration = sut.createMigration();
+        IntStream.range(0,3).forEach(value -> {
+            FileSyncRecord fileSyncRecord = ao.create(FileSyncRecord.class);
+            fileSyncRecord.setMigration(migration);
+            fileSyncRecord.save();
+        });
         assertNumberOfMigrations(1);
         assertNumberOfMigrationContexts(1);
+        assertNumberOfFileSyncRecords(3);
 
         sut.deleteMigrations();
 
         assertNumberOfMigrations(0);
         assertNumberOfMigrationContexts(0);
+        assertNumberOfFileSyncRecords(0);
     }
 
     @Test
@@ -324,6 +333,10 @@ public class AWSMigrationServiceTest {
         assertEquals(i, ao.find(MigrationContext.class).length);
     }
 
+    private void assertNumberOfFileSyncRecords(int i) {
+        assertEquals(i, ao.find(FileSyncRecord.class).length);
+    }
+
     private Migration initializeAndCreateSingleMigrationWithStage(MigrationStage stage) {
         Migration migration;
         try {
@@ -340,5 +353,6 @@ public class AWSMigrationServiceTest {
     private void setupEntities() {
         ao.migrate(Migration.class);
         ao.migrate(MigrationContext.class);
+        ao.migrate(FileSyncRecord.class);
     }
 }

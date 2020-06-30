@@ -30,6 +30,7 @@ import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
+import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.events.MigrationResetEvent;
@@ -38,7 +39,6 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
-import net.java.ao.Query;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.ERROR;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.NOT_STARTED;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -87,7 +88,7 @@ public class AWSMigrationService implements MigrationService {
         if (migration.getStage().equals(NOT_STARTED)) {
             return migration;
         }
-        throw new MigrationAlreadyExistsException(String.format("Found existing migration in Stage - `%s`", migration.getStage()));
+        throw new MigrationAlreadyExistsException(format("Found existing migration in Stage - `%s`", migration.getStage()));
     }
 
     @Override
@@ -100,7 +101,7 @@ public class AWSMigrationService implements MigrationService {
     {
         MigrationStage currentStage = getCurrentStage();
         if (currentStage != expected) {
-            throw new InvalidMigrationStageError(String.format("wanted to be in stage %s but was in stage %s", expected, currentStage));
+            throw new InvalidMigrationStageError(format("wanted to be in stage %s but was in stage %s", expected, currentStage));
         }
     }
 
@@ -123,6 +124,7 @@ public class AWSMigrationService implements MigrationService {
             int migrationId = migration.getID();
             eventPublisher.publish(new MigrationResetEvent(migrationId));
             ao.delete(migration.getContext());
+            ao.deleteWithSQL(FileSyncRecord.class, format("%s = ?", "MIGRATION_ID"), migrationId);
             ao.delete(migration);
             log.warn("deleted migration {}", migration);
         }
