@@ -20,7 +20,26 @@ package com.atlassian.migration.datacenter.core.application;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 
 public interface ApplicationConfiguration {
+    /**
+     * @return key of the installed plugin
+     */
     String getPluginKey();
+
+    /**
+     * @return version of the installed plugin
+     */
     String getPluginVersion();
+
+    /**
+     * @return version of the host application
+     */
+    String getApplicationVersion();
+
+    /**
+     * Parses database configuration file and returns configuration that can be used to connect to the database
+     *
+     * @return application database configuration
+     * @throws ConfigurationReadException when the configuration file cannot be parsed or read
+     */
     DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException;
 }

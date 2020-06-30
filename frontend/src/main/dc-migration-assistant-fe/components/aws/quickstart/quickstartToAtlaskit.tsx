@@ -166,6 +166,13 @@ const createStringInputFromQuickstartParam: FormElementGenerator = (defaultField
         defaultValue: (Default as string) || '',
     };
 
+    if (param.paramKey === 'JiraVersion') {
+        overrideInputProps = {
+            isDisabled: true,
+            ...overrideInputProps,
+        };
+    }
+
     if (MaxLength) {
         overrideInputProps = {
             maxLength: MaxLength,

@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public class DirectoryStreamCrawler implements Crawler {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryStreamCrawler.class);
 
-    private static final String ignorePattern = "^(dbconfig\\.xml|caches|import|plugins/.bundled_plugins|plugins/.osgi-plugins)";
+    private static final String ignorePattern = "^(dbconfig\\.xml|caches|import|export|plugins/.bundled_plugins|plugins/.osgi-plugins)";
     private static final Pattern defaultIgnoreList = Pattern.compile(ignorePattern);
 
     private FileSystemMigrationReport report;

@@ -63,9 +63,11 @@ class DirectoryStreamCrawlerTest {
 
         final Path ignored1 = Files.createDirectory(tempDir.resolve("import"));
         final Path ignored2 = Files.createDirectories(tempDir.resolve("plugins/.osgi-plugins"));
+        final Path ignored3 = Files.createDirectories(tempDir.resolve("export"));
         ignoredPaths.add(Files.write(tempDir.resolve("dbconfig.xml"), "subfile".getBytes()));
         ignoredPaths.add(Files.write(ignored1.resolve("ignore1.txt"), "subfile".getBytes()));
         ignoredPaths.add(Files.write(ignored2.resolve("ignore2.txt"), "subfile".getBytes()));
+        ignoredPaths.add(Files.write(ignored3.resolve("export-file.zip"), "subfile".getBytes()));
 
     }
 

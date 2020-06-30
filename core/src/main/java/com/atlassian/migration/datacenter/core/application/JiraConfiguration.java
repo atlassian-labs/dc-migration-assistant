@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.application;
 
 import com.atlassian.jira.config.util.JiraHome;
+import com.atlassian.jira.util.BuildUtilsInfo;
 import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadException;
 import com.atlassian.plugin.PluginAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -32,27 +33,32 @@ public class JiraConfiguration extends CommonApplicationConfiguration
 {
 
     private final JiraHome jiraHome;
+    private final BuildUtilsInfo buildUtilsInfo;
 
     public static final String PLUGIN_KEY = "com.atlassian.migration.datacenter.jira-plugin";
     private final ObjectMapper xmlMapper;
     private Optional<DatabaseConfiguration> databaseConfiguration = Optional.empty();
 
-    public JiraConfiguration(JiraHome jiraHome, PluginAccessor pluginAccessor) {
+    public JiraConfiguration(JiraHome jiraHome, PluginAccessor pluginAccessor, BuildUtilsInfo buildUtilsInfo) {
         super(pluginAccessor);
         this.jiraHome = jiraHome;
+        this.buildUtilsInfo = buildUtilsInfo;
         this.xmlMapper = new XmlMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Override
-    public String getPluginKey()
-    {
+    public String getPluginKey() {
         return PLUGIN_KEY;
     }
 
     @Override
-    public DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException
-    {
+    public String getApplicationVersion() {
+        return buildUtilsInfo.getVersion();
+    }
+
+    @Override
+    public DatabaseConfiguration getDatabaseConfiguration() throws ConfigurationReadException {
         if (!databaseConfiguration.isPresent()) {
             databaseConfiguration = Optional.of(parseDatabaseConfigurationFromXmlFile());
         }
