@@ -2,6 +2,7 @@ package com.atlassian.migration.datacenter.core.aws
 
 import com.atlassian.event.api.EventListener
 import com.atlassian.event.api.EventPublisher
+import com.atlassian.migration.datacenter.events.MigrationResetEvent
 import com.atlassian.migration.datacenter.spi.CancellableMigrationService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.DisposableBean
