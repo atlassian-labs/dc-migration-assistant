@@ -23,13 +23,14 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.scheduler.config.JobId
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.DisposableBean
 
 class S3FinalSyncService(private val migrationRunner: MigrationRunner,
                          private val s3FinalSyncRunner: S3FinalSyncRunner,
                          private val migrationService: MigrationService,
                          private val sqsApi: SqsApi,
                          private val attachmentSyncManager: AttachmentSyncManager
-): CancellableMigrationService {
+) : CancellableMigrationService, DisposableBean {
     companion object {
         private val logger = LoggerFactory.getLogger(S3FinalSyncService::class.java)
     }
@@ -77,6 +78,12 @@ class S3FinalSyncService(private val migrationRunner: MigrationRunner,
 
     private fun getScheduledJobIdForMigration(migrationId: Int): JobId {
         return JobId.of(s3FinalSyncRunner.key + migrationId)
+    }
+
+    @Throws(Exception::class)
+    override fun destroy() {
+        val jobId = getScheduledJobId()
+        this.migrationRunner.abortJobIfPresent(jobId)
     }
 }
 

@@ -20,6 +20,7 @@ import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
+import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure;
@@ -29,6 +30,7 @@ import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationRe
 import com.atlassian.scheduler.config.JobId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.env.Environment;
 
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
@@ -36,7 +38,7 @@ import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigr
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DOWNLOADING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
 
-public class S3FilesystemMigrationService implements FilesystemMigrationService {
+public class S3FilesystemMigrationService implements FilesystemMigrationService, DisposableBean {
     private static final Logger logger = LoggerFactory.getLogger(S3FilesystemMigrationService.class);
 
 
@@ -149,5 +151,12 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService 
     @Override
     public boolean unscheduleMigration(int migrationId) {
         return migrationRunner.abortJobIfPresent(getScheduledJobIdForMigration(migrationId));
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        Migration currentMigration = this.migrationService.getCurrentMigration();
+        JobId jobId = getScheduledJobIdForMigration(currentMigration.getID());
+        this.migrationRunner.abortJobIfPresent(jobId);
     }
 }
