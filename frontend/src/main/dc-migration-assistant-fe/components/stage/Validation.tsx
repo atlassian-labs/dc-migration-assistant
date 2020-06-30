@@ -154,16 +154,13 @@ const MigrationSummary: FunctionComponent = () => {
 };
 
 const ValidationSummary: FunctionComponent = () => {
-    const [
-        hasFinishMigrationCompletedSuccessfully,
-        setHasFinishMigrationCompletedSuccessfully,
-    ] = useState<boolean>(false);
+    const [isFinishMigrationSuccess, setIsFinishMigrationSuccess] = useState<boolean>(false);
 
     const [finishMigrationApiErrorMessage, setFinishMigrationApiErrorMessage] = useState<string>(
         ''
     );
 
-    if (hasFinishMigrationCompletedSuccessfully) {
+    if (isFinishMigrationSuccess) {
         return <Redirect to={homePath} push />;
     }
 
@@ -194,8 +191,9 @@ const ValidationSummary: FunctionComponent = () => {
                 onClick={(): any =>
                     migration
                         .finishMigration()
-                        .then(() => setHasFinishMigrationCompletedSuccessfully(true))
+                        .then(() => setIsFinishMigrationSuccess(true))
                         .catch(response => {
+                            // eslint-disable-next-line no-console
                             console.log(response);
                             setFinishMigrationApiErrorMessage(response.message);
                         })

@@ -119,7 +119,7 @@ export const migration = {
     finishMigration: (): Promise<Record<string, string>> => {
         return callAppRest('POST', RestApiPathConstants.migrationFinishRestPath).then(res => {
             if (res.status === 200) {
-                return Promise.resolve(res.json());
+                return Promise.resolve({});
             }
             return Promise.reject(res.json());
         });
