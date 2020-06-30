@@ -25,6 +25,7 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
+import com.atlassian.migration.datacenter.events.MigrationResetEvent;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
