@@ -147,4 +147,4 @@ jobs:
           JIRA_BASE_URL: ${{ secrets.DOGFOODING_URL }}
           JIRA_USERNAME: ${{ secrets.DOGFOODING_USER }}
           JIRA_PASSWORD: ${{ secrets.DOGFOODING_PASSWORD }}
-        run: mvn verify -pl func-tests -Prest -DJIRA_BASE_URL=$JIRA_BASE_URL -DJIRA_USERNAME=$JIRA_USERNAME -DJIRA_PASSWORD=$JIRA_PASSWORD
+        run: cd jira-e2e-tests/func-tests/ && mvn verify

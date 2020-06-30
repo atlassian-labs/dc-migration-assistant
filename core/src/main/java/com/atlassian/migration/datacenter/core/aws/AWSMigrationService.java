@@ -27,8 +27,10 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionEv
 import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFailedEvent;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
+import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
 import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.dto.Migration;
@@ -148,12 +150,16 @@ public class AWSMigrationService implements MigrationService {
     @Override
     public MigrationReadyStatus getReadyStatus()
     {
-        DatabaseExtractor databaseExtractor = databaseExtractorFactory.getExtractor();
+        /*
+         * TODO: For now we only support Postgres. Once support for database types is 
+         * expanded introduce a factory here that will return the correct implementation
+         */
+        DatabaseClientTools dbClientTooling = new PostgresClientTooling(applicationConfiguration);
 
         Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
-        SemVer pgDumpVer = databaseExtractor.getClientVersion();
-        SemVer pgServerVer = databaseExtractor.getServerVersion();
+        SemVer pgDumpVer = dbClientTooling.getDatabaseDumpClientVersion();
+        SemVer pgServerVer = dbClientTooling.getDatabaseServerVersion();
         Boolean pgDumpAvail = pgDumpVer != null;
 
        // From the pg_dump manpage: "pg_dump cannot dump from PostgreSQL servers newer than its own

@@ -20,33 +20,24 @@ import com.atlassian.migration.datacenter.core.util.MigrationRunner
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
+import com.atlassian.scheduler.JobRunnerRequest
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest
-import software.amazon.awssdk.services.s3.model.DeleteBucketResponse
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
-import software.amazon.awssdk.services.s3.model.DeleteObjectResponse
-import software.amazon.awssdk.services.s3.model.HeadBucketRequest
-import software.amazon.awssdk.services.s3.model.HeadBucketResponse
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException
-import software.amazon.awssdk.services.s3.model.S3Object
-import java.util.concurrent.Executors
+import software.amazon.awssdk.services.s3.model.*
 import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.concurrent.thread
-import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
-internal class MigrationBucketCleanupServiceTest {
+internal class BucketCleanupJobRunnerTest {
 
     @MockK
     lateinit var migrationService: MigrationService
@@ -55,55 +46,45 @@ internal class MigrationBucketCleanupServiceTest {
     @MockK
     lateinit var s3Client: S3Client
     @MockK
-    lateinit var migrationRunner: MigrationRunner
+    lateinit var jobRunnerRequest: JobRunnerRequest
 
     private var clientSupplier = Supplier { s3Client }
-    private lateinit var sut: MigrationBucketCleanupService
+    private lateinit var sut: BucketCleanupJobRunner
 
     private val bucketName = "bucket"
 
     @BeforeEach
     internal fun setUp() {
-        sut = MigrationBucketCleanupService(migrationService, migrationRunner, clientSupplier)
+        sut = BucketCleanupJobRunner(migrationService, clientSupplier)
+    }
+
+    @Test
+    fun shouldDeleteBucketIfItExists() {
+        givenBucketNameIsInMigrationContext()
+        givenObjectsAreInBucket(0)
+        andBucketWillBeDeleted()
+
+        sut.runJob(jobRunnerRequest)
+
+        verify(exactly = 1) {
+            s3Client.deleteBucket(any<Consumer<DeleteBucketRequest.Builder>>())
+        }
     }
 
 
     @Test
-    fun shouldReturnCleanupCompleteWhenBucketDoesNotExist() {
+    fun shouldDeleteForEveryObjectInBucket() {
+        val numObjects = 3
         givenBucketNameIsInMigrationContext()
-        givenBucketDoesNotExist()
-
-        assertEquals(InfrastructureCleanupStatus.CLEANUP_COMPLETE, sut.getMigrationInfrastructureCleanupStatus())
-    }
-
-    @Test
-    fun shouldReturnCleanupNotStartedWhenBucketIsNotEmptyAndCleanupNotInProgress() {
-        givenBucketNameIsInMigrationContext()
-        givenObjectsAreInBucket(3)
-
-        assertEquals(InfrastructureCleanupStatus.CLEANUP_NOT_STARTED, sut.getMigrationInfrastructureCleanupStatus())
-    }
-
-    @Test
-    @Disabled("can't get the thread jittering to work so that cleanup is partway through when get status is called")
-    fun shouldReturnCleanupInProgressWhileEmptyingBucket() {
-        givenBucketNameIsInMigrationContext()
-        givenObjectsAreInBucket(1000)
+        givenObjectsAreInBucket(numObjects)
         andObjectsWillBeDeleted()
         andBucketWillBeDeleted()
 
-        val thread = thread {
-            sut.startMigrationInfrastructureCleanup()
+        sut.runJob(jobRunnerRequest)
+
+        verify(exactly = numObjects) {
+            s3Client.deleteObject(any<Consumer<DeleteObjectRequest.Builder>>())
         }
-
-        Thread.sleep(1000)
-
-        assertEquals(InfrastructureCleanupStatus.CLEANUP_IN_PROGRESS, sut.getMigrationInfrastructureCleanupStatus())
-    }
-
-
-    private fun givenBucketDoesNotExist() {
-        every { s3Client.headBucket(any<Consumer<HeadBucketRequest.Builder>>()) } throws NoSuchBucketException.builder().build()
     }
 
     private fun givenObjectsAreInBucket(numObjects: Int) {
@@ -138,4 +119,6 @@ internal class MigrationBucketCleanupServiceTest {
         every { migrationService.currentContext } returns context
         every { context.migrationBucketName } returns bucketName
     }
+
+
 }

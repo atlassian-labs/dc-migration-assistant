@@ -24,7 +24,9 @@ import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRes
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.RemoteInstanceCommandRunnerService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
+import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
 import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
@@ -85,6 +87,8 @@ class DatabaseMigrationServiceIT {
     @Mock(lenient = true)
     ApplicationConfiguration configuration;
 
+    DatabaseClientTools databaseClientTools;
+    
     FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
 
     @Mock
@@ -127,13 +131,14 @@ class DatabaseMigrationServiceIT {
                 .build();
         CreateBucketResponse resp = s3client.createBucket(req).get();
         assertTrue(resp.sdkHttpResponse().isSuccessful());
+        databaseClientTools = new PostgresClientTooling(configuration);
     }
 
 
     @Test
     void testDatabaseMigration() throws ExecutionException, InterruptedException, InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         MigrationStageCallback archiveStageTransitionCallback = new DatabaseArchiveStageTransitionCallback(migrationService);
-        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(new DefaultDatabaseExtractorFactory(configuration), archiveStageTransitionCallback);
+        DatabaseArchivalService databaseArchivalService = new DatabaseArchivalService(new DefaultDatabaseExtractorFactory(configuration, databaseClientTools), archiveStageTransitionCallback);
 
         MigrationStageCallback uploadStageTransitionCallback = new DatabaseUploadStageTransitionCallback(this.migrationService);
         DatabaseArtifactS3UploadService s3UploadService = new DatabaseArtifactS3UploadService(() -> s3client, uploadStageTransitionCallback, reportManager);

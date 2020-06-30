@@ -20,11 +20,6 @@ import net.swiftzer.semver.SemVer
 import java.nio.file.Path
 
 class UnSupportedDatabaseExtractor : DatabaseExtractor {
-    override val clientVersion: SemVer?
-        get() = null
-    override val serverVersion: SemVer?
-        get() = null
-
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path): Process {
         throw UnsupportedOperationException("Not implemented")

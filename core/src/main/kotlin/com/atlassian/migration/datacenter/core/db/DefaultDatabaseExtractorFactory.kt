@@ -21,14 +21,14 @@ import com.atlassian.migration.datacenter.spi.exceptions.ConfigurationReadExcept
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
 import org.slf4j.LoggerFactory
 
-class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration) : DatabaseExtractorFactory {
+class DefaultDatabaseExtractorFactory(val config: ApplicationConfiguration, private val databaseClientTools: DatabaseClientTools) : DatabaseExtractorFactory {
     companion object {
         val log = LoggerFactory.getLogger(DefaultDatabaseExtractorFactory::class.java)
     }
     override val extractor: DatabaseExtractor by lazy {
         try {
             if (config.databaseConfiguration.type == DBType.POSTGRESQL) {
-                PostgresExtractor(config)
+                PostgresExtractor(config, databaseClientTools)
             } else {
                 UnSupportedDatabaseExtractor()
             }

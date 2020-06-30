@@ -141,7 +141,7 @@ export const ReadyStatus: FunctionComponent<ReadyProps> = ({ ready }) => {
                     {readyString(ready?.pgDumpAvailable)}
                 </li>
                 <li>
-                    the <strong>pg_dump</strong> utility is compatible with the server version
+                    <strong>pg_dump</strong> utility is compatible with the server version &nbsp;{' '}
                     &nbsp; {readyString(ready?.pgDumpCompatible)}
                 </li>
                 <li>

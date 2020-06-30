@@ -17,91 +17,17 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
-import com.impossibl.postgres.jdbc.PGDriver
-import net.swiftzer.semver.SemVer
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.sql.SQLException
-import java.util.*
-import java.util.concurrent.TimeUnit
 
-class PostgresExtractor(private val applicationConfiguration: ApplicationConfiguration) : DatabaseExtractor {
+class PostgresExtractor(private val applicationConfiguration: ApplicationConfiguration, 
+                        private val databaseClientTools: DatabaseClientTools) : DatabaseExtractor {
     companion object {
         private val log = LoggerFactory.getLogger(PostgresExtractor::class.java)
-        private val pddumpPaths = arrayOf("/usr/bin/pg_dump", "/usr/local/bin/pg_dump")
-
-        private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)[\\s$]")
-
-        @JvmStatic
-        fun parsePgDumpVersion(text: String): SemVer? {
-            val match = versionPattern.find(text) ?: return null
-            return SemVer.parse(match.groupValues[1])
-        }
-
     }
-
-    private val pgdumpPath: String?
-        get() {
-            for (path in pddumpPaths) {
-                val p = Paths.get(path)
-                if (Files.isReadable(p) && Files.isExecutable(p)) {
-                    return path
-                }
-            }
-            return null
-        }
-
-    override val clientVersion: SemVer?
-        get() {
-            val pgdump = pgdumpPath ?: return null
-
-            try {
-                val proc = ProcessBuilder(pgdump,
-                        "--version")
-                        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-                        .redirectError(ProcessBuilder.Redirect.PIPE)
-                        .start()
-
-                proc.waitFor(60, TimeUnit.SECONDS)
-
-                val message = proc.inputStream.bufferedReader().readText()
-
-                return parsePgDumpVersion(message)
-
-            } catch (e: Exception) {
-                log.error("Failed to get pg_dump version from command-line")
-                return null
-            }
-        }
-
-    override val serverVersion: SemVer?
-        get() {
-            // NOTE: We use the NG Postgres driver here as the official
-            // one doesn't play well with OSGI.
-            val config = applicationConfiguration.databaseConfiguration
-            val url = "jdbc:pgsql://${config.host}:${config.port}/${config.name}"
-            val props = Properties().apply {
-                setProperty("user", config.username)
-                setProperty("password", config.password)
-            }
-
-            val conn = try {
-                PGDriver().connect(url, props)
-            } catch (e: SQLException) {
-                log.error("Exception opening DB connection for version", e)
-                null
-            } ?: return null
-
-            val meta = conn.metaData
-            conn.close()
-
-            return SemVer.parse(meta.databaseProductVersion)
-        }
 
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path): Process {
@@ -125,7 +51,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
     override fun startDatabaseDump(target: Path, parallel: Boolean): Process {
         val numJobs = if (parallel) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
 
-        val pgdump = pgdumpPath ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
+        val pgdump = databaseClientTools.getDatabaseDumpClientPath() ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
         val config = applicationConfiguration.databaseConfiguration
 
         val builder = ProcessBuilder(pgdump,

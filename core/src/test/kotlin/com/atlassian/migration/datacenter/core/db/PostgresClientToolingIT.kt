@@ -17,8 +17,7 @@ package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import net.swiftzer.semver.SemVer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -29,20 +28,12 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.shaded.org.apache.commons.io.IOUtils
 import org.testcontainers.utility.MountableFile
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
-import java.nio.file.Files
-import java.sql.DriverManager
-import java.sql.SQLException
-import java.util.*
-import java.util.zip.GZIPInputStream
+import kotlin.test.assertEquals
 
 @Testcontainers
 @ExtendWith(MockitoExtension::class)
-internal class PostgresExtractorIT {
+internal class PostgresClientToolingIT {
     companion object {
         @Container
         val postgres = PostgreSQLContainer<Nothing>("postgres:9.6.18").apply {
@@ -54,7 +45,7 @@ internal class PostgresExtractorIT {
     @Mock(lenient = true)
     var configuration: ApplicationConfiguration? = null
     
-    private lateinit var databaseClientTooling: PostgresClientTooling
+    private lateinit var databaseClientTooling: PostgresClientTooling;
 
     @BeforeEach
     fun setUp() {
@@ -74,49 +65,7 @@ internal class PostgresExtractorIT {
     }
 
     @Test
-    @Throws(SQLException::class)
-    fun testPsqlDataImported() {
-        val props = Properties()
-        props["user"] = postgres.username
-        props["password"] = postgres.password
-
-        val conn = DriverManager.getConnection(postgres.jdbcUrl, props)
-        val s = conn.createStatement()
-        val r = s.executeQuery("SELECT id, summary FROM jiraissue WHERE issuenum = 1;")
-        assertTrue(r.next())
-
-        val summary = r.getString(2)
-        assertTrue(summary.startsWith("As an Agile team, I'd like to learn about Scrum"))
-        assertFalse(r.next())
-
-        r.close()
-        s.close()
-        conn.close()
+    fun itShouldObtainThePostgresServerVersion() {
+        assertEquals(SemVer(9, 6, 18), databaseClientTooling.getDatabaseServerVersion())
     }
-
-    @Test
-    @Throws(IOException::class)
-    fun testDatabaseDump() {
-        val migration = PostgresExtractor(configuration!!, databaseClientTooling)
-        val tempDir = createTempDir().toPath()
-        val target = tempDir.resolve("database.dump")
-
-        migration.dumpDatabase(target)
-        assertTrue(target.toFile().exists())
-        assertTrue(target.toFile().isDirectory)
-
-        var found = false
-        for (p in Files.newDirectoryStream(target, "*.gz")) {
-            val stream: InputStream = GZIPInputStream(FileInputStream(p.toFile()))
-            for (line in IOUtils.readLines(stream, "UTF-8")) {
-                if (line.contains("As an Agile team, I'd like to learn about Scrum")) {
-                    found = true
-                    break
-                }
-            }
-        }
-
-        assertTrue(found)
-    }
-
 }

@@ -22,6 +22,7 @@ import cloud.localstack.docker.annotation.LocalstackDockerProperties
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim
+import com.atlassian.scheduler.JobRunnerRequest
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -33,19 +34,20 @@ import software.amazon.awssdk.services.s3.S3Client
 import java.io.File
 import java.net.URI
 import java.util.function.Supplier
-import kotlin.test.assertEquals
 
 @ExtendWith(LocalstackDockerExtension::class, MockKExtension::class)
 @LocalstackDockerProperties(services = ["s3"], imageTag = "0.10.8")
-class MigrationBucketCleanupServiceIT {
+internal class BucketCleanupJobRunnerIT {
 
     @MockK
     lateinit var context: MigrationContext
     @MockK
     lateinit var migrationService: MigrationService
+    @MockK
+    lateinit var jobRunnerRequest: JobRunnerRequest
 
     private lateinit var client: S3Client
-    private lateinit var sut: MigrationBucketCleanupService
+    private lateinit var sut: BucketCleanupJobRunner
 
     private val bucket = "tes-bucket"
     private val keyPrefix = "object-"
@@ -58,7 +60,7 @@ class MigrationBucketCleanupServiceIT {
                 .region(Region.of(TestUtils.DEFAULT_REGION))
                 .credentialsProvider(AwsCredentialsProviderShim(TestUtils.getCredentialsProvider()))
                 .build()
-        sut = MigrationBucketCleanupService(migrationService, Supplier { client })
+        sut = BucketCleanupJobRunner(migrationService, Supplier { client })
     }
 
     @Test
@@ -70,22 +72,23 @@ class MigrationBucketCleanupServiceIT {
         }
 
         val buckets = client.listBuckets()
-        assertEquals(1, buckets.buckets().size)
-        assertEquals(bucket, buckets.buckets()[0].name())
+        kotlin.test.assertEquals(1, buckets.buckets().size)
+        kotlin.test.assertEquals(bucket, buckets.buckets()[0].name())
         val objects = client.listObjects { it.bucket(bucket) }
-        assertEquals(numObjects, objects.contents().size)
+        kotlin.test.assertEquals(numObjects, objects.contents().size)
         for (i in 0 until numObjects) {
-            assertEquals("$keyPrefix$i", objects.contents()[i].key())
+            kotlin.test.assertEquals("$keyPrefix$i", objects.contents()[i].key())
         }
 
         every { migrationService.currentContext } returns context
         every { context.migrationBucketName } returns bucket
 
-        sut.startMigrationInfrastructureCleanup()
+        sut.runJob(jobRunnerRequest)
 
         val bucketsAfter = client.listBuckets()
-        assertEquals(0, bucketsAfter.buckets().size)
+        kotlin.test.assertEquals(0, bucketsAfter.buckets().size)
 
         dummyFile.delete()
     }
+
 }

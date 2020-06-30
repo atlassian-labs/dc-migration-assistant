@@ -60,8 +60,10 @@ import com.atlassian.migration.datacenter.core.aws.region.AvailabilityZoneManage
 import com.atlassian.migration.datacenter.core.aws.region.PluginSettingsRegionManager;
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.aws.ssm.SSMApi;
+import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.db.DefaultDatabaseExtractorFactory;
+import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
@@ -160,6 +162,11 @@ public class MigrationAssistantBeanConfiguration {
                 .credentialsProvider(awsCredentialsProvider)
                 .region(Region.of(regionService.getRegion()))
                 .build();
+    }
+
+    @Bean
+    public DatabaseClientTools databaseClientTools(ApplicationConfiguration applicationConfiguration) {
+        return new PostgresClientTooling(applicationConfiguration);
     }
     
     @Bean
@@ -272,8 +279,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseExtractorFactory databaseExtractorFactory(ApplicationConfiguration applicationConfiguration) {
-        return new DefaultDatabaseExtractorFactory(applicationConfiguration);
+    public DatabaseExtractorFactory databaseExtractorFactory(ApplicationConfiguration applicationConfiguration, DatabaseClientTools databaseClientTools) {
+        return new DefaultDatabaseExtractorFactory(applicationConfiguration, databaseClientTools);
     }
 
     @Bean
@@ -407,8 +414,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationBucketCleanupService bucketCleanupService(MigrationService migrationService, Supplier<S3Client> clientSupplier) {
-        return new MigrationBucketCleanupService(migrationService, clientSupplier);
+    public MigrationBucketCleanupService bucketCleanupService(MigrationService migrationService, MigrationRunner migrationRunner, Supplier<S3Client> clientSupplier) {
+        return new MigrationBucketCleanupService(migrationService, migrationRunner, clientSupplier);
     }
 
     @Bean
