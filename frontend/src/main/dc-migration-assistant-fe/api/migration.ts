@@ -21,6 +21,7 @@ enum RestApiPathConstants {
     migrationSummaryRestPath = `migration/summary`,
     migrationReadyRestPath = `migration/ready`,
     migrationResetRestPath = `migration/reset`,
+    migrationFinishRestPath = `migration/finish`,
     migrationForceResetPath = `develop/migration/reset`,
 }
 
@@ -114,6 +115,14 @@ export const migration = {
         return callAppRest('GET', RestApiPathConstants.migrationReadyRestPath).then(res =>
             res.json()
         );
+    },
+    finishMigration: (): Promise<Record<string, string>> => {
+        return callAppRest('POST', RestApiPathConstants.migrationFinishRestPath).then(res => {
+            if (res.status === 200) {
+                return Promise.resolve(res.json());
+            }
+            return Promise.reject(res.json());
+        });
     },
 };
 

@@ -20,7 +20,7 @@ import Flag from '@atlaskit/flag';
 import ErrorIcon from '@atlaskit/icon/glyph/error';
 import { colors } from '@atlaskit/theme';
 
-type AuthenticationErrorProps = {
+type ErrorFlagProps = {
     /**
      * whether the flag should be rendered or not
      */
@@ -53,7 +53,7 @@ const ErrorContainer = styled.div`
     z-index: 1;
 `;
 
-export const ErrorFlag: FunctionComponent<AuthenticationErrorProps> = ({
+export const ErrorFlag: FunctionComponent<ErrorFlagProps> = ({
     showError,
     dismissErrorFunc,
     title,

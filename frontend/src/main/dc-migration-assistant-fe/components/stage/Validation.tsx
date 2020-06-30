@@ -20,9 +20,11 @@ import SectionMessage from '@atlaskit/section-message';
 import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
-import { homePath } from '../../utils/RoutePaths';
+import { Redirect } from 'react-router-dom';
+import { homePath, quickstartPath } from '../../utils/RoutePaths';
 import { migration, MigrationStage } from '../../api/migration';
 import { provisioning } from '../../api/provisioning';
+import { ErrorFlag } from '../shared/ErrorFlag';
 
 const MigrationSummaryContainer = styled.div`
     display: grid;
@@ -151,9 +153,29 @@ const MigrationSummary: FunctionComponent = () => {
     );
 };
 
-const ValidationSummary = (): ReactElement => {
+const ValidationSummary: FunctionComponent = () => {
+    const [
+        hasFinishMigrationCompletedSuccessfully,
+        setHasFinishMigrationCompletedSuccessfully,
+    ] = useState<boolean>(false);
+
+    const [finishMigrationApiErrorMessage, setFinishMigrationApiErrorMessage] = useState<string>(
+        ''
+    );
+
+    if (hasFinishMigrationCompletedSuccessfully) {
+        return <Redirect to={homePath} push />;
+    }
+
     return (
         <>
+            <ErrorFlag
+                showError={finishMigrationApiErrorMessage !== ''}
+                dismissErrorFunc={(): void => setFinishMigrationApiErrorMessage('')}
+                title={I18n.getText('atlassian.migration.datacenter.validation.finish.api.error')}
+                description="This only impacts the source instance. Please check the logs for the exact cause."
+                id="finish-api-error"
+            />
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
             <h3>{I18n.getText('atlassian.migration.datacenter.validation.message')}</h3>
             <SectionMessageContainer>
@@ -169,7 +191,15 @@ const ValidationSummary = (): ReactElement => {
                 style={{
                     marginTop: '15px',
                 }}
-                href={homePath}
+                onClick={(): any =>
+                    migration
+                        .finishMigration()
+                        .then(() => setHasFinishMigrationCompletedSuccessfully(true))
+                        .catch(response => {
+                            console.log(response);
+                            setFinishMigrationApiErrorMessage(response.message);
+                        })
+                }
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
             </Button>
