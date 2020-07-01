@@ -31,6 +31,7 @@ import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeplo
 import com.atlassian.scheduler.config.JobId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -38,7 +39,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DatabaseMigrationService implements CancellableMigrationService {
+public class DatabaseMigrationService implements CancellableMigrationService, DisposableBean {
     private static Logger logger = LoggerFactory.getLogger(DatabaseMigrationService.class);
 
     private final Path tempDirectory;
@@ -158,5 +159,11 @@ public class DatabaseMigrationService implements CancellableMigrationService {
 
     private JobId getScheduledJobId(int migrationId) {
         return JobId.of(DatabaseMigrationJobRunner.KEY + migrationId);
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        JobId jobId = getScheduledJobId();
+        this.migrationRunner.abortJobIfPresent(jobId);
     }
 }
