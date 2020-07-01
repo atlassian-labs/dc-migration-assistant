@@ -164,7 +164,7 @@ class MigrationEndpointTest {
     }
 
     @Test
-    fun shouldBeOkWhenFinishCurrentMigrationIsCalledAndStageIsValidate() {
+    fun shouldBeOkWhenFinishCurrentMigrationIsCalledSuccessfully() {
         every { migrationService.finishCurrentMigration() } just Runs
 
         val response = sut.finishMigration()
@@ -173,7 +173,7 @@ class MigrationEndpointTest {
     }
 
     @Test
-    fun shouldBeBadRequestWhenFinishCurrentMigrationIsCalledAndStageIsNotValidate() {
+    fun shouldBeBadRequestWhenFinishCurrentMigrationThrowsAnException() {
         val message = "bad stage"
         every { migrationService.finishCurrentMigration() } throws InvalidMigrationStageError(message)
 

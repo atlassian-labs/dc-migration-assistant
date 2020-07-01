@@ -21,7 +21,7 @@ import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
-import { homePath, quickstartPath } from '../../utils/RoutePaths';
+import { homePath } from '../../utils/RoutePaths';
 import { migration, MigrationStage } from '../../api/migration';
 import { provisioning } from '../../api/provisioning';
 import { ErrorFlag } from '../shared/ErrorFlag';
@@ -188,16 +188,14 @@ const ValidationSummary: FunctionComponent = () => {
                 style={{
                     marginTop: '15px',
                 }}
-                onClick={(): any =>
+                onClick={(): void => {
                     migration
                         .finishMigration()
                         .then(() => setIsFinishMigrationSuccess(true))
                         .catch(response => {
-                            // eslint-disable-next-line no-console
-                            console.log(response);
                             setFinishMigrationApiErrorMessage(response.message);
-                        })
-                }
+                        });
+                }}
             >
                 {I18n.getText('atlassian.migration.datacenter.validation.next.button')}
             </Button>
