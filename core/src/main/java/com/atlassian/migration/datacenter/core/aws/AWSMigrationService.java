@@ -28,7 +28,6 @@ import com.atlassian.migration.datacenter.analytics.events.MigrationTransitionFa
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.DatabaseConfiguration;
 import com.atlassian.migration.datacenter.core.db.DatabaseClientTools;
-import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.core.db.PostgresClientTooling;
 import com.atlassian.migration.datacenter.core.proxy.ReadOnlyEntityInvocationHandler;
@@ -41,6 +40,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
+import net.java.ao.Query;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -252,9 +252,8 @@ public class AWSMigrationService implements MigrationService {
         }
     }
 
-    //TODO: Verify if ao exposes any negate queries to filter migrations in a query
     private List<Migration> findNonFinishedMigrations() {
-        return Arrays.stream(findAllMigrations()).filter(x -> x.getStage() != MigrationStage.FINISHED).collect(Collectors.toList());
+        return Arrays.stream(ao.find(Migration.class, Query.select().where(format("%s <> ?", "STAGE"), MigrationStage.FINISHED))).collect(Collectors.toList());
     }
 
     private Migration[] findAllMigrations() {
