@@ -73,13 +73,12 @@ public class SsmPsqlDatabaseRestoreService {
         SuccessfulSSMCommandConsumer consumer = new EnsureSuccessfulSSMCommandConsumer(ssm, commandId,
                 migrationInstanceId);
         
-        remoteInstanceCommandRunnerService.restartJiraService();
-        
         migrationStageCallback.transitionToServiceWaitStage();
 
         try {
             consumer.handleCommandOutput();
             migrationStageCallback.transitionToServiceNextStage();
+            remoteInstanceCommandRunnerService.restartJiraService();
         } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException
                 | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
             final String errorMessage = "Error restoring database. Either download of database dump from S3 failed or pg_restore failed";
