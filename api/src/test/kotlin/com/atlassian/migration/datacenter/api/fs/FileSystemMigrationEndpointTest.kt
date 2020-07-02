@@ -83,15 +83,17 @@ internal class FileSystemMigrationEndpointTest {
     }
 
     @Test
-    fun shouldNotRetryMigrationWhenAbortMigrationThrowsAnException() {
+    fun shouldRetryMigrationEvenWhenAbortMigrationThrowsAnException() {
         every { fsMigrationService.abortMigration() } throws InvalidMigrationStageError("bad state error")
+        every { migrationService.transition(MigrationStage.FS_MIGRATION_COPY) } just runs
+        every { fsMigrationService.scheduleMigration() } returns true
 
         val response = endpoint.retryFileSystemMigration()
 
-        assertEquals(response.status, Response.Status.BAD_REQUEST.statusCode)
+        assertEquals(response.status, Response.Status.ACCEPTED.statusCode)
 
-        verify(exactly = 0) { migrationService.transition(any()) }
-        verify(exactly = 0) { fsMigrationService.scheduleMigration() }
+        verify { migrationService.transition(MigrationStage.FS_MIGRATION_COPY) }
+        verify { fsMigrationService.scheduleMigration() }
     }
 
     @Test

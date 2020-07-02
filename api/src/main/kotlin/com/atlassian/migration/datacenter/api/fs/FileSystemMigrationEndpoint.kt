@@ -134,8 +134,7 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
             log.debug("[Retry operation] Aborting current migration, if there is a migration in progress")
             fsMigrationService.abortMigration()
         } catch (e: InvalidMigrationStageError) {
-            log.error("[Retry operation] Unable to abort a migration", e)
-            return Response.status(Response.Status.BAD_REQUEST).build()
+            log.error("[Retry operation] Unable to abort a migration. Proceeding with retrying the migration.", e)
         }
 
         try {
@@ -143,7 +142,6 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY)
         } catch (e: InvalidMigrationStageError) {
             log.error("[Retry operation] Unable to transition stage to {}", MigrationStage.FS_MIGRATION_COPY, e)
-
             return Response.status(Response.Status.BAD_REQUEST).build()
         }
 
