@@ -20,6 +20,7 @@ type TransferDuration = {
     days: number;
     hours: number;
     minutes: number;
+    seconds: number;
 };
 
 export const calculateDurationFromBeginning = (start: Moment): TransferDuration => {
@@ -33,6 +34,7 @@ export const calculateDurationFromBeginning = (start: Moment): TransferDuration 
         days: elapsedTime.days(),
         hours: elapsedTime.hours(),
         minutes: elapsedTime.minutes(),
+        seconds: elapsedTime.seconds(),
     };
 };
 
@@ -52,5 +54,6 @@ export const calcualateDurationFromElapsedSeconds = (seconds: number): TransferD
         days: duration.days(),
         hours: duration.hours(),
         minutes: duration.minutes(),
+        seconds: duration.seconds(),
     };
 };

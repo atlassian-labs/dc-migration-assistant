@@ -91,6 +91,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
         addDeploymentModeToContext(ProvisioningConfig.DeploymentMode.STANDALONE, context);
 
+        context.setProvisioningStartEpoch(System.currentTimeMillis() / 1000L);
         context.save();
     }
 
@@ -114,6 +115,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
         addDeploymentModeToContext(ProvisioningConfig.DeploymentMode.WITH_NETWORK, context);
 
+        context.setProvisioningStartEpoch(System.currentTimeMillis() / 1000L);
         context.save();
     }
 

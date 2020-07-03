@@ -28,6 +28,8 @@ export enum ProvisioningStatus {
 
 type ProvisioningStatusResult = {
     status: ProvisioningStatus;
+    startEpoch: number;
+    endEpoch?: number;
     error?: string;
     stackUrl?: string;
 };
@@ -49,6 +51,8 @@ type InfrastructureDeploymentState =
 type StackStatusResponse = {
     status: InfrastructureDeploymentState;
     phase?: 'app_infra' | 'migration_infra';
+    startEpoch?: number;
+    endEpoch?: number;
     error?: string;
     stackUrl?: string;
 };
@@ -93,22 +97,40 @@ export const provisioning = {
             .then(resp => {
                 if (resp.status) {
                     const statusResp = resp as StackStatusResponse;
-                    const { phase, status, error, stackUrl } = statusResp;
+                    const { phase, status, startEpoch, endEpoch, error, stackUrl } = statusResp;
                     switch (status) {
                         case 'PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT':
-                            return { status: ProvisioningStatus.PreProvisionMigrationStack };
+                            return {
+                                status: ProvisioningStatus.PreProvisionMigrationStack,
+                                startEpoch,
+                            };
                         case 'CREATE_IN_PROGRESS':
                             return phase === 'app_infra'
-                                ? { status: ProvisioningStatus.ProvisioningApplicationStack }
-                                : { status: ProvisioningStatus.ProvisioningMigrationStack };
+                                ? {
+                                      status: ProvisioningStatus.ProvisioningApplicationStack,
+                                      startEpoch,
+                                  }
+                                : {
+                                      status: ProvisioningStatus.ProvisioningMigrationStack,
+                                      startEpoch,
+                                  };
                         case 'CREATE_COMPLETE':
                             if (phase === 'app_infra') {
-                                return { status: ProvisioningStatus.PreProvisionMigrationStack };
+                                return {
+                                    status: ProvisioningStatus.PreProvisionMigrationStack,
+                                    startEpoch,
+                                    endEpoch,
+                                };
                             }
-                            return { status: ProvisioningStatus.Complete };
+                            return {
+                                status: ProvisioningStatus.Complete,
+                                startEpoch,
+                                endEpoch,
+                            };
                         case 'CREATE_FAILED':
                             return {
                                 status: ProvisioningStatus.Failed,
+                                startEpoch,
                                 error:
                                     error ||
                                     I18n.getText(

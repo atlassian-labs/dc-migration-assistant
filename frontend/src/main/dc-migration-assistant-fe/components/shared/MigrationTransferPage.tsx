@@ -229,7 +229,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                         key={progress.phase}
                                         progress={progress}
                                         loading={loading}
-                                        startedMoment={startMoment}
                                     />
                                     {index !== progressList.length - 1 && <Divider />}
                                 </>

@@ -24,7 +24,6 @@ import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Checkbox } from '@atlaskit/checkbox';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
-import { warningPath } from '../../utils/RoutePaths';
 
 import { Progress } from './Progress';
 import {
@@ -59,10 +58,6 @@ export type MigrationProgressProps = {
      * Should be true when the progress is being fetched
      */
     loading: boolean;
-    /**
-     * A moment representing the time that the transfer was started
-     */
-    startedMoment: Moment;
 };
 
 const LearnMoreLink =
@@ -75,14 +70,12 @@ const LearnMoreLink =
 export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
     progress,
     loading,
-    startedMoment,
 }) => {
     const [retryEnabled, setRetryEnabled] = useState<boolean>(false);
     const [shouldRedirectToStart, setShouldRedirectToStart] = useState<boolean>(false);
 
     const failed = (progress.errorMessage && true) || progress.failed;
     const { onRetryRoute, retryText, onRetry } = progress?.retryProps;
-    const { continueText } = progress?.ignoreAndContinueProps;
 
     if (loading) {
         return (
@@ -94,9 +87,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
         );
     }
 
-    const duration =
-        calculateDurationFromBeginning(startedMoment) ||
-        calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
+    const duration = calcualateDurationFromElapsedSeconds(progress.elapsedTimeSeconds);
 
     if (shouldRedirectToStart) {
         return <Redirect to={onRetryRoute} push />;
@@ -142,7 +133,7 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             <Checkbox
                                 value="true"
                                 label={I18n.getText(
-                                    'atlassian.migration.datacenter.common.aws.retry.checkbox.restart.copy'
+                                    'atlassian.migration.datacenter.common.aws.retry.checkbox.text'
                                 )}
                                 onChange={(event: any): void => {
                                     setRetryEnabled(event.target.checked);
@@ -161,12 +152,6 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         >
                             {retryText || 'retry'}
                         </Button>
-                        <Button
-                            href={warningPath}
-                            style={{ marginTop: '10px', marginLeft: '10px' }}
-                        >
-                            {continueText || 'continue'}
-                        </Button>
                     </div>
                 ) : (
                     // If operation has not failed, render timing information - start time and duration
@@ -174,9 +159,8 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                         <OperationTimingParagraph>
                             {I18n.getText(
                                 'atlassian.migration.datacenter.common.progress.started',
-                                (
-                                    startedMoment ||
-                                    calculateStartedFromElapsedSeconds(progress.elapsedTimeSeconds)
+                                calculateStartedFromElapsedSeconds(
+                                    progress.elapsedTimeSeconds
                                 ).format('D/MMM/YY h:mm A')
                             )}
                         </OperationTimingParagraph>
@@ -184,8 +168,9 @@ export const MigrationProgress: FunctionComponent<MigrationProgressProps> = ({
                             {duration &&
                                 I18n.getText(
                                     'atlassian.migration.datacenter.common.progress.mins_elapsed',
-                                    `${duration.days * 24 + duration.hours}`,
-                                    `${duration.minutes}`
+                                    `${duration.hours}`,
+                                    `${duration.minutes}`,
+                                    `${duration.seconds}`
                                 )}
                         </OperationTimingParagraph>
                     </>

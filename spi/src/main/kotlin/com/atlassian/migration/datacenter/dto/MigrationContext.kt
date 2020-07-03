@@ -35,6 +35,8 @@ interface MigrationContext : Entity {
     var startEpoch: Long
     var endEpoch: Long
 
+    var provisioningStartEpoch: Long
+
     var rdsRestoreSsmDocument: String
     var fsRestoreSsmDocument: String
     var fsRestoreStatusSsmDocument: String

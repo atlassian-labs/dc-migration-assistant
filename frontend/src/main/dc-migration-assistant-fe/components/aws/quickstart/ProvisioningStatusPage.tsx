@@ -52,18 +52,22 @@ const getDeploymentProgress: ProgressCallback = async () => {
                 case ProvisioningStatus.Complete:
                     builder.setPhase('Deployment Complete');
                     builder.setCompleteness(1);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
                     break;
                 case ProvisioningStatus.ProvisioningApplicationStack:
                     builder.setPhase('Deploying Jira infrastructure');
                     builder.setCompleteness(0.25);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
                     break;
                 case ProvisioningStatus.PreProvisionMigrationStack:
                     builder.setPhase('Preparing migration infrastructure deployment');
                     builder.setCompleteness(0.5);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
                     break;
                 case ProvisioningStatus.ProvisioningMigrationStack:
                     builder.setPhase('Deploying migration infrastructure');
                     builder.setCompleteness(0.75);
+                    builder.setElapsedSeconds(Date.now() / 1000 - result.startEpoch);
                     break;
                 case ProvisioningStatus.Failed:
                     builder.setPhase(

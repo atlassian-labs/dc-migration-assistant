@@ -20,22 +20,14 @@ import com.atlassian.migration.datacenter.core.aws.region.RegionService
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
-import com.atlassian.migration.datacenter.spi.infrastructure.ApplicationDeploymentService
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
-import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureDeploymentService
-import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
+import com.atlassian.migration.datacenter.spi.infrastructure.*
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.cloudformation.model.StackInstanceNotFoundException
 import java.net.URLEncoder
-import javax.ws.rs.Consumes
-import javax.ws.rs.GET
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -56,6 +48,7 @@ class CloudFormationEndpoint(
         private const val stackUrlResponseKey = "stackUrl"
         private const val statusResponseKey = "status"
         private const val phaseResponseKey = "phase"
+        private const val startKey = "startEpoch"
     }
 
     val PENDING_MIGRATION_INFR_STATUS = "PREPARING_MIGRATION_INFRASTRUCTURE_DEPLOYMENT"
@@ -72,6 +65,7 @@ class CloudFormationEndpoint(
                     ProvisioningConfig.DeploymentMode.WITH_NETWORK -> applicationDeploymentService.deployApplicationWithNetwork(stackName, provisioningConfig.params)
                     ProvisioningConfig.DeploymentMode.STANDALONE -> applicationDeploymentService.deployApplication(stackName, provisioningConfig.params)
                 }
+
                 //Should be updated to URI location after get stack details Endpoint is built
                 Response.status(Response.Status.ACCEPTED).entity(stackName).build()
             } catch (e: InfrastructureDeploymentError) {
@@ -92,23 +86,77 @@ class CloudFormationEndpoint(
     @Produces(MediaType.APPLICATION_JSON)
     fun infrastructureStatus(): Response {
         return when (val currentMigrationStage = migrationService.currentStage) {
-            MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION, MigrationStage.PROVISION_APPLICATION -> Response.status(Response.Status.NOT_FOUND).entity(mapOf(errorResponseKey to "not currently deploying any infrastructure")).build()
+            MigrationStage.NOT_STARTED, MigrationStage.AUTHENTICATION, MigrationStage.PROVISION_APPLICATION -> handleInvalidStage()
             MigrationStage.PROVISION_APPLICATION_WAIT, MigrationStage.PROVISION_MIGRATION_STACK_WAIT -> handleAnyProvisioningInProgress(currentMigrationStage)
-            MigrationStage.PROVISION_MIGRATION_STACK -> Response.ok(mapper.writeValueAsString(mapOf(statusResponseKey to PENDING_MIGRATION_INFR_STATUS))).build()
+            MigrationStage.PROVISION_MIGRATION_STACK -> handleMigrationStackProvisioning()
             else -> handleProvisioningComplete()
         }
+    }
+
+    private fun handleInvalidStage(): Response {
+        val entity = mapOf(
+                errorResponseKey to "not currently deploying any infrastructure"
+        )
+        return Response.status(Response.Status.NOT_FOUND).entity(entity).build()
+    }
+
+    private fun handleMigrationStackProvisioning(): Response {
+        val ctx = migrationService.currentContext
+        val entity = mapOf(
+                statusResponseKey to PENDING_MIGRATION_INFR_STATUS,
+                startKey to ctx.provisioningStartEpoch
+        )
+        return Response.ok(mapper.writeValueAsString(entity)).build()
     }
 
     private fun handleProvisioningComplete(): Response {
         return try {
             val status = applicationDeploymentService.deploymentStatus
-            val entity = mutableMapOf(statusResponseKey to status.toString())
+            val ctx = migrationService.currentContext
+            val entity = mutableMapOf(
+                    statusResponseKey to status.toString(),
+                    startKey to ctx.provisioningStartEpoch
+            )
             if (status == InfrastructureDeploymentState.CREATE_FAILED) {
                  entity.putAll(getProvisioningErrorDetails())
             }
             Response.ok(mapper.writeValueAsString(entity)).build()
         } catch (e: Exception) {
             Response.status(Response.Status.NOT_FOUND).entity(mapOf(errorResponseKey to e.message)).build()
+        }
+    }
+
+    private fun handleAnyProvisioningInProgress(currentMigrationStage: MigrationStage): Response {
+        val phase = when (currentMigrationStage) {
+            MigrationStage.PROVISION_APPLICATION_WAIT -> "app_infra"
+            MigrationStage.PROVISION_MIGRATION_STACK_WAIT -> "migration_infra"
+            else -> error("phase conditional doesn't match when cases")
+        }
+        return try {
+            val deploymentStatus = when (currentMigrationStage) {
+                MigrationStage.PROVISION_APPLICATION_WAIT -> applicationDeploymentService.deploymentStatus
+                MigrationStage.PROVISION_MIGRATION_STACK_WAIT -> helperDeploymentService.deploymentStatus
+                else -> error("phase conditional doesn't match when cases")
+            }
+            val start = migrationService.currentContext.provisioningStartEpoch
+
+            val entity = mutableMapOf(
+                    statusResponseKey to deploymentStatus,
+                    phaseResponseKey to phase,
+                    startKey to start
+            )
+
+            if (deploymentStatus == InfrastructureDeploymentState.CREATE_FAILED) {
+                entity.putAll(getProvisioningErrorDetails())
+            }
+
+            return Response.ok(mapper.writeValueAsString(entity)).build()
+        } catch (e: StackInstanceNotFoundException) {
+            Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(
+                            mapper.writeValueAsString(mapOf(errorResponseKey to "critical failure - infrastructure not found")))
+                    .build()
         }
     }
 
@@ -126,37 +174,6 @@ class CloudFormationEndpoint(
                 Response.ok().build()
             }
             else -> Response.status(Response.Status.BAD_REQUEST).entity(mapOf("message" to "Expected state to be ${MigrationStage.ERROR} but was $currentStage")).build()
-        }
-    }
-
-    private fun handleAnyProvisioningInProgress(currentMigrationStage: MigrationStage): Response {
-        val phase = when (currentMigrationStage) {
-            MigrationStage.PROVISION_APPLICATION_WAIT -> "app_infra"
-            MigrationStage.PROVISION_MIGRATION_STACK_WAIT -> "migration_infra"
-            else -> error("phase conditional doesn't match when cases")
-        }
-        return try {
-            val deploymentStatus = when (currentMigrationStage) {
-                MigrationStage.PROVISION_APPLICATION_WAIT -> applicationDeploymentService.deploymentStatus
-                MigrationStage.PROVISION_MIGRATION_STACK_WAIT -> helperDeploymentService.deploymentStatus
-                else -> error("phase conditional doesn't match when cases")
-            }
-            val entity = mutableMapOf(
-                    statusResponseKey to deploymentStatus,
-                    phaseResponseKey to phase
-            )
-
-            if (deploymentStatus == InfrastructureDeploymentState.CREATE_FAILED) {
-                entity.putAll(getProvisioningErrorDetails())
-            }
-
-            return Response.ok(mapper.writeValueAsString(entity)).build()
-        } catch (e: StackInstanceNotFoundException) {
-            Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(
-                            mapper.writeValueAsString(mapOf(errorResponseKey to "critical failure - infrastructure not found")))
-                    .build()
         }
     }
 

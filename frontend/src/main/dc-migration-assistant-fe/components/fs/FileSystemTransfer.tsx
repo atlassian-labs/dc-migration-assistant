@@ -20,12 +20,7 @@ import { I18n } from '@atlassian/wrm-react-i18n';
 import moment from 'moment';
 import Panel from '@atlaskit/panel';
 import { MigrationTransferProps, MigrationTransferPage } from '../shared/MigrationTransferPage';
-import {
-    IgnoreAndContinueProperties,
-    ProgressBuilder,
-    ProgressCallback,
-    RetryProperties,
-} from '../shared/Progress';
+import { ProgressBuilder, ProgressCallback, RetryProperties } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { MigrationStage } from '../../api/migration';
 import { fsPath, warningPath } from '../../utils/RoutePaths';
@@ -101,9 +96,6 @@ const getFsMigrationProgress: ProgressCallback = async () => {
         retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
         onRetry: () => fs.retryFsMigration(),
     };
-    const ignoreAndContinueProps: IgnoreAndContinueProperties = {
-        continueText: I18n.getText('atlassian.migration.datacenter.fs.ignore.and.continue'),
-    };
     return fs
         .getFsMigrationStatus()
         .then(result => {
@@ -115,7 +107,6 @@ const getFsMigrationProgress: ProgressCallback = async () => {
             builder.setElapsedSeconds(result.elapsedTime.seconds);
             builder.setFailed(result.status === 'FAILED');
             builder.setRetryProps(retryProps);
-            builder.setIgnoreAndContinueProps(ignoreAndContinueProps);
 
             if (result.status === 'DONE') {
                 builder.setCompleteMessage(

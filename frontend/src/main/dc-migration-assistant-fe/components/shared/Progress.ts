@@ -46,13 +46,6 @@ export type RetryProperties = {
     onRetryRoute?: string;
 };
 
-export type IgnoreAndContinueProperties = {
-    /**
-     * Text to display on the continue button
-     */
-    continueText: string;
-};
-
 /**
  * **phase**: Text describing the current phase of the transfer e.g. uploading, downloading, importing..
  * **completeness**: A fraction representing the percentage complete the transfer is.
@@ -72,7 +65,6 @@ export type Progress = {
     completeMessage?: CompleteMessage;
     failed?: boolean;
     retryProps: RetryProperties;
-    ignoreAndContinueProps?: IgnoreAndContinueProperties;
 };
 
 /**
@@ -92,8 +84,6 @@ export class ProgressBuilder {
     private failed: boolean;
 
     private retryProps: RetryProperties;
-
-    private ignoreAndContinueProps: IgnoreAndContinueProperties;
 
     setElapsedSeconds(seconds: number): ProgressBuilder {
         this.elapsedSeconds = seconds;
@@ -135,12 +125,6 @@ export class ProgressBuilder {
         return this;
     }
 
-    setIgnoreAndContinueProps(ignoreAndContinueProps: IgnoreAndContinueProperties) {
-        this.ignoreAndContinueProps = ignoreAndContinueProps;
-
-        return this;
-    }
-
     build(): Progress {
         if (!(this.phase && this.retryProps)) {
             throw new Error('must include phase and retry props in progress object');
@@ -154,12 +138,10 @@ export class ProgressBuilder {
             elapsedSeconds,
             failed,
             retryProps,
-            ignoreAndContinueProps,
         } = this;
 
         return {
             retryProps,
-            ignoreAndContinueProps,
             phase,
             completeMessage,
             completeness,
