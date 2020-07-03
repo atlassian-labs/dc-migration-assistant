@@ -15,6 +15,7 @@
  */
 package com.atlassian.migration.datacenter.spi
 
+
 /**
  * Represents all possible states of an on-premise to cloud migration.
  */
@@ -26,7 +27,8 @@ enum class MigrationStage {
         override val validAncestorStages = setOf(NOT_STARTED)
     },
     PROVISION_APPLICATION {
-        override val validAncestorStages = setOf(AUTHENTICATION)
+        override val validAncestorStages
+            get() = setOf(AUTHENTICATION, PROVISIONING_ERROR)
     },
     PROVISION_APPLICATION_WAIT {
         override val validAncestorStages = setOf(PROVISION_APPLICATION)
@@ -41,7 +43,8 @@ enum class MigrationStage {
         override val validAncestorStages = setOf(PROVISION_APPLICATION, PROVISION_APPLICATION_WAIT, PROVISION_MIGRATION_STACK, PROVISION_MIGRATION_STACK_WAIT)
     },
     FS_MIGRATION_COPY {
-        override val validAncestorStages = setOf(PROVISION_MIGRATION_STACK_WAIT)
+        override val validAncestorStages
+            get() = setOf(PROVISION_MIGRATION_STACK_WAIT, FS_MIGRATION_ERROR)
     },
     FS_MIGRATION_COPY_WAIT {
         override val validAncestorStages = setOf(FS_MIGRATION_COPY)
@@ -94,12 +97,6 @@ enum class MigrationStage {
     abstract val validAncestorStages: Set<MigrationStage>
 
     fun isValidTransition(to: MigrationStage): Boolean {
-        when (this) {
-            PROVISIONING_ERROR -> return to == PROVISION_APPLICATION
-            else -> {
-            }
-        }
-
         return when (to) {
             ERROR -> true
             else -> {

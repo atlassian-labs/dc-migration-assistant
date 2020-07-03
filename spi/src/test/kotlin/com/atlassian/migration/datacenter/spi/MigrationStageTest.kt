@@ -44,6 +44,14 @@ internal class MigrationStageTest {
     fun shouldAllowTransitionFromStageSpecificErrorStageToStageSpecificStartStage() {
         assertTrue(PROVISIONING_ERROR.isValidTransition(PROVISION_APPLICATION))
         assertFalse(PROVISIONING_ERROR.isValidTransition(PROVISION_APPLICATION_WAIT))
+
+        assertTrue(FS_MIGRATION_ERROR.isValidTransition(FS_MIGRATION_COPY))
+        assertFalse(FS_MIGRATION_ERROR.isValidTransition(FS_MIGRATION_COPY_WAIT))
+
+        assertTrue(FINAL_SYNC_ERROR.isValidTransition(DB_MIGRATION_EXPORT))
+        assertTrue(FINAL_SYNC_ERROR.isValidTransition(FINAL_SYNC_WAIT))
+        assertFalse(FS_MIGRATION_ERROR.isValidTransition(DB_MIGRATION_EXPORT_WAIT))
+        assertFalse(FS_MIGRATION_ERROR.isValidTransition(VALIDATE))
     }
 
     @Test

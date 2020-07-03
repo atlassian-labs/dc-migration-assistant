@@ -28,7 +28,7 @@ import {
 } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { MigrationStage } from '../../api/migration';
-import { warningPath } from '../../utils/RoutePaths';
+import { fsPath, warningPath } from '../../utils/RoutePaths';
 
 const dummyStarted = moment();
 
@@ -97,6 +97,7 @@ const getPhaseFromStatus = (result: FileSystemMigrationStatusResponse): string =
 
 const getFsMigrationProgress: ProgressCallback = async () => {
     const retryProps: RetryProperties = {
+        onRetryRoute: fsPath,
         retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
         onRetry: () => fs.retryFsMigration(),
     };
