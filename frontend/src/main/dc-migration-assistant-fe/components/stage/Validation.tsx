@@ -17,19 +17,22 @@
 import React, { FunctionComponent, ReactElement, useEffect, useState } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import SectionMessage from '@atlaskit/section-message';
-import TableTree, { Cell, Row } from '@atlaskit/table-tree';
 import { Button } from '@atlaskit/button/dist/esm/components/Button';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
+import { Checkbox } from '@atlaskit/checkbox';
 import { homePath } from '../../utils/RoutePaths';
 import { migration, MigrationStage } from '../../api/migration';
 import { provisioning } from '../../api/provisioning';
 import { ErrorFlag } from '../shared/ErrorFlag';
 
+const ValidationRoot = styled.div`
+    max-width: 920px;
+`;
+
 const MigrationSummaryContainer = styled.div`
     display: grid;
     justify-items: start;
-    margin-top: 25px;
     & li {
         align-self: center;
     }
@@ -38,13 +41,13 @@ const MigrationSummaryContainer = styled.div`
     }
 `;
 
-const MigrationDetailsContainer = styled.div`
-    margin-top: 25px;
-`;
-
 const SectionMessageContainer = styled.div`
     margin-top: 15px;
     width: 100%;
+`;
+
+const CheckBoxContainer = styled.div`
+    margin: 5px 0 0 -5px;
 `;
 
 const LearnMoreLink =
@@ -54,15 +57,15 @@ const MigrationSummaryActionCallout = (): ReactElement => {
     return (
         <MigrationSummaryContainer>
             <div>
-                <h4>
-                    {I18n.getText('atlassian.migration.datacenter.validation.actions.required')}
-                </h4>
-            </div>
-            <div>
                 <ul>
                     <li>
                         {I18n.getText(
                             'atlassian.migration.datacenter.validation.post.action.aws.login'
+                        )}
+                    </li>
+                    <li>
+                        {I18n.getText(
+                            'atlassian.migration.datacenter.validation.post.action.index'
                         )}
                     </li>
                     <li>
@@ -72,7 +75,7 @@ const MigrationSummaryActionCallout = (): ReactElement => {
                     </li>
                     <li>
                         {I18n.getText(
-                            'atlassian.migration.datacenter.validation.post.action.aws.test'
+                            'atlassian.migration.datacenter.validation.post.action.aws.verify'
                         )}
                     </li>
                     <li>
@@ -91,70 +94,16 @@ const MigrationSummaryActionCallout = (): ReactElement => {
     );
 };
 
-type MigrationSummaryData = {
-    key: string;
-    value: string;
-};
-
-const INSTANCE_URL_MIGRATION_CONTEXT_KEY = 'instanceUrl';
-
-const MigrationSummary: FunctionComponent = () => {
-    const [summaryData, setSummaryData]: [Array<MigrationSummaryData>, Function] = useState<
-        Array<MigrationSummaryData>
-    >([]);
+const ValidationSummary: FunctionComponent = () => {
+    const [areActionsAcknowledged, setAreActionsAcknowledged] = useState<boolean>(false);
+    const [isFinishMigrationSuccess, setIsFinishMigrationSuccess] = useState<boolean>(false);
+    const [targetUrl, setTargetUrl] = useState<string>('');
 
     useEffect(() => {
-        migration
-            .getMigrationSummary()
-            .then(data => {
-                setSummaryData(
-                    Object.entries(data).map(summary => {
-                        const [key, value] = summary;
-                        return { key, value };
-                    })
-                );
-            })
-            .catch(() => {
-                setSummaryData([]);
-            });
-    }, []);
-
-    return (
-        <MigrationDetailsContainer>
-            <div>
-                <h4>Migration details</h4>
-            </div>
-            <TableTree>
-                {summaryData
-                    .filter(x => x.key === INSTANCE_URL_MIGRATION_CONTEXT_KEY)
-                    .map(summary => {
-                        return (
-                            <Row key={`migration-summary-${summary.key}`} hasChildren={false}>
-                                <Cell width={400} singleLine>
-                                    {I18n.getText(
-                                        'atlassian.migration.datacenter.validation.summary.phrase.instanceUrl'
-                                    )}
-                                </Cell>
-                                <Cell width={400}>
-                                    <a
-                                        target="_blank"
-                                        rel="noreferrer noopener"
-                                        href={summary.value}
-                                        style={{ whiteSpace: 'nowrap' }}
-                                    >
-                                        {summary.value}
-                                    </a>
-                                </Cell>
-                            </Row>
-                        );
-                    })}
-            </TableTree>
-        </MigrationDetailsContainer>
-    );
-};
-
-const ValidationSummary: FunctionComponent = () => {
-    const [isFinishMigrationSuccess, setIsFinishMigrationSuccess] = useState<boolean>(false);
+        migration.getMigrationSummary().then(summary => {
+            setTargetUrl(summary.instanceUrl);
+        });
+    });
 
     const [finishMigrationApiErrorMessage, setFinishMigrationApiErrorMessage] = useState<string>(
         ''
@@ -176,24 +125,42 @@ const ValidationSummary: FunctionComponent = () => {
                 id="finish-api-error"
             />
             <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
-            <h3>{I18n.getText('atlassian.migration.datacenter.validation.message')}</h3>
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.validation.message')}
+                <br />
+                <a href={targetUrl}>{targetUrl}</a>
+            </p>
             <SectionMessageContainer>
-                <SectionMessage appearance="info">
-                    {I18n.getText('atlassian.migration.datacenter.validation.section.message')}
+                <SectionMessage
+                    appearance="info"
+                    title={I18n.getText(
+                        'atlassian.migration.datacenter.validation.actions.required'
+                    )}
+                >
+                    <MigrationSummaryActionCallout />
                 </SectionMessage>
             </SectionMessageContainer>
-            <MigrationSummary />
-            <MigrationSummaryActionCallout />
+            <CheckBoxContainer>
+                <Checkbox
+                    isChecked={areActionsAcknowledged}
+                    onChange={(evnt): void => setAreActionsAcknowledged(evnt.target.checked)}
+                    label={I18n.getText('atlassian.migration.datacenter.validation.next.checkbox')}
+                />
+            </CheckBoxContainer>
             <Button
                 isLoading={false}
                 appearance="primary"
                 style={{
                     marginTop: '15px',
                 }}
+                isDisabled={!areActionsAcknowledged || targetUrl === ''}
                 onClick={(): void => {
-                    Promise.all([migration.finishMigration(), provisioning.cleanupInfrastructure()])
+                    provisioning
+                        .cleanupInfrastructure()
+                        .then(() => migration.finishMigration())
                         .then(() => {
                             setIsFinishMigrationSuccess(true);
+                            window.open(targetUrl);
                         })
                         .catch(response => {
                             setFinishMigrationApiErrorMessage(response.message);
@@ -246,5 +213,9 @@ export const ValidateStagePage: FunctionComponent = () => {
             });
     }, []);
 
-    return isStageValid ? <ValidationSummary /> : <InvalidMigrationStageErrorMessage />;
+    return (
+        <ValidationRoot>
+            {isStageValid ? <ValidationSummary /> : <InvalidMigrationStageErrorMessage />}
+        </ValidationRoot>
+    );
 };
