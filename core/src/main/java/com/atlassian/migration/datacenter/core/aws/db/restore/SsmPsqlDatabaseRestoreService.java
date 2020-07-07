@@ -51,8 +51,9 @@ public class SsmPsqlDatabaseRestoreService {
         this.remoteInstanceCommandRunnerService = remoteInstanceCommandRunnerService;
     }
 
-    public void restoreDatabase()
-            throws DatabaseMigrationFailure, InvalidMigrationStageError {
+    public void restoreDatabase() throws DatabaseMigrationFailure, InvalidMigrationStageError {
+        logger.info("Starting the database restore operation");
+
         String dbRestorePlaybook;
         String migrationInstanceId;
         try {

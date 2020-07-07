@@ -19,6 +19,8 @@ package com.atlassian.migration.datacenter.core.aws.db.restore;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
@@ -34,6 +36,8 @@ import static java.util.Objects.requireNonNull;
  * The database username is managed as it is constant in Quick Start environments.
  */
 public class TargetDbCredentialsStorageService {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Supplier<SecretsManagerClient> clientFactory;
     private final MigrationService migrationService;
@@ -55,6 +59,9 @@ public class TargetDbCredentialsStorageService {
     public void storeCredentials(String password) {
         requireNonNull(password);
 
+        String name = getSecretName();
+        logger.info("Storing secret "+name);
+
         SecretsManagerClient client = clientFactory.get();
         CreateSecretRequest request = CreateSecretRequest.builder()
                 /*
@@ -64,15 +71,15 @@ public class TargetDbCredentialsStorageService {
                 (see AWSMigrationHelperDeploymentService#deployMigrationInfrastructure) so we use it here even though
                 it hasn't been deployed yet.
                 */
-                .name(getSecretName())
+                .name(name)
                 .secretString(password)
-                .description("password for the application user in you new AWS deployment")
+                .description("Password for the application user in you new AWS deployment")
                 .build();
         CreateSecretResponse response = client.createSecret(request);
 
         SdkHttpResponse httpResponse = response.sdkHttpResponse();
         if (!httpResponse.isSuccessful()) {
-            String errorMessage = "unable to store target database password with AWS secrets manager";
+            String errorMessage = "Unable to store target database password with AWS secrets manager";
             if (httpResponse.statusText().isPresent()) {
                 throw new DatabaseMigrationFailure(errorMessage + ": " + httpResponse.statusText().get());
             }

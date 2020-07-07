@@ -21,10 +21,14 @@ import com.atlassian.migration.datacenter.core.db.DatabaseExtractor;
 import com.atlassian.migration.datacenter.core.db.DatabaseExtractorFactory;
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
 public class DatabaseArchivalService {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private DatabaseExtractorFactory databaseExtractorFactory;
     private MigrationStageCallback migrationStageCallback;
@@ -36,6 +40,7 @@ public class DatabaseArchivalService {
 
     public Path archiveDatabase(Path tempDirectory) throws InvalidMigrationStageError {
         Path target = tempDirectory.resolve("db.dump");
+        logger.info("Dumping database to "+target);
 
         this.migrationStageCallback.assertInStartingStage();
 

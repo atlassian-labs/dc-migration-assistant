@@ -25,9 +25,7 @@ import java.nio.file.Path
 
 class PostgresExtractor(private val applicationConfiguration: ApplicationConfiguration, 
                         private val databaseClientTools: DatabaseClientTools) : DatabaseExtractor {
-    companion object {
-        private val log = LoggerFactory.getLogger(PostgresExtractor::class.java)
-    }
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Throws(DatabaseMigrationFailure::class)
     override fun startDatabaseDump(target: Path): Process {
@@ -51,10 +49,12 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
     override fun startDatabaseDump(target: Path, parallel: Boolean): Process {
         val numJobs = if (parallel) 4 else 1 // Common-case for now, could be tunable or num-CPUs.
 
+        log.info("Dump database to $target using $numJobs threads")
+
         val pgdump = databaseClientTools.getDatabaseDumpClientPath() ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
         val config = applicationConfiguration.databaseConfiguration
 
-        val builder = ProcessBuilder(pgdump,
+        val args = listOf(pgdump,
                 "--no-owner",
                 "--no-acl",
                 "--compress=9",
@@ -65,6 +65,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
                 "--host", config.host,
                 "--port", config.port.toString(),
                 "--username", config.username)
+        val builder = ProcessBuilder(args)
                 .inheritIO()
         builder.environment()["PGPASSWORD"] = config.password
 
@@ -73,6 +74,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
                 log.debug("pg_dump archive [$target] already exists. Deleting now...")
                 deleteDatabaseDump(target)
             }
+            log.info("Calling pg_dump with: "+args.joinToString(" "))
             builder.start()
         } catch (e: IOException) {
             val command = java.lang.String.join(" ", builder.command())
@@ -91,7 +93,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
         val proc = startDatabaseDump(to)
         val exit: Int
         exit = try {
-            proc!!.waitFor()
+            proc.waitFor()
         } catch (e: InterruptedException) {
             throw DatabaseMigrationFailure("The pg_dump process was interrupted. Check logs for more information.", e)
         }
