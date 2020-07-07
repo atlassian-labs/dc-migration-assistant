@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.dbexporter.DatabaseInformations;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.OsType;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
@@ -77,6 +78,7 @@ public abstract class AWSMigrationService implements MigrationService {
     @Override
     public Migration createMigration() throws MigrationAlreadyExistsException
     {
+        log.info("Creating migration");
         Migration migration = findFirstOrCreateMigration();
         if (migration.getStage().equals(NOT_STARTED)) {
             return migration;
@@ -113,6 +115,7 @@ public abstract class AWSMigrationService implements MigrationService {
     // When we add support for multiple migrations, we need to revisit this and ensure that, on migration cancel, we should remove the active migration, not all migrations.
     @Override
     public void deleteMigrations() {
+        log.info("Deleting all migrations");
         for (Migration migration : findAllMigrations()) {
             int migrationId = migration.getID();
             eventPublisher.publish(new MigrationResetEvent(migrationId));
@@ -129,10 +132,12 @@ public abstract class AWSMigrationService implements MigrationService {
         MigrationStage currentStage = migration.getStage();
 
         if (!currentStage.isValidTransition(to)) {
+            log.error("Invalid transition: {} to {}", currentStage, to);
             eventPublisher.publish(new MigrationTransitionFailedEvent(applicationConfiguration.getPluginVersion(),
                                                                       currentStage, to));
             throw InvalidMigrationStageError.errorWithMessage(currentStage, to);
         }
+        log.error("Stage transition: {} to {}", currentStage, to);
         setCurrentStage(migration, to);
         eventPublisher.publish(new MigrationTransitionEvent(applicationConfiguration.getPluginVersion(),
                                                             currentStage, to));
@@ -147,7 +152,8 @@ public abstract class AWSMigrationService implements MigrationService {
          */
         DatabaseClientTools dbClientTooling = new PostgresClientTooling(applicationConfiguration);
 
-        Boolean db = applicationConfiguration.getDatabaseConfiguration().getType() == DatabaseConfiguration.DBType.POSTGRESQL;
+        DatabaseConfiguration.DBType dbType = applicationConfiguration.getDatabaseConfiguration().getType();
+        Boolean db = dbType == DatabaseConfiguration.DBType.POSTGRESQL;
         Boolean os = SystemUtils.IS_OS_LINUX;
         SemVer pgDumpVer = dbClientTooling.getDatabaseDumpClientVersion();
         SemVer pgServerVer = dbClientTooling.getDatabaseServerVersion();
@@ -159,10 +165,12 @@ public abstract class AWSMigrationService implements MigrationService {
        // version — not even if the dump was taken from a server of that version."
         Boolean pgVerCompat = pgDumpAvail && pgServerVer != null && pgDumpVer.getMajor() >= pgServerVer.getMajor();
 
+
         MigrationReadyStatus status = new MigrationReadyStatus(db, os, pgDumpAvail, pgVerCompat);
 
+        log.info("Migration prerequisites: DB: {}, OS: {}, pg_dump: {}, DB server: {}", dbType, OsType.fromSystem(), pgDumpVer, pgServerVer);
         eventPublisher.publish(new MigrationPrerequisiteEvent(applicationConfiguration.getPluginVersion(),
-                                                              db, applicationConfiguration.getDatabaseConfiguration().getType(),
+                                                              db, dbType,
                                                               os, OsType.fromSystem(),
                                                               pgVerCompat));
 
@@ -171,17 +179,18 @@ public abstract class AWSMigrationService implements MigrationService {
 
     @Override
     public void finishCurrentMigration() throws InvalidMigrationStageError {
-        long now = System.currentTimeMillis() / 1000L;
-        log.info("Finishing current migration. Migration has run for {} seconds", now);
-
         MigrationContext context = getCurrentContext();
+
+        long now = System.currentTimeMillis() / 1000L;
+        long migrationRunTimeInSeconds = now - context.getStartEpoch();
+
+        log.info("Finishing current migration. Migration has run for {} seconds", migrationRunTimeInSeconds);
 
         transition(MigrationStage.FINISHED);
 
         context.setEndEpoch(now);
         context.save();
 
-        long migrationRunTimeInSeconds = now - context.getStartEpoch();
 
         eventPublisher.publish(new MigrationCompleteEvent(applicationConfiguration.getPluginVersion(), migrationRunTimeInSeconds));
     }
