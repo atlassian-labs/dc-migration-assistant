@@ -119,7 +119,7 @@ Resources:
   StackNameParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /atlassian/config/migration-helper/cloud.aws.stack.name
+      Name: !Sub '/atlassian/config/${AWS::StackName}-helper/cloud.aws.stack.name'
       Type: String
       Value: !Ref AWS::StackName
       Description: CloudFormation Stack Name
@@ -127,7 +127,7 @@ Resources:
   JiraFilePathParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /atlassian/config/migration-helper/app.jira.file.path
+      Name: !Sub '/atlassian/config/${AWS::StackName}-helper/app.jira.file.path'
       Type: String
       Value: !Ref MigrationFilePath
       Description: File Path
@@ -135,7 +135,7 @@ Resources:
   VPCIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /atlassian/config/migration-helper/app.vpc.id
+      Name: !Sub '/atlassian/config/${AWS::StackName}-helper/app.vpc.id'
       Type: String
       Value: !Ref HelperVpcId
       Description: Helper VPC Id
@@ -143,7 +143,7 @@ Resources:
   RegionParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /atlassian/config/migration-helper/app.region.id
+      Name: !Sub '/atlassian/config/${AWS::StackName}-helper/app.region.id'
       Type: String
       Value: !Ref AWS::Region
       Description: Region Name
@@ -297,21 +297,24 @@ Resources:
         download_java_helper_app:
           files:
             /usr/lib/systemd/system/dc-migration-sqs-consumer.service:
-              content:
-                |
-                [Unit]
-                Description=Consumer for SQS queue used for DC Migration Assistant File System Migration
+              content: !Sub
+                - |
+                  [Unit]
+                  Description=Consumer for SQS queue used for DC Migration Assistant File System Migration
 
-                [Service]
-                WorkingDirectory=/opt/atlassian/dc-migration-assistant
-                ExecStart=/bin/java -jar filesystem-processor-1.0.0.jar --spring.profiles.active=production
-                User=jira
-                Type=simple
-                Restart=on-failure
-                RestartSec=10
+                  [Service]
+                  WorkingDirectory=/opt/atlassian/dc-migration-assistant
+                  ExecStart=/bin/java -jar filesystem-processor-1.0.0.jar --spring.profiles.active=production --aws.paramstore.name=${KeyPrefix}-helper
+                  User=jira
+                  Type=simple
+                  Restart=on-failure
+                  RestartSec=10
 
-                [Install]
-                WantedBy=multi-user.target
+                  [Install]
+                  WantedBy=multi-user.target
+                - {
+                  KeyPrefix: !Ref 'AWS::StackName'
+                }
               owner: root
               mode: "000600"
           packages:
