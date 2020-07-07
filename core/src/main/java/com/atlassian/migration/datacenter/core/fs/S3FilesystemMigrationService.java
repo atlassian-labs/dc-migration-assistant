@@ -76,6 +76,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
 
     @Override
     public boolean scheduleMigration() throws InvalidMigrationStageError {
+        logger.info("Scheduling S3 FS migration");
         migrationService.assertCurrentStage(FS_MIGRATION_COPY);
 
         JobId jobId = getScheduledJobIdForMigration(migrationService.getCurrentMigration().getID());
@@ -95,6 +96,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
      */
     @Override
     public void startMigration() throws InvalidMigrationStageError {
+        logger.info("Starting S3 filesystem migration");
         if (isRunning()) {
             logger.warn("Filesystem migration is currently in progress, aborting new execution.");
             return;
@@ -130,6 +132,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
     public void abortMigration() throws InvalidMigrationStageError {
         // We always try to remove scheduled job if the system is in inconsistent state
         int migrationId = migrationService.getCurrentMigration().getID();
+        logger.warn("Aborting/unscheduling migration {}", migrationId);
         unscheduleMigration(migrationId);
 
         if (!isRunning()) {
@@ -138,7 +141,6 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
                             migrationService.getCurrentStage()));
         }
 
-        logger.warn("Aborting running filesystem migration");
         FileSystemMigrationReport report = reportManager.resetReport(ReportType.Filesystem);
         report.setStatus(FAILED);
         bulkCopy.abortCopy();

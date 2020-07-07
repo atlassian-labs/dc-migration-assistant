@@ -32,8 +32,8 @@ public class DefaultFilesystemUploader implements FilesystemUploader
 {
     private static final Logger logger = LoggerFactory.getLogger(DefaultFilesystemUploader.class);
 
-    private Uploader uploader;
-    private Crawler crawler;
+    private final Uploader uploader;
+    private final Crawler crawler;
     private final ExecutorService pool;
 
     public DefaultFilesystemUploader(Crawler crawler, Uploader uploader) {
