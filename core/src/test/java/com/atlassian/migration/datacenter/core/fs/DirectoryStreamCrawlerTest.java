@@ -66,11 +66,11 @@ class DirectoryStreamCrawlerTest {
         final Path ignored3 = Files.createDirectories(tempDir.resolve("export"));
         final Path ignored4 = Files.createDirectories(tempDir.resolve("log"));
         ignoredPaths.add(Files.write(tempDir.resolve("dbconfig.xml"), "subfile".getBytes()));
+        ignoredPaths.add(Files.write(tempDir.resolve("cluster.properties"), "subfile".getBytes()));
         ignoredPaths.add(Files.write(ignored1.resolve("ignore1.txt"), "subfile".getBytes()));
         ignoredPaths.add(Files.write(ignored2.resolve("ignore2.txt"), "subfile".getBytes()));
         ignoredPaths.add(Files.write(ignored3.resolve("export-file.zip"), "subfile".getBytes()));
         ignoredPaths.add(Files.write(ignored4.resolve("atlassian-jira.log"), "subfile".getBytes()));
-
     }
 
     @Test
