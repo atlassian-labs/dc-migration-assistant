@@ -22,7 +22,6 @@ import styled from 'styled-components';
 import { finalSyncPath } from '../../utils/RoutePaths';
 import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
 import { CancelButton } from '../shared/CancelButton';
-import { CapturedFiles } from './CapturedFiles';
 
 const Paragraph = styled.p`
     margin-bottom: '20px';
@@ -124,7 +123,6 @@ export const WarningStagePage: FunctionComponent = () => {
                     </li>
                 </ol>
             </SectionMessage>
-            <CapturedFiles />
             <CheckboxContainer>
                 <Checkbox
                     value="agree"
