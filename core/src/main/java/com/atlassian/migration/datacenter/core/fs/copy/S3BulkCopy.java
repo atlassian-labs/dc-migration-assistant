@@ -63,11 +63,11 @@ public class S3BulkCopy {
 
         fsUploader = filesystemUploaderFactory.newUploader(report);
 
-        logger.info("commencing upload of shared home");
+        logger.info("Commencing upload of shared home");
 
         fsUploader.uploadDirectory(getSharedHomeDir());
 
-        logger.info("upload of shared home complete.");
+        logger.info("Upload of shared home complete.");
     }
 
     public void abortCopy() {

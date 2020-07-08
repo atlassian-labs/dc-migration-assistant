@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
+import com.atlassian.migration.datacenter.core.util.LogUtils;
 import com.atlassian.migration.datacenter.spi.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
@@ -59,6 +60,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static software.amazon.awssdk.services.cloudformation.model.ResourceStatus.CREATE_FAILED;
 
@@ -187,12 +189,12 @@ public class CfnApi {
      * @throws InfrastructureDeploymentError if the deployment is not successful. Will contain the cause of the error.
      */
     public Optional<String> provisionStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
-        logger.trace("received request to create stack {} from template {}", stackName, templateUrl);
-        Set<Parameter> parameters = params.entrySet()
-                .stream()
-                .map(e -> Parameter.builder().parameterKey(e.getKey()).parameterValue(e.getValue()).build())
-                .collect(Collectors.toSet());
+        logger.info("Deploying stack {} from {} with params : {}", stackName, templateUrl, LogUtils.paramsToString(params));
 
+        Set<Parameter> parameters = params.entrySet()
+            .stream()
+            .map(e -> Parameter.builder().parameterKey(e.getKey()).parameterValue(e.getValue()).build())
+            .collect(Collectors.toSet());
         Tag tag = Tag.builder()
                 .key("created_by")
                 .value("atlassian-dcmigration")

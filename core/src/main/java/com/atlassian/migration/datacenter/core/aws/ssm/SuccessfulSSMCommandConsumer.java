@@ -52,7 +52,7 @@ public abstract class SuccessfulSSMCommandConsumer<T> {
                 command = ssmApi.getSSMCommand(commandId, instanceId);
                 final CommandInvocationStatus status = command.status();
 
-                logger.debug("s3 sync command status is {}", status);
+                logger.debug("S3 sync command status is {}", status);
 
                 if (status.equals(CommandInvocationStatus.SUCCESS)) {
                     return handleSuccessfulCommand(command);

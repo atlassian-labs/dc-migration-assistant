@@ -35,14 +35,14 @@ class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val mi
     override fun startMigrationInfrastructureCleanup(): Boolean {
         val migrationStack = getMigrationStackName()
 
-        logger.info("got request to cleanup migration stack $migrationStack")
+        logger.info("Got request to cleanup migration stack $migrationStack")
 
         return try {
             cfnApi.deleteStack(migrationStack)
-            logger.info("successfully sent request to delete migration stack")
+            logger.info("Successfully sent request to delete migration stack")
             true
         } catch (e: InfrastructureDeploymentError) {
-            logger.error("error cleaning up migration stack", e)
+            logger.error("Error cleaning up migration stack", e)
             false
         }
     }
@@ -50,7 +50,7 @@ class AWSMigrationStackCleanupService(private val cfnApi: CfnApi, private val mi
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
         val migrationStack = getMigrationStackName()
 
-        logger.info("request for cleanup status of stack $migrationStack")
+        logger.info("Request for cleanup status of stack $migrationStack")
 
         return try {
             when (cfnApi.getStatus(migrationStack)) {

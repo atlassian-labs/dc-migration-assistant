@@ -40,7 +40,7 @@ public abstract class CloudformationDeploymentService {
     private static final Logger logger = LoggerFactory.getLogger(CloudformationDeploymentService.class);
 
     private final CfnApi cfnApi;
-    private int deployStatusPollIntervalSeconds;
+    private final int deployStatusPollIntervalSeconds;
     private ScheduledFuture<?> deploymentWatcher;
 
     CloudformationDeploymentService(CfnApi cfnApi) {

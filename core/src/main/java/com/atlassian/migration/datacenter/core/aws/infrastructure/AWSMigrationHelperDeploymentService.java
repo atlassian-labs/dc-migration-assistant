@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
+import com.atlassian.migration.datacenter.core.util.LogUtils;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -78,6 +79,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
      */
     @Override
     public void deployMigrationInfrastructure(Map<String, String> params) throws InvalidMigrationStageError, InfrastructureDeploymentError {
+        logger.info("Deploying migration stack from {} with params : {}", templateUrl, LogUtils.paramsToString(params));
         migrationService.assertCurrentStage(MigrationStage.PROVISION_MIGRATION_STACK);
 
         String migrationStackDeploymentId = constructMigrationStackDeploymentIdentifier();

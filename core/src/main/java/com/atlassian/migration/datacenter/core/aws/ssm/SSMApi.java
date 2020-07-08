@@ -56,7 +56,7 @@ public class SSMApi {
      * @return the command ID of the invoked command.
      */
     public String runSSMDocument(String documentName, String targetEc2InstanceId, Map<String, List<String>> commandParameters) throws S3SyncFileSystemDownloader.CannotLaunchCommandException {
-        logger.debug("running document {} against instance {} with parameters {}", documentName, targetEc2InstanceId, commandParameters.entrySet());
+        logger.debug("Running document {} against instance {} with parameters {}", documentName, targetEc2InstanceId, commandParameters.entrySet());
         SsmClient client = clientFactory.get();
         final String migrationS3BucketName;
         try {
@@ -70,7 +70,7 @@ public class SSMApi {
                 .instanceIds(targetEc2InstanceId)
                 .parameters(commandParameters)
                 .timeoutSeconds(600)
-                .comment("command run by Jira DC Migration Assistant")
+                .comment("Command run by Jira DC Migration Assistant")
                 .outputS3BucketName(migrationS3BucketName)
                 .outputS3KeyPrefix(ssmS3KeyPrefix)
                 .build();
@@ -93,7 +93,7 @@ public class SSMApi {
      * @see SsmClient#getCommandInvocation(GetCommandInvocationRequest) for other exception details
      */
     public GetCommandInvocationResponse getSSMCommand(String commandId, String targetEc2InstanceId) {
-        logger.debug("getting status of command {} on instance {}", commandId, targetEc2InstanceId);
+        logger.debug("Getting status of command {} on instance {}", commandId, targetEc2InstanceId);
 
         SsmClient client = clientFactory.get();
         GetCommandInvocationRequest request = GetCommandInvocationRequest.builder()
