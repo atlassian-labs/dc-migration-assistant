@@ -27,13 +27,17 @@ public class LogUtils
      * @return String
      */
     public static String paramsToString(Map<String, String> params) {
-        return params.entrySet()
-            .stream()
-            .map(e -> {
-                String k = e.getKey();
-                String v = k.toLowerCase().contains("password") ? "****" : e.getValue();
-                return String.format(" (%s = %s)", k, v);
-            })
-            .collect(Collectors.joining());
+        try {
+            return params.entrySet()
+                .stream()
+                .map(e -> {
+                    String k = e.getKey();
+                    String v = k.toLowerCase().contains("password") ? "****" : e.getValue();
+                    return String.format(" (%s = %s)", k, v);
+                })
+                .collect(Collectors.joining());
+        } catch (Exception e) {
+            return "SERIALISATION_FAILURE";
+        }
     }
 }
