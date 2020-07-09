@@ -36,8 +36,8 @@
         </license>
     </licenses>
     <organization>
-        <name>Atlassian Labs</name>
-        <url>https://marketplace.atlassian.com/vendors/33202/atlassian-labs</url>
+        <name>Atlassian</name>
+        <url>https://marketplace.atlassian.com/vendors/85/atlassian</url>
     </organization>
     <name>Jira Data Center Migration App</name>
     <packaging>pom</packaging>
