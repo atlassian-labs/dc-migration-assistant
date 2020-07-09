@@ -7,10 +7,16 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import kotlin.math.min
 
 
 open class AwsMigrationServiceWrapper(ao: ActiveObjects?, applicationConfiguration: ApplicationConfiguration?, eventPublisher: EventPublisher?) : AWSMigrationService(ao, applicationConfiguration, eventPublisher), MigrationService {
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(AwsMigrationServiceWrapper::class.java)
+    }
 
     override fun error(message: String) {
         this.stageSpecificError(message);
@@ -22,16 +28,26 @@ open class AwsMigrationServiceWrapper(ao: ActiveObjects?, applicationConfigurati
     }
 
     private fun stageSpecificError(message: String) {
+        logger.debug("Transitioning to stage specific error stage. Message - {}", message)
         val migration = findFirstOrCreateMigration()
         val preErrorTransitionStage = migration.stage
         val now = System.currentTimeMillis() / 1000L
+        logger.debug("Stage before error transition - {}", preErrorTransitionStage)
 
         when {
-            PROVISIONING_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> setCurrentStage(migration, PROVISIONING_ERROR)
-            FS_MIGRATION_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> setCurrentStage(migration, FS_MIGRATION_ERROR)
-            FINAL_SYNC_ERROR.validAncestorStages.contains(preErrorTransitionStage) ->
+            PROVISIONING_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> {
+                setCurrentStage(migration, PROVISIONING_ERROR)
+            }
+            FS_MIGRATION_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> {
+                setCurrentStage(migration, FS_MIGRATION_ERROR)
+            }
+            FINAL_SYNC_ERROR.validAncestorStages.contains(preErrorTransitionStage) -> {
                 setCurrentStage(migration, FINAL_SYNC_ERROR)
-            else -> setCurrentStage(migration, ERROR)
+            }
+
+            else -> {
+                setCurrentStage(migration, ERROR)
+            }
         }
 
         val context: MigrationContext = migration.context

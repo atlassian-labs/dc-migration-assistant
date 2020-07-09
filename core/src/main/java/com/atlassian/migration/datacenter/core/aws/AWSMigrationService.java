@@ -137,7 +137,7 @@ public abstract class AWSMigrationService implements MigrationService {
                                                                       currentStage, to));
             throw InvalidMigrationStageError.errorWithMessage(currentStage, to);
         }
-        log.error("Stage transition: {} to {}", currentStage, to);
+        log.info("Stage transition: {} to {}", currentStage, to);
         setCurrentStage(migration, to);
         eventPublisher.publish(new MigrationTransitionEvent(applicationConfiguration.getPluginVersion(),
                                                             currentStage, to));
@@ -196,6 +196,7 @@ public abstract class AWSMigrationService implements MigrationService {
     }
 
     protected synchronized void setCurrentStage(Migration migration, MigrationStage stage) {
+        log.debug("Setting stage to {}", stage);
         migration.setStage(stage);
         migration.save();
     }
