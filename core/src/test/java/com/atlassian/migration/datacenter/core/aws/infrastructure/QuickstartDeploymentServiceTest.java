@@ -131,6 +131,19 @@ class QuickstartDeploymentServiceTest {
                 STACK_NAME, STACK_PARAMS);
     }
 
+
+    @Test
+    void shouldDeployQuickStartWhenStateIsTransitionedToError() throws InvalidMigrationStageError, InfrastructureDeploymentError {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        deploySimpleStack();
+
+        verify(mockMigrationService).transition(MigrationStage.PROVISION_APPLICATION);
+        verify(mockMigrationService).transition(MigrationStage.PROVISION_APPLICATION_WAIT);
+        verify(mockCfnApi).provisionStack(
+                "https://aws-quickstart.s3.amazonaws.com/quickstart-atlassian-jira/templates/quickstart-jira-dc.template.yaml",
+                STACK_NAME, STACK_PARAMS);
+    }
+
     @Test
     void shouldDeployQuickStartWithVpc() throws InvalidMigrationStageError, InfrastructureDeploymentError {
         deployWithVpcStack();
