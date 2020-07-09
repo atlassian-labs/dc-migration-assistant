@@ -129,6 +129,8 @@ const ValidationSummary: FunctionComponent = () => {
                 {I18n.getText('atlassian.migration.datacenter.validation.message')}
                 <br />
                 <a href={targetUrl}>{targetUrl}</a>
+                <br />
+                {I18n.getText('atlassian.migration.datacenter.validation.slow.start.message')}
             </p>
             <SectionMessageContainer>
                 <SectionMessage
