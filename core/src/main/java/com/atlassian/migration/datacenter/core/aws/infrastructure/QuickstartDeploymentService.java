@@ -132,6 +132,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         // See https://github.com/atlassian-labs/dc-migration-assistant/pull/375#issuecomment-655894553 for a detailed explanation of why error case is required.
         // Also, see https://aws-partner.atlassian.net/browse/CHET-608 that tracks this bug.
         if(migrationService.getCurrentStage().equals(MigrationStage.PROVISIONING_ERROR)){
+            logger.info("Forcing a transition to {} to ensure that we can provision a stack", MigrationStage.PROVISION_APPLICATION);
             migrationService.transition(MigrationStage.PROVISION_APPLICATION);
         }
 
