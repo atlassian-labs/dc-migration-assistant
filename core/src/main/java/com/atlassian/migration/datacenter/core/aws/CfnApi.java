@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.core.util.LogUtils;
 import com.atlassian.migration.datacenter.spi.exceptions.InfrastructureProvisioningError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,6 +136,9 @@ public class CfnApi {
      * @return an optional containing the error message for the first stack deployment failure event.
      */
     public Optional<String> getStackErrorRootCause(String stackName) {
+        if (StringUtils.isBlank(stackName)){
+            return Optional.empty();
+        }
         try {
             List<StackEvent> events = this.getClient()
                     .describeStackEvents(DescribeStackEventsRequest.builder().stackName(stackName).build())

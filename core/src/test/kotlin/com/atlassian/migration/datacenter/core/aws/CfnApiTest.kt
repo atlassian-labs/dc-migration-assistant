@@ -91,6 +91,12 @@ internal class CfnApiTest {
     }
 
     @Test
+    fun shouldReturnEmptyWhenNoStackIdIsNullOrEmpty() {
+        assertEquals(Optional.empty<String>(), sut.getStackErrorRootCause(""))
+        assertEquals(Optional.empty<String>(), sut.getStackErrorRootCause(null))
+    }
+
+    @Test
     fun shouldFollowEventsForFailuresInNestedStacks() {
         val earliestError = "Dashboard 'tcat-per-jira-37c49438-dashboard' already exists"
         val nestedStackId = "arn:aws:cloudformation:us-east-1:887764444972:stack/tcat-per-jira-37c49438-CloudWatchDashboard-12CC4TVSVEFF7/39c6ec60-aab2-11ea-840e-0a05dbc7583b"
