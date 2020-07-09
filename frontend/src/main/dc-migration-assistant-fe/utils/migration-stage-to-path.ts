@@ -24,7 +24,7 @@ export const getPathForStage = (stage: MigrationStage): string => {
         case 'authentication':
             return paths.awsAuthPath;
         case 'provision_application':
-            return paths.quickstartPath;
+            return paths.asiConfigurationPath;
         case 'provision_application_wait':
             return paths.quickstartStatusPath;
         case 'provision_migration_stack':
@@ -36,7 +36,7 @@ export const getPathForStage = (stage: MigrationStage): string => {
         case 'fs_migration_copy_wait':
             return paths.fsPath;
         case 'offline_warning':
-            return paths.finalSyncPath;
+            return paths.warningPath;
         case 'db_migration_export':
             return paths.finalSyncPath;
         case 'db_migration_export_wait':

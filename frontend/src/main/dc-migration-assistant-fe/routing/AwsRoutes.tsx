@@ -17,11 +17,14 @@
 import React, { FunctionComponent } from 'react';
 import { Route, Switch } from 'react-router-dom';
 
-import { awsAuthPath, quickstartStatusPath } from '../../utils/RoutePaths';
-import { AuthenticateAWS, CredSubmitFun, QueryRegionFun } from './auth/AuthenticateAWS';
-import { callAppRest, RestApiPathConstants } from '../../utils/api';
-import { ProvisioningStatusPage } from './quickstart/ProvisioningStatusPage';
-import { QuickstartRoutes } from './quickstart/QuickstartRoutes';
+import { awsAuthPath } from '../utils/RoutePaths';
+import {
+    AuthenticateAWS,
+    CredSubmitFun,
+    QueryRegionFun,
+} from '../components/aws/auth/AuthenticateAWS';
+import { callAppRest, RestApiPathConstants } from '../utils/api';
+import { QuickstartRoutes } from '../components/aws/quickstart/QuickstartRoutes';
 
 const getRegions: QueryRegionFun = async () => {
     return callAppRest('GET', RestApiPathConstants.awsRegionListPath).then(response =>
