@@ -85,6 +85,7 @@ public abstract class CloudformationDeploymentService {
         CompletableFuture<String> stackCompleteFuture = new CompletableFuture<>();
 
         final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
         deploymentWatcher = scheduledExecutorService.scheduleAtFixedRate(() -> {
             final InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
             if (status.equals(InfrastructureDeploymentState.CREATE_COMPLETE)) {

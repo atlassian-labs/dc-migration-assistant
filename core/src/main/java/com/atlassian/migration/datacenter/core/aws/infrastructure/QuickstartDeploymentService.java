@@ -128,6 +128,13 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     }
 
     private void deployQuickstart(@NotNull String deploymentId, String templateUrl, @NotNull Map<String, String> params, MigrationContext context) throws InvalidMigrationStageError, InfrastructureDeploymentError {
+        // This is a safeguard against CHET-600 (https://aws-partner.atlassian.net/browse/CHET-600) where the statemachine is not transitioned to `PROVISION_APPLICATION` after a retry operation is invoked.
+        // The real cause of why this happens not fully known at the time of this commit. This temporary will transition from `PROVISIONING_ERROR` to  `PROVISIONING_APPLICATION` before deploying the stack
+        // Additionally, we may need to clear persisted stack details here.
+        if(migrationService.getCurrentStage().equals(MigrationStage.PROVISIONING_ERROR)){
+            migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
+        }
+
         migrationService.transition(MigrationStage.PROVISION_APPLICATION_WAIT);
 
         logger.info("deploying application stack");
