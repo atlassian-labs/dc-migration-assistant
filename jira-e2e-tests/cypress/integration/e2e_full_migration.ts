@@ -17,14 +17,14 @@
 /// <reference types="Cypress" />
 
 import * as jira from '../support';
-import { waitForDeployment } from '../support/migrationWorkflow';
+import { waitForDeployment } from '../support/migration_workflow';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
     selectPrefixOnASIPage,
     fillCrendetialsOnAuthPage,
     startMigration,
-} from '../support/migrationWorkflow';
+} from '../support/migration_workflow';
 
 // Set these externally via e.g:
 //
