@@ -18,7 +18,7 @@
 
 declare namespace Cypress {
     interface Chainable {
-        jira_login(ctx: Context, uname: string, passwd: string): Chainable<Element>;
+        jira_login(ctx: Context, uname?: string, passwd?: string): Chainable<Element>;
         jira_setup(): Chainable<Element>;
         reset_migration(ctx: Context): Chainable<Element>;
     }
