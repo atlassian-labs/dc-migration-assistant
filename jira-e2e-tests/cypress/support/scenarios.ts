@@ -85,7 +85,7 @@ export const mock_end2end = (ctx: AppContext, screenshot: boolean = false) => {
     // ******************** start ******************** //
 
     // Home; should be no migration; start one
-    cy.visit(ctx.migrationHome);
+    cy.visit(ctx.pluginHomePage);
     cy.wait('@ready');
 
     if (screenshot) cy.screenshot('home-ready-ok');

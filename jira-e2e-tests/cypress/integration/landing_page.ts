@@ -39,7 +39,7 @@ describe('Landing page', () => {
             },
         });
 
-        cy.visit(ctx.migrationHome);
+        cy.visit(ctx.pluginHomePage);
 
         cy.get('#dc-migration-assistant-root h1').contains('Jira Data Center Migration App');
 

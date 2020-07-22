@@ -12,8 +12,8 @@ export const createAppContext = (base: string, contextPath: string): AppContext 
         sudoURL: baseURL + '/secure/admin/WebSudoAuthenticate!default.jspa',
         upmURL: baseURL + '/plugins/servlet/upm',
         pluginPath: pluginPathWithContext,
-        migrationBase: pluginFullUrl,
-        migrationHome: pluginFullUrl + '/home',
+        pluginFullUrl: pluginFullUrl,
+        pluginHomePage: pluginFullUrl + '/home',
     };
     return jiraContext;
 };

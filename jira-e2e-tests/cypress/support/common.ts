@@ -7,8 +7,8 @@ type AppContext = {
     sudoURL: string;
     upmURL: string;
     pluginPath: string;
-    migrationBase: string;
-    migrationHome: string;
+    pluginFullUrl: string;
+    pluginHomePage: string;
 };
 
 type CloudFormationFormValues = {

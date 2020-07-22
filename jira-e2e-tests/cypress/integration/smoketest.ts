@@ -43,7 +43,7 @@ describe('Plugin installation smoke tests', () => {
 
     it('Test AWS Auth', () => {
         cy.reset_migration(ctx);
-        cy.visit(ctx.migrationHome);
+        cy.visit(ctx.pluginHomePage);
 
         cy.get('[data-test=start-migration]').should('exist').click();
 
