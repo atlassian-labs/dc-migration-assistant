@@ -15,11 +15,11 @@
  */
 
 /// <reference types="Cypress" />
-import * as jira from '../support';
 import * as scenarios from '../support/scenarios';
+import { getContext } from '../support/jira';
 
 describe('Database Migration page', () => {
-    const ctx = jira.amps_context;
+    const ctx = getContext();
 
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
@@ -27,17 +27,14 @@ describe('Database Migration page', () => {
         // Delete `fetch()` to force use of XHR for
         // Cypress. Atlaskit/Jira will polyfill this.
         Cypress.on('window:before:load', (win) => {
-            delete win.fetch
-        })
+            delete win.fetch;
+        });
         cy.server();
 
         cy.jira_login(ctx, 'admin', 'admin');
     });
 
     it('End to end mocked', () => {
-
         scenarios.mock_end2end(ctx);
-
     });
-
 });

@@ -16,7 +16,7 @@
 
 /// <reference types="Cypress" />
 
-import * as jira from '../support';
+import { getContext } from '../support/jira';
 
 // Set these externally via e.g:
 //
@@ -28,11 +28,13 @@ const getAwsTokens = (): [string, string] => {
 };
 
 describe('Database Migration page', () => {
+    const ctx = getContext();
+
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
 
-        cy.jira_login('admin', 'admin');
-        cy.reset_migration();
+        cy.jira_login(ctx, 'admin', 'admin');
+        cy.reset_migration(ctx);
     });
 
     it('Can provision a cloudformation template', () => {
@@ -40,7 +42,7 @@ describe('Database Migration page', () => {
         let region = 'ap-southeast-2';
 
         // Home; should be no migration; start one
-        cy.visit(jira.migrationHome);
+        cy.visit(ctx.migrationHome);
         cy.get('[data-test=start-migration]').should('exist').click();
 
         // AWS auth page.
