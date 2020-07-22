@@ -19,10 +19,22 @@ export const createAppContext = (base: string, contextPath: string): AppContext 
 };
 
 export const ampsContext = createAppContext('http://localhost:2990', '/jira');
-export const devserverContext = createAppContext('http://localhost:3333', '');
-export const composeContext = createAppContext('http://jira:8080', '/jira');
+export const fsDevServerContext = createAppContext('http://localhost:3333', '');
+export const dockerComposeContext = createAppContext('http://jira:8080', '/jira');
 
 /**
  *  Returns application context to access product and plugin URLs
  */
-export const getContext = () => createAppContext('http://localhost:2990', '/jira');
+export const getContext = () => {
+    const context = Cypress.env('CYPRESS_CONTEXT');
+    switch (context) {
+        case 'amps': {
+            return ampsContext;
+        }
+        case 'fsdev': {
+            return fsDevServerContext;
+        }
+        default:
+            return dockerComposeContext;
+    }
+};
