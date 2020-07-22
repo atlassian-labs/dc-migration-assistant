@@ -1,5 +1,5 @@
 export const startMigration = (ctx: AppContext) => {
-    cy.visit(ctx.migrationHome);
+    cy.visit(ctx.pluginHomePage);
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.context + '/plugins/servlet/dc-migration-assistant/home');
     });
@@ -62,7 +62,14 @@ export const submitQuickstartForm = () => {
 };
 
 export const waitForDeployment = (ctx: AppContext) => {
+    // TODO temp fix
+    cy.visit(ctx.pluginFullUrl + '/aws/provision/status');
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
     });
+
+    cy.get('#dc-migration-assistant-root h1').contains('Step 3 of 7: Deploy on AWS');
+    cy.get('#dc-migration-assistant-root h4').contains('Deploying Jira infrastructure');
+    cy.get('#dc-migration-assistant-root button').contains('Refresh').should('not.be.disabled');
+    cy.get('#dc-migration-assistant-root button').contains('Cancel').should('not.be.disabled');
 };

@@ -42,7 +42,7 @@ describe('Database Migration page', () => {
         let region = 'ap-southeast-2';
 
         // Home; should be no migration; start one
-        cy.visit(ctx.migrationHome);
+        cy.visit(ctx.pluginHomePage);
         cy.get('[data-test=start-migration]').should('exist').click();
 
         // AWS auth page.
