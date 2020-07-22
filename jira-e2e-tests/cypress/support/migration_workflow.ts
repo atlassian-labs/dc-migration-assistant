@@ -62,6 +62,7 @@ export const submitQuickstartForm = () => {
 };
 
 export const waitForDeployment = (ctx: AppContext) => {
+    cy.visit(ctx.pluginFullUrl + '/aws/provision/status');
     cy.server();
     cy.route('/jira/rest/dc-migration/1.0/aws/stack/status').as('provisioningStatus');
     cy.location().should((loc: Location) => {
@@ -69,16 +70,36 @@ export const waitForDeployment = (ctx: AppContext) => {
     });
 
     cy.get('#dc-migration-assistant-root h1').contains('Step 3 of 7: Deploy on AWS');
-    cy.get('#dc-migration-assistant-root h4').contains('Deploying Jira infrastructure');
+    cy.get('#dc-migration-assistant-root h4').contains('Deploying Jira infrastructure', {
+        timeout: 10000,
+    });
     cy.get('#dc-migration-assistant-root button').contains('Refresh').should('not.be.disabled');
     cy.get('#dc-migration-assistant-root button').contains('Cancel').should('not.be.disabled');
 
-    const waitMs = 30 * 60 * 1000; // 30 minutes
-
-    cy.wait('@provisioningStatus', { timeout: waitMs }).should((xhr) => {
-        expect((xhr.response.body as Cypress.ObjectLike)['status']).contain('CREATE_COMPLETE');
-    });
+    const waitBetweenRetry = 20 * 1000;
+    const retries = 100;
+    waitForStatus('@provisioningStatus', 'CREATE_COMPLETE', waitBetweenRetry, retries);
 
     cy.get('#dc-migration-assistant-root button').contains('Next');
     cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete');
+};
+
+const waitForStatus = (
+    route: string,
+    expectedStatus: string,
+    waitPeriodInMs: number,
+    maxRetries: number = 100,
+    iteration: number = 1
+) => {
+    cy.wait(route).should((xhr) => {
+        const provisioningStatus = (xhr.response.body as Cypress.ObjectLike)['status'];
+        if (provisioningStatus === expectedStatus) {
+            return;
+        } else if (maxRetries < iteration) {
+            throw Error('Maximum amount of retries reached');
+        } else {
+            cy.wait(waitPeriodInMs);
+            waitForStatus(route, expectedStatus, waitPeriodInMs, iteration + 1);
+        }
+    });
 };
