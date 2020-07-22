@@ -46,7 +46,7 @@ Cypress.Commands.add('jira_setup', () => {
 });
 
 Cypress.Commands.add('reset_migration', (ctx) => {
-    cy.visit(ctx.migrationHome);
+    cy.visit(ctx.pluginHomePage);
     cy.get('#dc-migration-assistant-root').should('exist');
     cy.window().then((window) => {
         window.AtlassianMigration.resetMigration();

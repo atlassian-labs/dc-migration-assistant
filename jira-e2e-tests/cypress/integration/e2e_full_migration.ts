@@ -26,11 +26,6 @@ import {
     startMigration,
 } from '../support/migration_workflow';
 
-// Set these externally via e.g:
-//
-//     export CYPRESS_AWS_ACCESS_KEY_ID=xxxx
-//     export CYPRESS_AWS_SECRET_ACCESS_KEY='yyyyyy'
-//
 const getAwsTokens = (): AWSCredentials => {
     return {
         keyId: Cypress.env('AWS_ACCESS_KEY_ID'),
@@ -47,24 +42,25 @@ describe('Migration plugin', () => {
     before(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
+
         cy.jira_login(ctx, 'admin', 'admin');
-        // cy.reset_migration(ctx);
+        cy.reset_migration(ctx);
     });
 
     it('Run full migration', () => {
-        // startMigration(ctx);
+        startMigration(ctx);
 
-        // fillCrendetialsOnAuthPage(ctx, region, credentials);
+        fillCrendetialsOnAuthPage(ctx, region, credentials);
 
-        // selectPrefixOnASIPage(ctx);
+        selectPrefixOnASIPage(ctx);
 
-        // configureQuickStartFormWithoutVPC(ctx, {
-        //     stackName: `teststack-${testId}`,
-        //     dbPassword: `XadD54^${testId}`,
-        //     dbMasterPassword: `YadD54^${testId}`,
-        // });
+        configureQuickStartFormWithoutVPC(ctx, {
+            stackName: `teststack-${testId}`,
+            dbPassword: `XadD54^${testId}`,
+            dbMasterPassword: `YadD54^${testId}`,
+        });
 
-        // submitQuickstartForm();
+        submitQuickstartForm();
 
         waitForDeployment(ctx);
     });
