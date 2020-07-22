@@ -1,4 +1,4 @@
-type Context = {
+type AppContext = {
     base: string;
     context: string;
     baseURL: string;

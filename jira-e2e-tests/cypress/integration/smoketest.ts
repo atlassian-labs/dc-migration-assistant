@@ -15,11 +15,11 @@
  */
 
 /// <reference types="Cypress" />
-import * as jira from '../support';
-import * as scenarios from '../support/scenarios';
+
+import { getContext } from '../support/jira';
 
 describe('Plugin installation smoke tests', () => {
-    const ctx = jira.compose_context;
+    const ctx = getContext();
 
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);

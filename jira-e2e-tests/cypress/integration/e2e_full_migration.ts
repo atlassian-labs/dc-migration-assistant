@@ -16,8 +16,8 @@
 
 /// <reference types="Cypress" />
 
-import * as jira from '../support';
 import { waitForDeployment } from '../support/migration_workflow';
+import { getContext } from '../support/jira';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
@@ -39,7 +39,7 @@ const getAwsTokens = (): AWSCredentials => {
 };
 
 describe('Migration plugin', () => {
-    const ctx = jira.amps_context; // TODO temp workaround
+    const ctx = getContext();
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
 

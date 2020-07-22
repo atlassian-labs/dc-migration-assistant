@@ -16,29 +16,6 @@
 
 /// <reference types="Cypress" />
 
-export const gen_context = (base, context) => {
-    const baseURL = base + context;
-    const pluginPathWithContext = context + '/plugins/servlet/dc-migration-assistant';
-    const pluginFullUrl = base + pluginPathWithContext;
-
-    return {
-        base: base,
-        context: context,
-        baseURL: baseURL,
-        welcomeURL: baseURL + '/secure/WelcomeToJIRA.jspa',
-        loginURL: baseURL + '/login.jsp',
-        sudoURL: baseURL + '/secure/admin/WebSudoAuthenticate!default.jspa',
-        upmURL: baseURL + '/plugins/servlet/upm',
-        pluginPath: pluginPathWithContext,
-        migrationBase: pluginFullUrl,
-        migrationHome: pluginFullUrl + '/home',
-    };
-};
-
-export const amps_context = gen_context('http://localhost:2990', '/jira');
-export const devserver_context = gen_context('http://localhost:3333', '');
-export const compose_context = gen_context('http://jira:8080', '/jira');
-
 Cypress.Commands.add('jira_login', (ctx, uname = 'admin', passwd = 'admin') => {
     cy.visit(ctx.loginURL);
 

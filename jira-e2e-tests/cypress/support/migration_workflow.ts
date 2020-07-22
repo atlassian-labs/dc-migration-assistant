@@ -1,4 +1,4 @@
-export const startMigration = (ctx: Context) => {
+export const startMigration = (ctx: AppContext) => {
     cy.visit(ctx.migrationHome);
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.context + '/plugins/servlet/dc-migration-assistant/home');
@@ -7,7 +7,7 @@ export const startMigration = (ctx: Context) => {
 };
 
 export const fillCrendetialsOnAuthPage = (
-    ctx: Context,
+    ctx: AppContext,
     region: string,
     credentials: AWSCredentials
 ) => {
@@ -25,7 +25,7 @@ export const fillCrendetialsOnAuthPage = (
     cy.get('[data-test=aws-auth-submit]').should('exist').click();
 };
 
-export const selectPrefixOnASIPage = (ctx: Context, prefix: string = 'ATL-') => {
+export const selectPrefixOnASIPage = (ctx: AppContext, prefix: string = 'ATL-') => {
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/asi');
     });
@@ -44,7 +44,7 @@ export const selectPrefixOnASIPage = (ctx: Context, prefix: string = 'ATL-') => 
 };
 
 export const configureQuickStartFormWithoutVPC = (
-    ctx: Context,
+    ctx: AppContext,
     values: CloudFormationFormValues
 ) => {
     cy.location().should((loc: Location) => {
@@ -61,7 +61,7 @@ export const submitQuickstartForm = () => {
     cy.get('[data-test=qs-submit]').contains('Deploy').click();
 };
 
-export const waitForDeployment = (ctx: Context) => {
+export const waitForDeployment = (ctx: AppContext) => {
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
     });

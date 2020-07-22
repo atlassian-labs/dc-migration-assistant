@@ -15,13 +15,11 @@
  */
 
 /// <reference types="Cypress" />
-import * as jira from '../support/index';
 
-// This test is intended to run against the webpack devserver (AKA
-// `yarn start`).
+import { getContext } from '../support/jira';
 
 describe('Landing page', () => {
-    const ctx: Context = jira.amps_context;
+    const ctx: AppContext = getContext();
 
     beforeEach(() => {
         cy.server();
