@@ -139,7 +139,6 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
         {
             getProgress: getFsMigrationProgress,
             retryProps: {
-                onRetryRoute: fsPath,
                 retryText: I18n.getText('atlassian.migration.datacenter.fs.retry'),
                 onRetry: (): Promise<void> => fs.retryFsMigration(),
                 canContinueOnFailure: true,
