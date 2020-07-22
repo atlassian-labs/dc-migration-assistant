@@ -39,18 +39,18 @@ export const amps_context = gen_context('http://localhost:2990', '/jira');
 export const devserver_context = gen_context('http://localhost:3333', '');
 export const compose_context = gen_context('http://jira:8080', '/jira');
 
-Cypress.Commands.add('jira_login', (ctx, uname, passwd) => {
+Cypress.Commands.add('jira_login', (ctx, uname = 'admin', passwd = 'admin') => {
     cy.visit(ctx.loginURL);
 
-    cy.get('#login-form-username').type('admin');
-    cy.get('#login-form-password').type('admin');
+    cy.get('#login-form-username').type(uname);
+    cy.get('#login-form-password').type(passwd);
     cy.get('#login-form-submit').click();
     // Force wait for dashboard to avoid flakiness.
     //cy.get('[class=g-intro]').should('exist');
 
     // Ensure we have full admin access before doing anything
     cy.visit(ctx.sudoURL);
-    cy.get('#login-form-authenticatePassword').type('admin');
+    cy.get('#login-form-authenticatePassword').type(uname);
     cy.get('#login-form-submit').click();
 });
 
