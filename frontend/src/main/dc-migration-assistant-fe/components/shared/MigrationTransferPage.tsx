@@ -258,7 +258,16 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                         {index !== processInfo.length - 1 && <Divider />}
                                         {progress.errorMessage && (
                                             <RetryMenuContainer>
-                                                <RetryMenu {...retryProps} />
+                                                <RetryMenu
+                                                    {...retryProps}
+                                                    onRetry={(): Promise<void> => {
+                                                        setLoading(true);
+                                                        return retryProps
+                                                            .onRetry()
+                                                            .then(() => updateProgress())
+                                                            .finally(() => setLoading(false));
+                                                    }}
+                                                />
                                             </RetryMenuContainer>
                                         )}
                                     </>

@@ -106,7 +106,7 @@ export const unhappyPath = (): ReactNode => {
                             retryText: 'Retry',
                             onRetry: (): Promise<void> => {
                                 progressFetchCount = 0;
-                                return Promise.resolve();
+                                return new Promise(resolve => setTimeout(resolve, 1000));
                             },
                             canContinueOnFailure: false,
                         },
