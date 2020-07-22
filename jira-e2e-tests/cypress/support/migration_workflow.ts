@@ -62,8 +62,8 @@ export const submitQuickstartForm = () => {
 };
 
 export const waitForDeployment = (ctx: AppContext) => {
-    // TODO temp fix
-    cy.visit(ctx.pluginFullUrl + '/aws/provision/status');
+    cy.server();
+    cy.route('/jira/rest/dc-migration/1.0/aws/stack/status').as('provisioningStatus');
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
     });
@@ -72,4 +72,13 @@ export const waitForDeployment = (ctx: AppContext) => {
     cy.get('#dc-migration-assistant-root h4').contains('Deploying Jira infrastructure');
     cy.get('#dc-migration-assistant-root button').contains('Refresh').should('not.be.disabled');
     cy.get('#dc-migration-assistant-root button').contains('Cancel').should('not.be.disabled');
+
+    const waitMs = 30 * 60 * 1000; // 30 minutes
+
+    cy.wait('@provisioningStatus', { timeout: waitMs }).should((xhr) => {
+        expect((xhr.response.body as Cypress.ObjectLike)['status']).contain('CREATE_COMPLETE');
+    });
+
+    cy.get('#dc-migration-assistant-root button').contains('Next');
+    cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete');
 };
