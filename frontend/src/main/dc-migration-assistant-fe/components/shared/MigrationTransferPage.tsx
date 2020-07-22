@@ -108,6 +108,10 @@ const RetryMenuContainer = styled.div`
     margin-top: 5px;
 `;
 
+const ProgressContainer = styled.div`
+    height: 185px;
+`;
+
 const getMigrationStepState = (started: boolean, finished: boolean): MigrationStepState => {
     if (finished) {
         return 'finished';
@@ -133,7 +137,11 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
     const [processInfo, setProcessInfo] = useState<
         Array<{ progress: Progress; retryProps: RetryProperties }>
     >([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    // Content loading should be true when the entire content of the page is loading i.e. we don't know which actions should be
+    // rendered or if the transfer is in progress
+    const [contentLoading, setContentLoading] = useState<boolean>(true);
+    // Progress loading should be true only when we are loading the transfer progress from scratch i.e. the transfer is starting or restarting
+    const [progressLoading, setProgressLoading] = useState<boolean>(false);
     const [progressFetchingError, setProgressFetchingError] = useState<string>();
     const [started, setStarted] = useState<boolean>(false);
     const [finished, setFinished] = useState<boolean>(false);
@@ -158,12 +166,12 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 setProgressFetchingError(err.message);
             })
             .finally((): void => {
-                setLoading(false);
+                setProgressLoading(false);
             });
     };
 
     const startMigration = async (): Promise<void> => {
-        setLoading(true);
+        setContentLoading(true);
         setProgressFetchingError('');
         return startMigrationPhase()
             .then(() => {
@@ -171,12 +179,12 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
             })
             .catch(err => {
                 setProgressFetchingError(err.message);
-                setLoading(false);
-            });
+            })
+            .finally(() => setContentLoading(false));
     };
 
     useEffect(() => {
-        setLoading(true);
+        setContentLoading(true);
         migration
             .getMigrationStage()
             .then(stage => {
@@ -184,11 +192,11 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                     setStarted(true);
                     updateProgress();
                 }
-                setLoading(false);
+                setContentLoading(false);
             })
             .catch(() => {
                 setStarted(false);
-                setLoading(false);
+                setContentLoading(false);
             });
     }, []);
 
@@ -211,7 +219,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 await updateProgress();
             }, POLL_INTERVAL_MILLIS);
 
-            setLoading(true);
+            setProgressLoading(true);
             updateProgress();
 
             return (): void => clearInterval(id);
@@ -233,7 +241,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                 <p>{description}</p>
                 {infoLink}
             </TransferContentContainer>
-            {loading ? (
+            {contentLoading ? (
                 <Spinner />
             ) : (
                 <>
@@ -250,22 +258,30 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                 const { progress, retryProps } = process;
                                 return (
                                     <>
-                                        <MigrationProgress
-                                            key={progress.phase}
-                                            progress={progress}
-                                            loading={loading}
-                                        />
+                                        <ProgressContainer>
+                                            {progressLoading ? (
+                                                <Spinner />
+                                            ) : (
+                                                <MigrationProgress
+                                                    key={progress.phase}
+                                                    progress={progress}
+                                                    loading={false}
+                                                />
+                                            )}
+                                        </ProgressContainer>
                                         {index !== processInfo.length - 1 && <Divider />}
                                         {progress.errorMessage && (
                                             <RetryMenuContainer>
                                                 <RetryMenu
                                                     {...retryProps}
                                                     onRetry={(): Promise<void> => {
-                                                        setLoading(true);
+                                                        setProgressLoading(true);
                                                         return retryProps
                                                             .onRetry()
                                                             .then(() => updateProgress())
-                                                            .finally(() => setLoading(false));
+                                                            .finally(() =>
+                                                                setProgressLoading(false)
+                                                            );
                                                     }}
                                                 />
                                             </RetryMenuContainer>
@@ -285,7 +301,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                             nextRoute={nextRoute}
                             startMigrationPhase={startMigration}
                             onRefresh={updateProgress}
-                            loading={loading}
+                            loading={contentLoading}
                         />
                     </TransferActionsContainer>
                 </>

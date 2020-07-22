@@ -24,6 +24,7 @@ export const RetryMenu: FunctionComponent<RetryProperties> = ({
     const [shouldRedirectToStartToRetry, setShouldRedirectToStartToRetry] = useState<boolean>(
         false
     );
+    const [retrying, setRetrying] = useState<boolean>(false);
 
     if (shouldRedirectToStartToRetry) {
         return <Redirect to={onRetryRoute} push />;
@@ -31,28 +32,35 @@ export const RetryMenu: FunctionComponent<RetryProperties> = ({
 
     return (
         <>
-            <CheckboxContainer>
-                <Checkbox
-                    value="true"
-                    label={I18n.getText(
-                        'atlassian.migration.datacenter.common.aws.retry.checkbox.text'
-                    )}
-                    onChange={(event: any): void => {
-                        setRetryEnabled(event.target.checked);
-                    }}
-                    name="retryAgree"
-                />
-            </CheckboxContainer>
+            {!retrying && (
+                <CheckboxContainer>
+                    <Checkbox
+                        value="true"
+                        label={I18n.getText(
+                            'atlassian.migration.datacenter.common.aws.retry.checkbox.text'
+                        )}
+                        onChange={(event: any): void => {
+                            setRetryEnabled(event.target.checked);
+                        }}
+                        name="retryAgree"
+                    />
+                </CheckboxContainer>
+            )}
             <Button
                 style={{ marginTop: '10px' }}
                 isDisabled={!retryEnabled}
                 onClick={(): void => {
-                    onRetry().then(() => setShouldRedirectToStartToRetry(onRetryRoute && true));
+                    setRetrying(true);
+                    onRetry().finally(() => {
+                        setShouldRedirectToStartToRetry(onRetryRoute && true);
+                        setRetrying(false);
+                    });
                 }}
+                isLoading={retrying}
             >
                 {retryText || 'retry'}
             </Button>
-            {canContinueOnFailure && (
+            {canContinueOnFailure && !retrying && (
                 <Button
                     appearance="subtle-link"
                     href={continuePath}
