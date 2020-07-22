@@ -14,10 +14,6 @@ export type RetryProperties = {
      */
     onRetry: RetryCallback;
     /**
-     * A route to redirect the user to when
-     */
-    onRetryRoute?: string;
-    /**
      * A boolean to dictate whether or not failures
      * can be ignored and the migration continued
      */
