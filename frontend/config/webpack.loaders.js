@@ -19,7 +19,7 @@ const PostCssIcssValuesPlugin = require('postcss-icss-values');
 
 const { MY_I18N_FILES } = require('./webpack.constants');
 
-function getLoaders({ isProductionEnv = false }) {
+function getLoaders( isProductionEnv = false ) {
     return [
         {
             test: /\.(tsx|ts)?$/,

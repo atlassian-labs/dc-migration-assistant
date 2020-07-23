@@ -16,7 +16,7 @@
 
 import React, { FunctionComponent, useState } from 'react';
 import Button from '@atlaskit/button';
-import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { CancelModal } from './CancelModal';
 
 export const cancelButtonStyle = {

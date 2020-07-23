@@ -20,7 +20,7 @@ import { Button } from '@atlaskit/button/dist/cjs/components/Button';
 import { Redirect } from 'react-router-dom';
 import SectionMessage from '@atlaskit/section-message';
 import { ExistingASIConfiguration, ASIDescription } from './ExistingASIConfiguration';
-import { I18n } from '../../../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { I18n } from '@atlassian/wrm-react-i18n';
 import { CancelButton } from '../../../shared/CancelButton';
 import { quickstartPath } from '../../../../utils/RoutePaths';
 import { provisioning } from '../../../../api/provisioning';

@@ -6,6 +6,7 @@
         "esModuleInterop": true,
         "module": "commonjs",
         "target": "es6",
-        "jsx": "react"
+        "jsx": "react",
+        "typeRoots": ["src/main/dc-migration-assistant-fe/typings", "node_modules/@types"]
     }
 }

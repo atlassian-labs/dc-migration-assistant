@@ -112,7 +112,7 @@
     "scripts": {
         "watch": "webpack --watch --display-modules --config ./config/webpack.config.js",
         "start": "mvn package -DskipTests -Pwatch-mode && yarn dev-server ",
-        "build": "webpack --config ./config/webpack.config.js",
+        "build": "webpack --config ./config/webpack.config.js --mode=production",
         "build:dev": "webpack --config ./config/webpack.config.js --mode=development",
         "dev-server": "webpack-dev-server --config ./config/webpack.config.js --mode=development --env=dev-server",
         "analyze": "yarn build --env.analyze",

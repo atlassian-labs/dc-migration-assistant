@@ -19,7 +19,7 @@ import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 
 import { CommandDetails as CommandResult } from '../../api/final-sync';
-import { I18n } from '../../atlassian/mocks/@atlassian/wrm-react-i18n';
+import { I18n } from '@atlassian/wrm-react-i18n';
 
 const ErrorFragment = styled.div`
     margin-top: 0px;
