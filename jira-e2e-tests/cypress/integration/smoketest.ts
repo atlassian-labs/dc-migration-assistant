@@ -24,7 +24,7 @@ describe('Plugin installation smoke tests', () => {
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
 
-        cy.jira_login(ctx, 'admin', 'admin');
+        cy.jira_login(ctx, 'admin', Cypress.env('ADMIN_PASSWORD'));
     });
 
     it('Ensure plugin loaded', () => {

@@ -45,7 +45,7 @@ describe('Migration plugin', () => {
 
     before(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
-        cy.jira_login(ctx, 'admin', 'admin');
+        cy.jira_login(ctx, 'admin', Cypress.env('ADMIN_PASSWORD'));
         cy.reset_migration(ctx);
     });
 
