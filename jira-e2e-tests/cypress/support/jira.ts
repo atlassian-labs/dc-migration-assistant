@@ -26,7 +26,8 @@ export const dockerComposeContext = createAppContext('http://jira:8080', '/jira'
  *  Returns application context to access product and plugin URLs
  */
 export const getContext = () => {
-    const context = Cypress.env('CYPRESS_CONTEXT');
+    const context = Cypress.env('CONTEXT');
+    console.log(context);
     switch (context) {
         case 'amps': {
             return ampsContext;
