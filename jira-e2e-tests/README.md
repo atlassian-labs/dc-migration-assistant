@@ -66,6 +66,7 @@ key/secret pair. These should be set via the environment via:
 
     export CYPRESS_AWS_ACCESS_KEY_ID='XXXX'
     export CYPRESS_AWS_SECRET_ACCESS_KEY='YYYY'
+    export CYPRESS_ADMIN_PASSWORD="ZZZZ"
 
 Members of the DC Deployments team should have access to these in LastPass.
 
