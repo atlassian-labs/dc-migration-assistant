@@ -41,6 +41,14 @@ describe('Landing page', () => {
 
         cy.visit(ctx.pluginHomePage);
 
+        cy.get('#dc-migration-assistant-root p a')
+            .contains('Learn more')
+            .should(
+                'have.attr',
+                'href',
+                'https://confluence.atlassian.com/jirakb/how-to-use-the-data-center-migration-app-to-migrate-jira-to-an-aws-cluster-1005781495.html'
+            );
+
         cy.get('#dc-migration-assistant-root h1').contains('Jira Data Center Migration App');
 
         cy.get('#dc-migration-assistant-root ul > li').should(($lis) => {

@@ -25,7 +25,10 @@ import {
 import { startMigration } from '../support/pages/LandingPage';
 import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
 import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
-import { startFileSystemInitialMigration } from '../support/pages/FileSystemMigration';
+import {
+    startFileSystemInitialMigration,
+    monitorFileSystemMigration,
+} from '../support/pages/FileSystemMigration';
 
 const shouldReset = false;
 
@@ -77,9 +80,14 @@ describe('Migration plugin', () => {
         waitForProvisioning(ctx);
     });
 
-    it('can start the filesystem migration', () => {
+    it.skip('can start the filesystem migration', () => {
         cy.visit(ctx.pluginFullUrl);
 
         startFileSystemInitialMigration(ctx);
+    });
+
+    it('monitors running filesystem migration', () => {
+        cy.visit(ctx.pluginFullUrl);
+        monitorFileSystemMigration(ctx);
     });
 });
