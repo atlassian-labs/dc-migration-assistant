@@ -109,7 +109,7 @@ const RetryMenuContainer = styled.div`
 `;
 
 const ProgressContainer = styled.div`
-    height: 185px;
+    min-height: 185px;
 `;
 
 const getMigrationStepState = (started: boolean, finished: boolean): MigrationStepState => {
