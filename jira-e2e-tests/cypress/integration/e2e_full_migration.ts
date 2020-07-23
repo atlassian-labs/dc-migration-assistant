@@ -25,8 +25,9 @@ import {
 import { startMigration } from '../support/pages/LandingPage';
 import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
 import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
+import { startFileSystemInitialMigration } from '../support/pages/FileSystemMigration';
 
-const shouldReset = true;
+const shouldReset = false;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -51,7 +52,7 @@ describe('Migration plugin', () => {
         }
     });
 
-    it('Run full migration', () => {
+    it.skip('can run full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -67,5 +68,18 @@ describe('Migration plugin', () => {
         submitQuickstartForm();
 
         waitForProvisioning(ctx);
+
+        startFileSystemInitialMigration(ctx);
+    });
+
+    it.skip('waits for provisioning phase to be completed', () => {
+        cy.visit(ctx.pluginFullUrl);
+        waitForProvisioning(ctx);
+    });
+
+    it('can start the filesystem migration', () => {
+        cy.visit(ctx.pluginFullUrl);
+
+        startFileSystemInitialMigration(ctx);
     });
 });
