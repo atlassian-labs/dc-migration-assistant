@@ -13,7 +13,7 @@ export const waitForProvisioning = (ctx: AppContext) => {
     const waitBetweenRetry = 20 * 1000;
     const retries = 100;
     waitForStatus(
-        '/jira/rest/dc-migration/1.0/aws/stack/status',
+        ctx.context + '/rest/dc-migration/1.0/aws/stack/status',
         'CREATE_COMPLETE',
         waitBetweenRetry,
         retries
@@ -37,7 +37,7 @@ const waitForStatus = (
         cy.log(`run #${iteration}, status ${provisioningStatus}`);
         if (provisioningStatus === expectedStatus) {
             return;
-        } else if (finishedStatutes.includes(provisioningStatus)) {
+        } else if (finishedStatuses.includes(provisioningStatus)) {
             throw Error(`Provisioning finished with unexpected status ${provisioningStatus}`);
         } else if (maxRetries < iteration) {
             throw Error(`Maximum amount of retries reached (${maxRetries})`);
@@ -48,4 +48,4 @@ const waitForStatus = (
     });
 };
 
-const finishedStatutes = ['CREATE_FAILED', 'DELETE_FAILED', 'DELETE_COMPLETE'];
+const finishedStatuses = ['CREATE_FAILED', 'DELETE_FAILED', 'DELETE_COMPLETE'];
