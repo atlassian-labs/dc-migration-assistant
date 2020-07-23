@@ -51,7 +51,7 @@ describe('Migration plugin', () => {
         }
     });
 
-    it.skip('Run full migration', () => {
+    it('Run full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -69,7 +69,7 @@ describe('Migration plugin', () => {
         waitForProvisioning(ctx);
     });
 
-    it('Wait for provisioning', () => {
+    it.skip('Wait for provisioning', () => {
         cy.visit(ctx.pluginFullUrl);
         waitForProvisioning(ctx);
     });
