@@ -1,5 +1,4 @@
 export const waitForProvisioning = (ctx: AppContext) => {
-    // cy.visit(ctx.pluginFullUrl + '/aws/provision/status'); // TODO remove
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
     });
@@ -20,7 +19,9 @@ export const waitForProvisioning = (ctx: AppContext) => {
         retries
     );
 
-    cy.get('#dc-migration-assistant-root button').contains('Next');
+    // we need to wait for the button to switch to Next as have different interval to fetch
+    // provisioning status via Cypress comapring to the frontend
+    cy.get('#dc-migration-assistant-root button', { timeout: 10000 }).contains('Next');
     cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete');
 };
 
@@ -36,11 +37,10 @@ const waitForStatus = (
         cy.log(`run #${iteration}, status ${provisioningStatus}`);
         if (provisioningStatus === expectedStatus) {
             return;
-        }
-        if (finishedStatutes.includes(provisioningStatus)) {
+        } else if (finishedStatutes.includes(provisioningStatus)) {
             throw Error(`Provisioning finished with unexpected status ${provisioningStatus}`);
         } else if (maxRetries < iteration) {
-            throw Error('Maximum amount of retries reached');
+            throw Error(`Maximum amount of retries reached (${maxRetries})`);
         } else {
             cy.wait(waitPeriodInMs);
             waitForStatus(route, expectedStatus, waitPeriodInMs, iteration + 1);
