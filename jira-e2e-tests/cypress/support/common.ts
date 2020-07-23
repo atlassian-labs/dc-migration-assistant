@@ -1,4 +1,6 @@
 type AppContext = {
+    username: string;
+    password: string;
     base: string;
     context: string;
     baseURL: string;

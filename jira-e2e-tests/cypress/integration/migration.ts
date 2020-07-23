@@ -33,7 +33,7 @@ describe('Database Migration page', () => {
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
 
-        cy.jira_login(ctx, 'admin', Cypress.env('ADMIN_PASSWORD'));
+        cy.jira_login(ctx);
         cy.reset_migration(ctx);
     });
 

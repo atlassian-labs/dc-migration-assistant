@@ -21,6 +21,6 @@ import { getContext } from '../support/jira';
 // Skipped as we only want to run on a clean install. Remove 'skip' if
 // you want to run it.
 it.skip('Login and setup', () => {
-    cy.jira_login(getContext(), 'admin', 'admin');
+    cy.jira_login(getContext());
     cy.jira_setup();
 });

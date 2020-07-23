@@ -1,9 +1,19 @@
-export const createAppContext = (base: string, contextPath: string): AppContext => {
+export const createAppContext = (
+    base: string,
+    contextPath: string,
+    username: string = 'admin'
+): AppContext => {
     const baseURL = base + contextPath;
     const pluginPathWithContext = contextPath + '/plugins/servlet/dc-migration-assistant';
     const pluginFullUrl = base + pluginPathWithContext;
+    assert.isDefined(
+        Cypress.env('ADMIN_PASSWORD'),
+        'You need to define admin password via `CYPRESS_ADMIN_PASSWORD env variable`'
+    );
 
     const jiraContext: AppContext = {
+        username: username,
+        password: Cypress.env('ADMIN_PASSWORD'),
         base: base,
         context: contextPath,
         baseURL: baseURL,

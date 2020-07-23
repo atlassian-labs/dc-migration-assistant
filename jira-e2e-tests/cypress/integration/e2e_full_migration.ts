@@ -45,7 +45,7 @@ describe('Migration plugin', () => {
         cy.on('uncaught:exception', (err, runnable) => false);
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
-        cy.jira_login(ctx, 'admin', Cypress.env('ADMIN_PASSWORD'));
+        cy.jira_login(ctx);
         if (shouldReset) {
             cy.reset_migration(ctx);
         }
