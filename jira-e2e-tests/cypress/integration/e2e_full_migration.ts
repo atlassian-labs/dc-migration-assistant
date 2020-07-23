@@ -16,21 +16,18 @@
 
 /// <reference types="Cypress" />
 
-import * as jira from '../support';
-import { waitForDeployment } from '../support/migrationWorkflow';
+import { waitForProvisioning } from '../support/pages/ProvisioningPage';
+import { getContext } from '../support/jira';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
-    selectPrefixOnASIPage,
-    fillCrendetialsOnAuthPage,
-    startMigration,
-} from '../support/migrationWorkflow';
+} from '../support/pages/QuickstartForm';
+import { startMigration } from '../support/pages/LandingPage';
+import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
+import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
 
-// Set these externally via e.g:
-//
-//     export CYPRESS_AWS_ACCESS_KEY_ID=xxxx
-//     export CYPRESS_AWS_SECRET_ACCESS_KEY='yyyyyy'
-//
+const shouldReset = true;
+
 const getAwsTokens = (): AWSCredentials => {
     return {
         keyId: Cypress.env('AWS_ACCESS_KEY_ID'),
@@ -39,20 +36,25 @@ const getAwsTokens = (): AWSCredentials => {
 };
 
 describe('Migration plugin', () => {
-    const ctx = jira.amps_context; // TODO temp workaround
+    const ctx = getContext();
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
+    const credentials = getAwsTokens();
 
-    before(() => {
+    beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
-        cy.jira_login(ctx, 'admin', Cypress.env('ADMIN_PASSWORD'));
-        cy.reset_migration(ctx);
+        expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
+
+        cy.jira_login(ctx);
+        if (shouldReset) {
+            cy.reset_migration(ctx);
+        }
     });
 
     it('Run full migration', () => {
         startMigration(ctx);
 
-        fillCrendetialsOnAuthPage(ctx, region, getAwsTokens());
+        fillCrendetialsOnAuthPage(ctx, region, credentials);
 
         selectPrefixOnASIPage(ctx);
 
@@ -64,6 +66,6 @@ describe('Migration plugin', () => {
 
         submitQuickstartForm();
 
-        waitForDeployment(ctx);
+        waitForProvisioning(ctx);
     });
 });

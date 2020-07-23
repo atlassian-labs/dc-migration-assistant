@@ -1,4 +1,6 @@
-type Context = {
+type AppContext = {
+    username: string;
+    password: string;
     base: string;
     context: string;
     baseURL: string;
@@ -7,8 +9,8 @@ type Context = {
     sudoURL: string;
     upmURL: string;
     pluginPath: string;
-    migrationBase: string;
-    migrationHome: string;
+    pluginFullUrl: string;
+    pluginHomePage: string;
 };
 
 type CloudFormationFormValues = {
