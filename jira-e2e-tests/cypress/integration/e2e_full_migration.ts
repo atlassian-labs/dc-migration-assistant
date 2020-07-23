@@ -26,7 +26,7 @@ import { startMigration } from '../support/pages/LandingPage';
 import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
 import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
 
-const shouldReset = false;
+const shouldReset = true;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -66,11 +66,6 @@ describe('Migration plugin', () => {
 
         submitQuickstartForm();
 
-        waitForProvisioning(ctx);
-    });
-
-    it.skip('Wait for provisioning', () => {
-        cy.visit(ctx.pluginFullUrl);
         waitForProvisioning(ctx);
     });
 });
