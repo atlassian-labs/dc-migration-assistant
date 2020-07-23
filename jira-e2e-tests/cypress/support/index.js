@@ -16,41 +16,18 @@
 
 /// <reference types="Cypress" />
 
-export const gen_context = (base, context) => {
-    const baseURL = base + context;
-    const pluginPathWithContext = context + '/plugins/servlet/dc-migration-assistant';
-    const pluginFullUrl = base + pluginPathWithContext;
-
-    return {
-        base: base,
-        context: context,
-        baseURL: baseURL,
-        welcomeURL: baseURL + '/secure/WelcomeToJIRA.jspa',
-        loginURL: baseURL + '/login.jsp',
-        sudoURL: baseURL + '/secure/admin/WebSudoAuthenticate!default.jspa',
-        upmURL: baseURL + '/plugins/servlet/upm',
-        pluginPath: pluginPathWithContext,
-        migrationBase: pluginFullUrl,
-        migrationHome: pluginFullUrl + '/home',
-    };
-};
-
-export const amps_context = gen_context('http://localhost:2990', '/jira');
-export const devserver_context = gen_context('http://localhost:3333', '');
-export const compose_context = gen_context('http://jira:8080', '/jira');
-
-Cypress.Commands.add('jira_login', (ctx, uname, passwd) => {
+Cypress.Commands.add('jira_login', (ctx) => {
     cy.visit(ctx.loginURL);
 
-    cy.get('#login-form-username').type('admin');
-    cy.get('#login-form-password').type('admin');
+    cy.get('#login-form-username').type(ctx.username);
+    cy.get('#login-form-password').type(ctx.password);
     cy.get('#login-form-submit').click();
     // Force wait for dashboard to avoid flakiness.
     //cy.get('[class=g-intro]').should('exist');
 
     // Ensure we have full admin access before doing anything
     cy.visit(ctx.sudoURL);
-    cy.get('#login-form-authenticatePassword').type('admin');
+    cy.get('#login-form-authenticatePassword').type(ctx.password);
     cy.get('#login-form-submit').click();
 });
 
@@ -69,7 +46,7 @@ Cypress.Commands.add('jira_setup', () => {
 });
 
 Cypress.Commands.add('reset_migration', (ctx) => {
-    cy.visit(ctx.migrationHome);
+    cy.visit(ctx.pluginHomePage);
     cy.get('#dc-migration-assistant-root').should('exist');
     cy.window().then((window) => {
         window.AtlassianMigration.resetMigration();

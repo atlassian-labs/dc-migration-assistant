@@ -15,16 +15,16 @@
  */
 
 /// <reference types="Cypress" />
-import * as jira from '../support';
-import * as scenarios from '../support/scenarios';
+
+import { getContext } from '../support/jira';
 
 describe('Plugin installation smoke tests', () => {
-    const ctx = jira.compose_context;
+    const ctx = getContext();
 
     beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
 
-        cy.jira_login(ctx, 'admin', 'admin');
+        cy.jira_login(ctx);
     });
 
     it('Ensure plugin loaded', () => {
@@ -43,7 +43,7 @@ describe('Plugin installation smoke tests', () => {
 
     it('Test AWS Auth', () => {
         cy.reset_migration(ctx);
-        cy.visit(ctx.migrationHome);
+        cy.visit(ctx.pluginHomePage);
 
         cy.get('[data-test=start-migration]').should('exist').click();
 

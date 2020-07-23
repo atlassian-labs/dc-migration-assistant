@@ -8,5 +8,6 @@
     "testFiles": "**/*.*",
     "videosFolder": "videos",
     "video": true,
-    "videoCompression": false
+    "videoCompression": false,
+    "experimentalFetchPolyfill": true
 }
