@@ -74,12 +74,15 @@ Members of the DC Deployments team should have access to these in LastPass.
 
 ### Running locally
 
-This mostly involves setting the enviroment correctly as above and running
+This mostly involves setting the environment correctly as above and running
 `docker-compose`. There is a helper script in `jira-e2e-tests/helpers/run-local`
-to assist with this. By default it will run Jira and Postgres, which are
+to assist with this. By default, it will run Jira and Postgres, which are
 accessible via [http://localhost:2990/jira/]:
 
     export JIRA_E2E_LICENSE='xxxxx'
+    export CYPRESS_AWS_ACCESS_KEY_ID='XXXX'
+    export CYPRESS_AWS_SECRET_ACCESS_KEY='YYYY'
+    export CYPRESS_CONTEXT=amps
     ./jira-e2e-tests/helpers/run-local
 
 To run the functional or UI tests you can pass the container name to the script

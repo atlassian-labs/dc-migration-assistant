@@ -16,7 +16,7 @@
 
 /// <reference types="Cypress" />
 
-import { ampsContext, getContext } from '../support/jira';
+import { getContext } from '../support/jira';
 
 // Skipped as we only want to run on a clean install. Remove 'skip' if
 // you want to run it.
