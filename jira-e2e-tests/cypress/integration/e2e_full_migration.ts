@@ -16,15 +16,15 @@
 
 /// <reference types="Cypress" />
 
-import { waitForProvisioning } from '../support/ProvisioningPage';
+import { waitForProvisioning } from '../support/pages/ProvisioningPage';
 import { getContext } from '../support/jira';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
-    selectPrefixOnASIPage,
-    fillCrendetialsOnAuthPage,
-    startMigration,
-} from '../support/migration_workflow';
+} from '../support/pages/QuickstartForm';
+import { startMigration } from '../support/pages/LandingPage';
+import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
+import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
 
 const shouldReset = false;
 
