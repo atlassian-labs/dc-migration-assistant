@@ -16,7 +16,7 @@
 
 /// <reference types="Cypress" />
 
-import { waitForDeployment } from '../support/migration_workflow';
+import { waitForProvisioning } from '../support/ProvisioningPage';
 import { getContext } from '../support/jira';
 import {
     configureQuickStartFormWithoutVPC,
@@ -25,6 +25,8 @@ import {
     fillCrendetialsOnAuthPage,
     startMigration,
 } from '../support/migration_workflow';
+
+const shouldReset = false;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -39,15 +41,17 @@ describe('Migration plugin', () => {
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
 
-    before(() => {
+    beforeEach(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
         cy.jira_login(ctx, 'admin', 'admin');
-        cy.reset_migration(ctx);
+        if (shouldReset) {
+            cy.reset_migration(ctx);
+        }
     });
 
-    it('Run full migration', () => {
+    it.skip('Run full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -62,6 +66,11 @@ describe('Migration plugin', () => {
 
         submitQuickstartForm();
 
-        waitForDeployment(ctx);
+        waitForProvisioning(ctx);
+    });
+
+    it('Wait for provisioning', () => {
+        cy.visit(ctx.pluginFullUrl);
+        waitForProvisioning(ctx);
     });
 });
