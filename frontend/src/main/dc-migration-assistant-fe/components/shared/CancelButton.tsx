@@ -39,6 +39,7 @@ export const CancelButton: FunctionComponent = () => {
                 onClick={(): void => {
                     setShowCancelMigrationModal(true);
                 }}
+                testId="button-cancel"
             >
                 {I18n.getText('atlassian.migration.datacenter.generic.cancel')}
             </Button>

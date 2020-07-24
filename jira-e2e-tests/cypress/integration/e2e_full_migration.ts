@@ -29,8 +29,12 @@ import {
     startFileSystemInitialMigration,
     monitorFileSystemMigration,
 } from '../support/pages/FileSystemMigration';
+import {
+    showsBlockUserWarning,
+    continueWithMigration as confirmBlockAndContinue,
+} from '../support/pages/BlockUsersPage';
 
-const shouldReset = false;
+const shouldReset = true;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -53,6 +57,8 @@ describe('Migration plugin', () => {
         if (shouldReset) {
             cy.reset_migration(ctx);
         }
+
+        cy.visit(ctx.pluginFullUrl);
     });
 
     it.skip('runs full migration', () => {
@@ -71,13 +77,29 @@ describe('Migration plugin', () => {
         submitQuickstartForm();
 
         waitForProvisioning(ctx);
+
+        startFileSystemInitialMigration(ctx);
+
+        monitorFileSystemMigration(ctx);
+
+        showsBlockUserWarning(ctx);
+        confirmBlockAndContinue();
+
+        // db sync + final fs sync
+
+        //validation
     });
 
-    it.skip('starts for filesystem copy', () => {
+    it.skip('starts and monitor filesystem copy', () => {
         startFileSystemInitialMigration(ctx);
+        monitorFileSystemMigration(ctx);
     });
 
     it.skip('monitors filesystem migration', () => {
         monitorFileSystemMigration(ctx);
+    });
+
+    it.skip('show warning to block access access', () => {
+        showsBlockUserWarning(ctx);
     });
 });
