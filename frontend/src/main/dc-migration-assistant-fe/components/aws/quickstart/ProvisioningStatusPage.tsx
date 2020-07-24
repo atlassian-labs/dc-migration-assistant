@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import React, { FunctionComponent, useEffect, ReactNode } from 'react';
+import React, { FunctionComponent, useEffect, useState, ReactNode } from 'react';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { Redirect } from 'react-router-dom';
 
 import { MigrationTransferPage } from '../../shared/MigrationTransferPage';
 import { ProgressBuilder, ProgressCallback } from '../../shared/Progress';
@@ -124,6 +125,13 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
     useEffect(() => {
         window.scrollTo(0, 0);
     });
+
+    const [shouldRedirectToConfigure, setShouldRedirectToConfigure] = useState<boolean>(false);
+
+    if (shouldRedirectToConfigure) {
+        return <Redirect to={asiConfigurationPath} push />;
+    }
+
     const migrationTransferPageDescription =
         deploymentMode === 'with-vpc'
             ? I18n.getText('atlassian.migration.datacenter.provision.aws.wait.description.with.vpc')
@@ -149,11 +157,11 @@ export const ProvisioningStatusPage: FunctionComponent<DeploymentMode> = ({ depl
                 {
                     getProgress: getDeploymentProgress,
                     retryProps: {
-                        onRetry: provisioning.retry,
+                        onRetry: (): Promise<void> =>
+                            provisioning.retry().then(() => setShouldRedirectToConfigure(true)),
                         retryText: I18n.getText(
                             'atlassian.migration.datacenter.provision.aws.retry.text'
                         ),
-                        onRetryRoute: asiConfigurationPath,
                         canContinueOnFailure: false,
                     },
                 },
