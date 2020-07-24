@@ -20,8 +20,8 @@ import { Checkbox } from '@atlaskit/checkbox';
 import Button from '@atlaskit/button';
 import styled from 'styled-components';
 import { Redirect } from 'react-router-dom';
-import { finalSyncPath } from '../../utils/RoutePaths';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { finalSyncPath } from '../../utils/RoutePaths';
 import { CancelButton } from '../shared/CancelButton';
 
 const Paragraph = styled.p`
@@ -98,6 +98,7 @@ export const WarningStagePage: FunctionComponent = () => {
             isDisabled={!agreed}
             appearance="primary"
             style={nextButtonStyle}
+            testId="button-next"
         >
             {I18n.getText('atlassian.migration.datacenter.generic.next')}
         </Button>

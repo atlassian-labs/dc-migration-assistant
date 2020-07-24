@@ -1,3 +1,5 @@
+import { waitForStatus } from '../waiters';
+
 export const waitForProvisioning = (ctx: AppContext) => {
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
@@ -12,40 +14,10 @@ export const waitForProvisioning = (ctx: AppContext) => {
 
     const waitBetweenRetry = 20 * 1000;
     const retries = 100;
-    waitForStatus(
-        '/jira/rest/dc-migration/1.0/aws/stack/status',
-        'CREATE_COMPLETE',
-        waitBetweenRetry,
-        retries
-    );
+    waitForStatus(ctx.context + '/rest/dc-migration/1.0/aws/stack/status', 'CREATE_COMPLETE');
 
     // we need to wait for the button to switch to Next as have different interval to fetch
     // provisioning status via Cypress comapring to the frontend
     cy.get('#dc-migration-assistant-root button', { timeout: 10000 }).contains('Next');
     cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete');
 };
-
-const waitForStatus = (
-    route: string,
-    expectedStatus: string,
-    waitPeriodInMs: number,
-    maxRetries: number = 100,
-    iteration: number = 1
-) => {
-    cy.request(route).then((response) => {
-        const provisioningStatus = (response.body as Cypress.ObjectLike)['status'];
-        cy.log(`run #${iteration}, status ${provisioningStatus}`);
-        if (provisioningStatus === expectedStatus) {
-            return;
-        } else if (finishedStatutes.includes(provisioningStatus)) {
-            throw Error(`Provisioning finished with unexpected status ${provisioningStatus}`);
-        } else if (maxRetries < iteration) {
-            throw Error(`Maximum amount of retries reached (${maxRetries})`);
-        } else {
-            cy.wait(waitPeriodInMs);
-            waitForStatus(route, expectedStatus, waitPeriodInMs, iteration + 1);
-        }
-    });
-};
-
-const finishedStatutes = ['CREATE_FAILED', 'DELETE_FAILED', 'DELETE_COMPLETE'];

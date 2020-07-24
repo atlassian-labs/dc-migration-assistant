@@ -25,6 +25,14 @@ import {
 import { startMigration } from '../support/pages/LandingPage';
 import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
 import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
+import {
+    startFileSystemInitialMigration,
+    monitorFileSystemMigration,
+} from '../support/pages/FileSystemMigration';
+import {
+    showsBlockUserWarning,
+    continueWithMigration as confirmBlockAndContinue,
+} from '../support/pages/BlockUsersPage';
 
 const shouldReset = true;
 
@@ -49,9 +57,11 @@ describe('Migration plugin', () => {
         if (shouldReset) {
             cy.reset_migration(ctx);
         }
+
+        cy.visit(ctx.pluginFullUrl);
     });
 
-    it('Run full migration', () => {
+    it.skip('runs full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -67,5 +77,29 @@ describe('Migration plugin', () => {
         submitQuickstartForm();
 
         waitForProvisioning(ctx);
+
+        startFileSystemInitialMigration(ctx);
+
+        monitorFileSystemMigration(ctx);
+
+        showsBlockUserWarning(ctx);
+        confirmBlockAndContinue();
+
+        // db sync + final fs sync
+
+        //validation
+    });
+
+    it.skip('starts and monitor filesystem copy', () => {
+        startFileSystemInitialMigration(ctx);
+        monitorFileSystemMigration(ctx);
+    });
+
+    it.skip('monitors filesystem migration', () => {
+        monitorFileSystemMigration(ctx);
+    });
+
+    it.skip('show warning to block access access', () => {
+        showsBlockUserWarning(ctx);
     });
 });
