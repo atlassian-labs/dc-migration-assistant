@@ -9,15 +9,15 @@ export const waitForProvisioning = (ctx: AppContext) => {
     cy.get('#dc-migration-assistant-root h4').contains('Deploying', {
         timeout: 20000,
     });
-    cy.get('#dc-migration-assistant-root button').contains('Refresh').should('not.be.disabled');
-    cy.get('#dc-migration-assistant-root button').contains('Cancel').should('not.be.disabled');
+    cy.get('button[data-testid=button-refresh]').should('not.be.disabled');
+    cy.get('button[data-testid=button-cancel]').should('not.be.disabled');
 
-    const waitBetweenRetry = 20 * 1000;
-    const retries = 100;
     waitForStatus(ctx.context + '/rest/dc-migration/1.0/aws/stack/status', 'CREATE_COMPLETE');
 
     // we need to wait for the button to switch to Next as have different interval to fetch
     // provisioning status via Cypress comapring to the frontend
-    cy.get('#dc-migration-assistant-root button', { timeout: 10000 }).contains('Next');
+    cy.get('button[data-testid=button-next]', {
+        timeout: 20000,
+    }).contains('Next');
     cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete');
 };

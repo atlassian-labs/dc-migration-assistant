@@ -1,6 +1,6 @@
-export const showsBlockUserWarning = (ctx: AppContext) => {
+export const showsBlockUserWarning = () => {
     cy.location().should((loc: Location) => {
-        expect(loc.pathname).to.eq(ctx.pluginPath + '/warning');
+        expect(loc.pathname).to.contain('/warning');
     });
     cy.get('#dc-migration-assistant-root h1').contains('Step 5 of 7: Block user access');
     cy.get('#dc-migration-assistant-root section h1').contains('To block user access:');

@@ -29,12 +29,10 @@ import {
     startFileSystemInitialMigration,
     monitorFileSystemMigration,
 } from '../support/pages/FileSystemMigration';
-import {
-    showsBlockUserWarning,
-    continueWithMigration as confirmBlockAndContinue,
-} from '../support/pages/BlockUsersPage';
+import { showsBlockUserWarning, continueWithMigration } from '../support/pages/BlockUsersPage';
+import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
 
-const shouldReset = true;
+const shouldReset = false;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -82,10 +80,10 @@ describe('Migration plugin', () => {
 
         monitorFileSystemMigration(ctx);
 
-        showsBlockUserWarning(ctx);
-        confirmBlockAndContinue();
+        showsBlockUserWarning();
+        continueWithMigration();
 
-        // db sync + final fs sync
+        runFinalSync();
 
         //validation
     });
@@ -99,7 +97,14 @@ describe('Migration plugin', () => {
         monitorFileSystemMigration(ctx);
     });
 
-    it.skip('show warning to block access access', () => {
-        showsBlockUserWarning(ctx);
+    it('show warning to block access access', () => {
+        showsBlockUserWarning();
+        continueWithMigration();
+        runFinalSync();
+        monitorFinalSync(ctx);
+    });
+
+    it.skip('runs final sync', () => {
+        runFinalSync();
     });
 });
