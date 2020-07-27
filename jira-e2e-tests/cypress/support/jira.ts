@@ -1,3 +1,4 @@
+
 export const createAppContext = (
     base: string,
     contextPath: string,
@@ -6,14 +7,15 @@ export const createAppContext = (
     const baseURL = base + contextPath;
     const pluginPathWithContext = contextPath + '/plugins/servlet/dc-migration-assistant';
     const pluginFullUrl = base + pluginPathWithContext;
+    const password = Cypress.env('ADMIN_PASSWORD')
     assert.isDefined(
-        Cypress.env('ADMIN_PASSWORD'),
+        password,
         'You need to define admin password via `CYPRESS_ADMIN_PASSWORD env variable`'
     );
 
     const jiraContext: AppContext = {
         username: username,
-        password: Cypress.env('ADMIN_PASSWORD'),
+        password: password,
         base: base,
         context: contextPath,
         baseURL: baseURL,
@@ -22,6 +24,11 @@ export const createAppContext = (
         sudoURL: baseURL + '/secure/admin/WebSudoAuthenticate!default.jspa',
         upmURL: baseURL + '/plugins/servlet/upm',
         restBaseURL: baseURL + '/rest/api/2',
+        restAuth: {
+            user: username,
+            pass: password,
+            sendImmediately: true,
+        },
         pluginPath: pluginPathWithContext,
         pluginFullUrl: pluginFullUrl,
         pluginHomePage: pluginFullUrl + '/home',
@@ -54,3 +61,13 @@ export const getContext = () => {
             return dockerComposeContext;
     }
 };
+
+
+export const reindex = (issues: string[], ctx: AppContext, targetURL: string) => {
+    cy.request({
+        url: targetURL+`/rest/api/2/reindex/issue?issueID=${issues.join(",")}`,
+        method: "POST",
+        headers: {"Origin": targetURL},
+        auth: ctx.restAuth,
+    })
+}

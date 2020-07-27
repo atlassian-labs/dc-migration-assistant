@@ -1,3 +1,4 @@
+
 import * as crypto from 'crypto'
 
 
@@ -12,6 +13,7 @@ type AppContext = {
     sudoURL: string;
     upmURL: string;
     restBaseURL: string;
+    restAuth: any;
     pluginPath: string;
     pluginFullUrl: string;
     pluginHomePage: string;

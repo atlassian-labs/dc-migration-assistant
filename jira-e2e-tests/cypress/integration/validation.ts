@@ -21,32 +21,20 @@ import * as common from '../support/common'
 
 describe('Post migration verification', () => {
     const ctx = jira.getContext()
-    const auth = {
-        user: 'admin',
-        pass: ctx.password,
-        sendImmediately: true,
-    }
 
     before(() => {
-        // Force reindex
-        const issues = ["TEST-17", "TEST-18"].join(',')
-        cy.request({
-            url: ctx.restBaseURL+`/reindex/issue?issueID=${issues}`,
-            method: "POST",
-            headers: {"Origin": ctx.baseURL},
-            auth: auth,
-        })
+        // Force reindex after a migration
+        jira.reindex(["TEST-17", "TEST-18"], ctx, ctx.baseURL)
     })
 
     it('Validate issues with inline attachment', () => {
         let req = {
             url: ctx.restBaseURL+"/issue/TEST-17",
-            auth: auth,
+            auth: ctx.restAuth,
         }
         let issue = cy.request(req)
             .its('body')
             .then((issue) => {
-                console.log(issue)
                 expect(issue).property('key').to.equal('TEST-17')
                 expect(issue).property('fields').property('summary').to.contain('Test issue with inline image')
                 expect(issue).property('fields').property('attachment').to.have.length(1)
@@ -56,12 +44,12 @@ describe('Post migration verification', () => {
                 return [imgURL, thumbURL]
             })
             .then(([imgURL, thumbURL]) => {
-                cy.request({url: imgURL, auth: auth, encoding: 'binary'})
+                cy.request({url: imgURL, auth: ctx.restAuth, encoding: 'binary'})
                     .then((resp) => {
                         expect(resp.headers).property('content-length').to.equal('2215660')
                         common.checksum(resp.body, "3393ce5431bcb31aea66541c3a1c6a56")
                     })
-                cy.request({url: thumbURL, auth: auth,encoding: 'binary'})
+                cy.request({url: thumbURL, auth: ctx.restAuth,encoding: 'binary'})
                     .then((resp) => {
                         expect(resp.headers).property('content-length').to.equal('66466')
                         common.checksum(resp.body, "43ef675cf099a8d5108b1de45e221dac")
@@ -72,18 +60,17 @@ describe('Post migration verification', () => {
     it('Validate issues with large attachment', () => {
         let req = {
             url: ctx.restBaseURL+"/issue/TEST-18",
-            auth: auth,
+            auth: ctx.restAuth,
         }
         let issue = cy.request(req)
             .its('body')
             .then((issue) => {
-                console.log(issue)
                 expect(issue).property('fields').property('attachment').to.have.length(1)
                 expect(issue.fields.attachment[0]).property('filename').to.equal('random.bin')
                 return issue.fields.attachment[0].content;
             })
             .then((binURL) => {
-                cy.request({url: binURL, auth: auth, encoding: 'binary'})
+                cy.request({url: binURL, auth: ctx.restAuth, encoding: 'binary'})
                     .then((resp) => {
                         expect(resp.headers).property('content-length').to.equal('10485760')
                         common.checksum(resp.body, "cdb8239c10b894beef502af29eaa3cf1")
