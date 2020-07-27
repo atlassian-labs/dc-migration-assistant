@@ -32,6 +32,7 @@ export const createAppContext = (
 export const ampsContext = createAppContext('http://localhost:2990', '/jira');
 export const fsDevServerContext = createAppContext('http://localhost:3333', '');
 export const dockerComposeContext = createAppContext('http://jira:8080', '/jira');
+export const dockerLocalContext = createAppContext('http://localhost:2990', '/jira');
 
 /**
  *  Returns application context to access product and plugin URLs
@@ -45,6 +46,9 @@ export const getContext = () => {
         }
         case 'fsdev': {
             return fsDevServerContext;
+        }
+        case 'local': {
+            return dockerLocalContext;
         }
         default:
             return dockerComposeContext;
