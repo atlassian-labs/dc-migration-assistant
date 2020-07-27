@@ -11,11 +11,18 @@ export const runFinalSync = () => {
 
 export const monitorFinalSync = (ctx: AppContext) => {
     cy.get('#dc-migration-assistant-root h1').contains('Step 6 of 7: Final Sync');
-    cy.get('#dc-migration-assistant-root h4').contains('Database import');
+    cy.get('#dc-migration-assistant-root h4').contains('Database export', { timeout: 20000 });
     cy.get('#dc-migration-assistant-root h4').contains('Copying new files to new deployment');
 
     cy.get('button[data-testid=button-cancel').should('be.visible');
     cy.get('button[data-testid=button-refresh').should('be.visible');
+
+    waitForStatus(
+        `${ctx.context}/rest/dc-migration/1.0/migration/final-sync/status`,
+        'DATA_MIGRATION_IMPORT'
+    );
+
+    cy.get('#dc-migration-assistant-root h4').contains('Database import', { timeout: 20000 });
 
     waitForStatus(`${ctx.context}/rest/dc-migration/1.0/migration/final-sync/status`, 'DONE');
 

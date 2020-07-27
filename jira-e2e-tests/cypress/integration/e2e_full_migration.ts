@@ -98,9 +98,9 @@ describe('Migration plugin', () => {
     });
 
     it('show warning to block access access', () => {
-        showsBlockUserWarning();
-        continueWithMigration();
-        runFinalSync();
+        // showsBlockUserWarning();
+        // continueWithMigration();
+        // runFinalSync();
         monitorFinalSync(ctx);
     });
 
