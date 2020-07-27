@@ -2,7 +2,7 @@ import { waitForStatus } from '../waiters';
 
 export const waitForProvisioning = (ctx: AppContext) => {
     cy.location().should((loc: Location) => {
-        expect(loc.pathname).to.eq(ctx.pluginPath + '/aws/provision/status');
+        expect(loc.pathname).contain('/aws/provision/status');
     });
 
     cy.get('#dc-migration-assistant-root h1').contains('Step 3 of 7: Deploy on AWS');
@@ -16,8 +16,7 @@ export const waitForProvisioning = (ctx: AppContext) => {
 
     // we need to wait for the button to switch to Next as have different interval to fetch
     // provisioning status via Cypress comapring to the frontend
-    cy.get('button[data-testid=button-next]', {
-        timeout: 20000,
-    }).contains('Next');
-    cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete');
+    cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete', { timeout: 30000 });
+
+    cy.get('button[data-testid=button-next]').contains('Next').click();
 };
