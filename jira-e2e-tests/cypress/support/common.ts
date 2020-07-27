@@ -1,3 +1,6 @@
+import * as crypto from 'crypto'
+
+
 type AppContext = {
     username: string;
     password: string;
@@ -26,3 +29,14 @@ type AWSCredentials = {
     keyId: string;
     secretKey: string;
 };
+
+
+export const checksum = (data: Uint8Array, sum: string) => {
+    let fname = 'temp-'+crypto.randomBytes(4).readUInt32LE(0)+'.bin';
+    cy.writeFile(fname, data, 'binary')
+    cy.exec(`md5sum ${fname} ; rm ${fname}`)
+        .its('stdout')
+        .then((out) => {
+            expect(out.split(' ')[0]).to.equal(sum)
+        })
+}
