@@ -31,8 +31,9 @@ import {
 } from '../support/pages/FileSystemMigration';
 import { showsBlockUserWarning, continueWithMigration } from '../support/pages/BlockUsersPage';
 import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
+import { showsValidationPage } from '../support/pages/ValidationPage';
 
-const shouldReset = false;
+const shouldReset = true;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -59,7 +60,7 @@ describe('Migration plugin', () => {
         cy.visit(ctx.pluginFullUrl);
     });
 
-    it.skip('runs full migration', () => {
+    it('runs full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -84,8 +85,9 @@ describe('Migration plugin', () => {
         continueWithMigration();
 
         runFinalSync();
+        monitorFinalSync(ctx);
 
-        //validation
+        showsValidationPage();
     });
 
     it.skip('starts and monitor filesystem copy', () => {
@@ -97,14 +99,18 @@ describe('Migration plugin', () => {
         monitorFileSystemMigration(ctx);
     });
 
-    it('show warning to block access access', () => {
-        // showsBlockUserWarning();
-        // continueWithMigration();
-        // runFinalSync();
+    it.skip('show warning to block access access', () => {
+        showsBlockUserWarning();
+        continueWithMigration();
+        runFinalSync();
         monitorFinalSync(ctx);
     });
 
     it.skip('runs final sync', () => {
         runFinalSync();
+    });
+
+    it.skip('shows validation page after migration finishes', () => {
+        showsValidationPage();
     });
 });
