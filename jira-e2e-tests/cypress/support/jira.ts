@@ -21,6 +21,7 @@ export const createAppContext = (
         loginURL: baseURL + '/login.jsp',
         sudoURL: baseURL + '/secure/admin/WebSudoAuthenticate!default.jspa',
         upmURL: baseURL + '/plugins/servlet/upm',
+        restBaseURL: baseURL + '/rest/api/latest',
         pluginPath: pluginPathWithContext,
         pluginFullUrl: pluginFullUrl,
         pluginHomePage: pluginFullUrl + '/home',

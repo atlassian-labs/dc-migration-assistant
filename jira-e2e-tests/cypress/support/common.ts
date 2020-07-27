@@ -8,6 +8,7 @@ type AppContext = {
     loginURL: string;
     sudoURL: string;
     upmURL: string;
+    restBaseURL: string;
     pluginPath: string;
     pluginFullUrl: string;
     pluginHomePage: string;
