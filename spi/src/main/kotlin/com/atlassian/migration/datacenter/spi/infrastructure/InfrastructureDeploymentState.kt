@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.spi.infrastructure
  * Represents the status of the deployment of infrastructure
  */
 enum class InfrastructureDeploymentState {
+    NOT_DEPLOYING,
     CREATE_IN_PROGRESS,
     CREATE_COMPLETE,
     CREATE_FAILED,

@@ -107,7 +107,7 @@ class QuickstartDeploymentServiceTest {
             properties.setProperty(passwordPropertyKey, invocation.getArgument(0));
             return null;
         }).when(dbCredentialsStorageService).storeCredentials(anyString());
-        when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
+        lenient().when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
         lenient().when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_APPLICATION);
 
         lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().stackName(STACK_NAME).outputs(MOCK_OUTPUTS).build()));
@@ -258,6 +258,13 @@ class QuickstartDeploymentServiceTest {
         }
 
         verify(mockContext).setDeploymentMode(mode);
+    }
+
+    @Test
+    void shouldReturnNotDeployingWhenMigrationPhaseIsNotProvisioningStage() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.AUTHENTICATION);
+
+        assertEquals(InfrastructureDeploymentState.NOT_DEPLOYING, deploymentService.getDeploymentStatus());
     }
 
     private void givenStackDeploymentWillBeInProgress() {

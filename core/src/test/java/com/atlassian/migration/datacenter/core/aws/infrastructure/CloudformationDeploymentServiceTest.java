@@ -88,7 +88,7 @@ class CloudformationDeploymentServiceTest {
         givenDeploymentStateIs(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
         deploySimpleStack();
 
-        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
+        InfrastructureDeploymentState state = sut.getDeploymentStatus();
         assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, state);
     }
 
@@ -111,7 +111,7 @@ class CloudformationDeploymentServiceTest {
     void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException, InfrastructureDeploymentError {
         givenDeploymentStateIs(InfrastructureDeploymentState.CREATE_FAILED);
 
-        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
+        InfrastructureDeploymentState state = sut.getDeploymentStatus();
         assertEquals(InfrastructureDeploymentState.CREATE_FAILED, state);
     }
 

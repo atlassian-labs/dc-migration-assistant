@@ -80,7 +80,7 @@ public abstract class CloudformationDeploymentService {
         beginWatchingDeployment(stackName);
     }
 
-    protected InfrastructureDeploymentState getDeploymentStatus(String stackName) {
+    protected InfrastructureDeploymentState getDeploymentStatus() {
         return migrationService.getCurrentContext().getDeploymentState();
     }
 

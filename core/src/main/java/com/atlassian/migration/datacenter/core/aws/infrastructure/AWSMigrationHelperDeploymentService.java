@@ -208,7 +208,15 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     public InfrastructureDeploymentState getDeploymentStatus() {
-        return super.getDeploymentStatus(migrationService.getCurrentContext().getHelperStackDeploymentId());
+        if (isHelperStackDeploymentStage()) {
+            return super.getDeploymentStatus();
+        }
+        return InfrastructureDeploymentState.NOT_DEPLOYING;
+    }
+
+    private boolean isHelperStackDeploymentStage() {
+        MigrationStage stage = migrationService.getCurrentStage();
+        return stage == MigrationStage.PROVISION_MIGRATION_STACK || stage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT || stage == MigrationStage.PROVISIONING_ERROR;
     }
 
     private String constructMigrationStackDeploymentIdentifier() {

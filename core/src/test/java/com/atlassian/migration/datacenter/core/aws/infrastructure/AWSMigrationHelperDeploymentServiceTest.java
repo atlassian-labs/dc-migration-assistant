@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
@@ -87,7 +88,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
+        lenient().when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
 
         deploymentId = new AtomicReference<>();
 
@@ -118,6 +119,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @Test
     void shouldReturnInProgressWhileCloudformationDeploymentIsOngoing() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_MIGRATION_STACK_WAIT);
         when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
 
         assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus());
@@ -125,6 +127,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @Test
     void shouldReturnCompleteWhenCloudFormationDeploymentSucceeds() throws InterruptedException, InfrastructureDeploymentError {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_MIGRATION_STACK);
         when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         Thread.sleep(100);
@@ -134,6 +137,7 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @Test
     void shouldReturnErrorWhenCloudFormationDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
         when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
 
         InfrastructureDeploymentState state = sut.getDeploymentStatus();
@@ -158,6 +162,13 @@ class AWSMigrationHelperDeploymentServiceTest {
         Thread.sleep(100);
 
         assertGettingStackOutputsThrowsError();
+    }
+
+    @Test
+    void shouldReturnNotInProgressWhenNotInMigrationStackDeploymentPhase() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_APPLICATION_WAIT);
+
+        assertEquals(InfrastructureDeploymentState.NOT_DEPLOYING, sut.getDeploymentStatus());
     }
 
     private void assertGettingStackOutputsThrowsError() {
