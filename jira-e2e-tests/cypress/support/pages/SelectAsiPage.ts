@@ -4,7 +4,7 @@ export const selectPrefixOnASIPage = (ctx: AppContext, prefix: string = 'ATL-') 
     });
 
     cy.get('section').contains(
-        'Were scanning your AWS account for existing ASIs. This may take a while.'
+        "We're scanning your AWS account for existing ASIs. This may take a while."
     );
 
     cy.get('section').contains('We found an existing ASI', { timeout: 20000 });
