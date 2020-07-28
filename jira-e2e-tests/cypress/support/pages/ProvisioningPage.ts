@@ -12,11 +12,17 @@ export const waitForProvisioning = (ctx: AppContext) => {
     cy.get('button[data-testid=button-refresh]').should('not.be.disabled');
     cy.get('button[data-testid=button-cancel]').should('not.be.disabled');
 
-    waitForStatus(ctx.context + '/rest/dc-migration/1.0/aws/stack/status', 'CREATE_COMPLETE');
+    waitForStatus(
+        ctx.context + '/rest/dc-migration/1.0/migration',
+        'PROVISION_MIGRATION_STACK_WAIT'
+    );
+    cy.log('Provisioned application stack');
 
-    // we need to wait for the button to switch to Next as have different interval to fetch
-    // provisioning status via Cypress comapring to the frontend
-    cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete', { timeout: 30000 });
+    // verify completion of the stack (by verifying previous migration stage we know there is application stack)
+    waitForStatus(ctx.context + '/rest/dc-migration/1.0/aws/stack/status', 'CREATE_COMPLETE');
+    cy.log('Provisioned migration stack stack');
+
+    cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete', { timeout: 20000 });
 
     cy.get('button[data-testid=button-next]').contains('Next').click();
 };
