@@ -21,5 +21,6 @@ declare namespace Cypress {
         jira_login(ctx: AppContext): Chainable<Element>;
         jira_setup(): Chainable<Element>;
         reset_migration(ctx: AppContext): Chainable<Element>;
+        relogin(ctx: AppContext): Chainable<Element>;
     }
 }

@@ -6,7 +6,8 @@ export const showsValidationPage = () => {
     cy.get('#dc-migration-assistant-root p > a')
         .contains('http://')
         .then((href) => {
-            cy.log(href === undefined ? '' : href.attr('href'));
+            const serviceUrl = href.attr('href');
+            if (typeof serviceUrl === 'string') cy.log(serviceUrl);
         });
 
     cy.get('#dc-migration-assistant-root section h1').contains(

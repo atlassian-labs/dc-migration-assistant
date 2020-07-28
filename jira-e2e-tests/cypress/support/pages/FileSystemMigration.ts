@@ -1,4 +1,4 @@
-import { waitForStatus } from '../waiters';
+import { waitForStatus, EndpointType } from '../waiters';
 
 const header = 'Step 4 of 7: Copy Content';
 
@@ -21,7 +21,11 @@ export const monitorFileSystemMigration = (ctx: AppContext) => {
 
     cy.get('#dc-migration-assistant-root h4').contains('Counting and uploading your files to AWS');
 
-    waitForStatus(ctx.context + '/rest/dc-migration/1.0/migration/fs/report', 'DONE');
+    waitForStatus(
+        ctx.context + '/rest/dc-migration/1.0/migration/fs/report',
+        'DONE',
+        EndpointType.FILESYSTEM_REPORT
+    );
 
     cy.get('button[data-testid=button-next]', { timeout: 20000 })
         .contains('Next')

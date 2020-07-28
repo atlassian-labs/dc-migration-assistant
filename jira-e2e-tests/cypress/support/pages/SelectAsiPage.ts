@@ -7,7 +7,7 @@ export const selectPrefixOnASIPage = (ctx: AppContext, prefix: string = 'ATL-') 
         "We're scanning your AWS account for existing ASIs. This may take a while."
     );
 
-    cy.get('section').contains('We found an existing ASI', { timeout: 20000 });
+    cy.get('section').contains('We found an existing ASI', { timeout: 40000 });
     cy.get('[name=deploymentMode]').check('existing');
     cy.get('.asi-select')
         .click()
