@@ -64,7 +64,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     AWSMigrationHelperDeploymentService(CfnApi cfnApi, Supplier<AutoScalingClient> autoScalingClientFactory, MigrationService migrationService, int pollIntervalSeconds) {
-        super(cfnApi, pollIntervalSeconds);
+        super(cfnApi, pollIntervalSeconds, migrationService);
         this.migrationService = migrationService;
         this.cfnApi = cfnApi;
         this.autoScalingClientFactory = autoScalingClientFactory;

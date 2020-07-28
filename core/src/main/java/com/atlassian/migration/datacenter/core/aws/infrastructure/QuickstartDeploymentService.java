@@ -62,7 +62,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             TargetDbCredentialsStorageService dbCredentialsStorageService,
             AWSMigrationHelperDeploymentService migrationHelperDeploymentService,
             MigrationStackInputGatheringStrategyFactory strategyFactory) {
-        super(cfnApi);
+        super(cfnApi, migrationService);
 
         this.cfnApi = cfnApi;
         this.migrationService = migrationService;
