@@ -108,6 +108,11 @@ other Cypress tests via the UI:
 While this is running you can update the installed plugin using the helper
 script `helpers/upload-plugin`.
 
+Note that the run-local (and GitHub Actions tests) run with transition-checking
+enforced. To allow any transition for local development add
+`--allowAnyTransition` to `run-local`.
+
+
 ## Continuous integration
 
 The basic smoke-test runs automatically in GitHub Actions on each push. See the
