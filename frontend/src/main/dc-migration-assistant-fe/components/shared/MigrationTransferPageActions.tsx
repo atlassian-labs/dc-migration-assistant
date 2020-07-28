@@ -70,7 +70,8 @@ const ActionButton: FunctionComponent<{
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     text: string;
     isRefresh?: boolean;
-}> = ({ loading, onClick, text, isRefresh }) => (
+    testId?: string;
+}> = ({ loading, onClick, text, isRefresh, testId }) => (
     <Button
         style={{
             padding: '5px',
@@ -78,6 +79,7 @@ const ActionButton: FunctionComponent<{
         onClick={onClick || ((): void => undefined)}
         isLoading={loading}
         appearance={isRefresh ? 'default' : 'primary'}
+        testId={testId || `button-${text.replace(/\W/g, '-').toLowerCase()}`}
     >
         {text}
     </Button>

@@ -29,10 +29,9 @@ import {
     startFileSystemInitialMigration,
     monitorFileSystemMigration,
 } from '../support/pages/FileSystemMigration';
-import {
-    showsBlockUserWarning,
-    continueWithMigration as confirmBlockAndContinue,
-} from '../support/pages/BlockUsersPage';
+import { showsBlockUserWarning, continueWithMigration } from '../support/pages/BlockUsersPage';
+import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
+import { showsValidationPage } from '../support/pages/ValidationPage';
 
 const shouldReset = true;
 
@@ -61,7 +60,7 @@ describe('Migration plugin', () => {
         cy.visit(ctx.pluginFullUrl);
     });
 
-    it.skip('runs full migration', () => {
+    it('runs full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -82,12 +81,13 @@ describe('Migration plugin', () => {
 
         monitorFileSystemMigration(ctx);
 
-        showsBlockUserWarning(ctx);
-        confirmBlockAndContinue();
+        showsBlockUserWarning();
+        continueWithMigration();
 
-        // db sync + final fs sync
+        runFinalSync();
+        monitorFinalSync(ctx);
 
-        //validation
+        showsValidationPage();
     });
 
     it.skip('starts and monitor filesystem copy', () => {
@@ -100,6 +100,17 @@ describe('Migration plugin', () => {
     });
 
     it.skip('show warning to block access access', () => {
-        showsBlockUserWarning(ctx);
+        showsBlockUserWarning();
+        continueWithMigration();
+        runFinalSync();
+        monitorFinalSync(ctx);
+    });
+
+    it.skip('runs final sync', () => {
+        runFinalSync();
+    });
+
+    it.skip('shows validation page after migration finishes', () => {
+        showsValidationPage();
     });
 });

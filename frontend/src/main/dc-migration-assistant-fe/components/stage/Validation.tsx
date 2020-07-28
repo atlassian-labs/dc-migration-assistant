@@ -124,7 +124,7 @@ const ValidationSummary: FunctionComponent = () => {
                 )}
                 id="finish-api-error"
             />
-            <h3>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h3>
+            <h1>{I18n.getText('atlassian.migration.datacenter.step.validation.phrase')}</h1>
             <p>
                 {I18n.getText('atlassian.migration.datacenter.validation.message')}
                 <br />
