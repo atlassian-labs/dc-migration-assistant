@@ -1,3 +1,23 @@
+/*
+ * Copyright 2020 Atlassian
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/// <reference types="Cypress" />
+
+import type { AppContext } from './common'
+import * as common from './common'
 
 export const createAppContext = (
     base: string,
@@ -70,4 +90,41 @@ export const reindex = (issues: string[], ctx: AppContext, targetURL: string) =>
         headers: {"Origin": targetURL},
         auth: ctx.restAuth,
     })
+}
+
+export const validate_issue = (issueKey: string, ctx: AppContext, targetURL: string, att_name: string?, att_hash: string?, att_thumb_hash: string?) => {
+    reindex([issueKey], ctx, targetURL);
+
+    let req = {
+        url: `${ctx.restBaseURL}/issue/${issueKey}`,
+        auth: ctx.restAuth,
+    }
+    cy.request(req)
+        .its('body')
+        .then((issue) => {
+            expect(issue).property('key').to.equal(issueKey)
+            expect(issue).property('fields').property('attachment').to.have.length(1)
+            if (att_name != null && att_name != undefined) {
+                expect(issue.fields.attachment[0]).property('filename').to.equal(att_name)
+                let imgURL = issue.fields.attachment[0].content;
+                let thumbURL = issue.fields.attachment[0].thumbnail;
+                return [imgURL, thumbURL]
+            } else {
+                return [null, null]
+            }
+        })
+        .then(([imgURL, thumbURL]) => {
+            if (imgURL != null) {
+                cy.request({url: imgURL, auth: ctx.restAuth, encoding: 'binary'})
+                    .then((resp) => {
+                        common.checksum(resp.body, att_hash)
+                    })
+            }
+            if (thumbURL != null) {
+                cy.request({url: thumbURL, auth: ctx.restAuth,encoding: 'binary'})
+                    .then((resp) => {
+                        common.checksum(resp.body, att_thumb_hash)
+                    })
+            }
+        })
 }

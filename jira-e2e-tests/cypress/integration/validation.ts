@@ -19,63 +19,19 @@ import * as jira from '../support/jira';
 import * as scenarios from '../support/scenarios';
 import * as common from '../support/common'
 
+// NOTE: This a self-test run against the source server and not
+// intended to be run normally. `validate_issue` should be called
+// against the migrated server.
 describe('Post migration verification', () => {
     const ctx = jira.getContext()
 
-    before(() => {
-        // Force reindex after a migration
-        jira.reindex(["TEST-17", "TEST-18"], ctx, ctx.baseURL)
-    })
 
     it('Validate issues with inline attachment', () => {
-        let req = {
-            url: ctx.restBaseURL+"/issue/TEST-17",
-            auth: ctx.restAuth,
-        }
-        let issue = cy.request(req)
-            .its('body')
-            .then((issue) => {
-                expect(issue).property('key').to.equal('TEST-17')
-                expect(issue).property('fields').property('summary').to.contain('Test issue with inline image')
-                expect(issue).property('fields').property('attachment').to.have.length(1)
-                expect(issue.fields.attachment[0]).property('filename').to.equal('vbackground.png')
-                let imgURL = issue.fields.attachment[0].content;
-                let thumbURL = issue.fields.attachment[0].thumbnail;
-                return [imgURL, thumbURL]
-            })
-            .then(([imgURL, thumbURL]) => {
-                cy.request({url: imgURL, auth: ctx.restAuth, encoding: 'binary'})
-                    .then((resp) => {
-                        expect(resp.headers).property('content-length').to.equal('2215660')
-                        common.checksum(resp.body, "3393ce5431bcb31aea66541c3a1c6a56")
-                    })
-                cy.request({url: thumbURL, auth: ctx.restAuth,encoding: 'binary'})
-                    .then((resp) => {
-                        expect(resp.headers).property('content-length').to.equal('66466')
-                        common.checksum(resp.body, "43ef675cf099a8d5108b1de45e221dac")
-                    })
-            })
+        jira.validate_issue("TEST-17", ctx, ctx.baseURL, "vbackground.png", "3393ce5431bcb31aea66541c3a1c6a56", "43ef675cf099a8d5108b1de45e221dac")
     });
 
     it('Validate issues with large attachment', () => {
-        let req = {
-            url: ctx.restBaseURL+"/issue/TEST-18",
-            auth: ctx.restAuth,
-        }
-        let issue = cy.request(req)
-            .its('body')
-            .then((issue) => {
-                expect(issue).property('fields').property('attachment').to.have.length(1)
-                expect(issue.fields.attachment[0]).property('filename').to.equal('random.bin')
-                return issue.fields.attachment[0].content;
-            })
-            .then((binURL) => {
-                cy.request({url: binURL, auth: ctx.restAuth, encoding: 'binary'})
-                    .then((resp) => {
-                        expect(resp.headers).property('content-length').to.equal('10485760')
-                        common.checksum(resp.body, "cdb8239c10b894beef502af29eaa3cf1")
-                    })
-            })
+        jira.validate_issue("TEST-18", ctx, ctx.baseURL, "random.bin", "cdb8239c10b894beef502af29eaa3cf1", null)
     });
 
 });

@@ -16,6 +16,8 @@
 
 /// <reference types="Cypress" />
 
+import { AppContext } from './common'
+
 export const mock_end2end = (ctx: AppContext, screenshot: boolean = false) => {
     // Initial/global mock responses
     cy.route({
