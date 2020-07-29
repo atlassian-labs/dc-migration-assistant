@@ -60,6 +60,7 @@ describe('Migration plugin', () => {
         if (shouldReset) {
             cy.reset_migration(ctx);
         }
+        cy.visit(ctx.pluginFullUrl);
     });
 
     beforeEach(() => {
