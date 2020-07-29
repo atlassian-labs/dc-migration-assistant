@@ -16,7 +16,7 @@
 
 import * as crypto from 'crypto'
 
-export type appcontext = {
+export type AppContext = {
     username: string;
     password: string;
     base: string;
