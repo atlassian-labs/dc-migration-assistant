@@ -21,9 +21,9 @@ export type AppContext = {
     password: string;
     base: string;
     context: string;
-    baseurl: string;
-    welcomeurl: string;
-    loginurl: string;
+    baseURL: string;
+    welcomeURL: string;
+    loginURL: string;
     sudoURL: string;
     upmURL: string;
     restBaseURL: string;
