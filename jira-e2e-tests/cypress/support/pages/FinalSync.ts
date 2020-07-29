@@ -2,7 +2,7 @@ import { waitForStatus, EndpointType } from '../waiters';
 export const runFinalSync = () => {
     cy.get('#dc-migration-assistant-root h1').contains('Step 6 of 7: Final Sync');
     cy.get('#dc-migration-assistant-root p').contains(
-        'Now that youve blocked user access to the instance, we can copy its database and sync any new content changes. You can close this page and return anytime to check its progress.'
+        "Now that you've blocked user access to the instance, we can copy its database and sync any new content changes."
     );
 
     cy.get('button[data-testid=button-cancel').should('be.visible');
