@@ -171,6 +171,19 @@ class AWSMigrationHelperDeploymentServiceTest {
         assertEquals(InfrastructureDeploymentState.NOT_DEPLOYING, sut.getDeploymentStatus());
     }
 
+    @Test
+    void shouldReturnDeploymentCompleteWhenAfterApplicationDeploymentAndNoError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentFailedWhenProvisioningError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, sut.getDeploymentStatus());
+    }
+
     private void assertGettingStackOutputsThrowsError() {
         ArrayList<Executable> outputGetters = new ArrayList<>();
         outputGetters.add(sut::getMigrationS3BucketName);

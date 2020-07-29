@@ -48,6 +48,7 @@ import java.util.Properties;
 
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SERVICE_URL_STACK_OUTPUT_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -265,6 +266,19 @@ class QuickstartDeploymentServiceTest {
         when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.AUTHENTICATION);
 
         assertEquals(InfrastructureDeploymentState.NOT_DEPLOYING, deploymentService.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentCompleteWhenAfterApplicationDeploymentAndNoError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, deploymentService.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentFailedWhenProvisioningError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, deploymentService.getDeploymentStatus());
     }
 
     private void givenStackDeploymentWillBeInProgress() {

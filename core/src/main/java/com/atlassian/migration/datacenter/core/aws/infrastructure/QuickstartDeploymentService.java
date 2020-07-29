@@ -131,7 +131,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         // This is a safeguard against CHET-600 (https://aws-partner.atlassian.net/browse/CHET-600) which is caused as the statemachine transition to `PROVISIONING_ERROR` is dependent on the scheduled task to complete. If a provisioning operation is retried before the `handleFailedDeployment` task is run, the migration stage transition check would prevent the provisioning from completing successfully.
         // See https://github.com/atlassian-labs/dc-migration-assistant/pull/375#issuecomment-655894553 for a detailed explanation of why error case is required.
         // Also, see https://aws-partner.atlassian.net/browse/CHET-608 that tracks this bug.
-        if(migrationService.getCurrentStage().equals(MigrationStage.PROVISIONING_ERROR)){
+        if (migrationService.getCurrentStage().equals(MigrationStage.PROVISIONING_ERROR)) {
             logger.info("Forcing a transition to {} to ensure that we can provision a stack", MigrationStage.PROVISION_APPLICATION);
             migrationService.transition(MigrationStage.PROVISION_APPLICATION);
         }
@@ -206,10 +206,13 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         context.save();
     }
 
+    @NotNull
     @Override
     public InfrastructureDeploymentState getDeploymentStatus() {
         if (isAppDeploymentState()) {
             return super.getDeploymentStatus();
+        } else if (migrationService.getCurrentStage().isAfter(MigrationStage.PROVISION_APPLICATION_WAIT)) {
+            return InfrastructureDeploymentState.CREATE_COMPLETE;
         }
         return InfrastructureDeploymentState.NOT_DEPLOYING;
     }
