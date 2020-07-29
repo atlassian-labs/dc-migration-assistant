@@ -211,7 +211,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
     public InfrastructureDeploymentState getDeploymentStatus() {
         if (isAppDeploymentState()) {
             return super.getDeploymentStatus();
-        } else if (migrationService.getCurrentStage().isAfter(MigrationStage.PROVISION_APPLICATION_WAIT)) {
+        } else if (migrationService.getCurrentStage().isAfterWithoutRetries(MigrationStage.PROVISION_APPLICATION_WAIT)) {
             return InfrastructureDeploymentState.CREATE_COMPLETE;
         }
         return InfrastructureDeploymentState.NOT_DEPLOYING;

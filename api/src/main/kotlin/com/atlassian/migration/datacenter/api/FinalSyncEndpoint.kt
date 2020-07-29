@@ -125,7 +125,7 @@ class FinalSyncEndpoint(
                 stageToStatus(currentStage),
                 elapsed
         )
-        val isCurrentStageAfterFinalSync = currentStage.isAfter(MigrationStage.FINAL_SYNC_WAIT)
+        val isCurrentStageAfterFinalSync = currentStage.isAfterWithoutRetries(MigrationStage.FINAL_SYNC_WAIT)
         val fsSyncStatus = finalSyncService.getFinalSyncStatus()
 
         val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount - fsSyncStatus.failedFileCount, fsSyncStatus.failedFileCount, isCurrentStageAfterFinalSync)

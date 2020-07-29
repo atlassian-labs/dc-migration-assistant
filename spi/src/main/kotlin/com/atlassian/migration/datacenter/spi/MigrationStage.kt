@@ -105,12 +105,15 @@ enum class MigrationStage {
         }
     }
 
-
-    fun isAfter(stage: MigrationStage): Boolean {
-        return isAfter(stage, mutableSetOf())
+    /**
+     * @return true if this stage is after the provided stage along the happy path of a migration i.e. without passing
+     * through an error stage (retrying)
+     */
+    fun isAfterWithoutRetries(stage: MigrationStage): Boolean {
+        return isAfterWithoutRetries(stage, mutableSetOf())
     }
 
-    private fun isAfter(stage: MigrationStage, visited: MutableSet<MigrationStage>): Boolean {
+    private fun isAfterWithoutRetries(stage: MigrationStage, visited: MutableSet<MigrationStage>): Boolean {
         if (this == stage || this == NOT_STARTED) return false
         if (this == FINISHED || this == ERROR) return true
         // If we encounter a cycle and haven't found the stage return false
@@ -120,7 +123,7 @@ enum class MigrationStage {
             when (it) {
                 stage -> true
                 ERROR, PROVISIONING_ERROR, FS_MIGRATION_ERROR, FINAL_SYNC_ERROR -> false
-                else -> it.isAfter(stage, visited)
+                else -> it.isAfterWithoutRetries(stage, visited)
             }
         }
         return ancestorsValid.contains(true)

@@ -210,7 +210,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     public InfrastructureDeploymentState getDeploymentStatus() {
         if (isHelperStackDeploymentStage()) {
             return super.getDeploymentStatus();
-        } else if (migrationService.getCurrentStage().isAfter(MigrationStage.PROVISION_MIGRATION_STACK_WAIT)) {
+        } else if (migrationService.getCurrentStage().isAfterWithoutRetries(MigrationStage.PROVISION_MIGRATION_STACK_WAIT)) {
             return InfrastructureDeploymentState.CREATE_COMPLETE;
         }
         return InfrastructureDeploymentState.NOT_DEPLOYING;
