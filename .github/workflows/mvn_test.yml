@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         java: [ 8, 11 ]
-        profile: ['integration', '!integration', 'smoketest', 'functest', 'end2end']
+        profile: ['end2end']
 
     steps:
       - name: Checkout code
@@ -45,40 +45,40 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-#
-#      - name: Test with maven
-#        if: matrix.profile != 'smoketest' && matrix.profile != 'functest'
-#        run: mvn -B clean verify -P ${{ matrix.profile}}
 
-#      - name: Smoke-test with production image
-#        timeout-minutes: 20
-#        if: matrix.profile == 'smoketest'
-#        env:
-#          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
-#          CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
-#          CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
-#          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
-#        run: |
-#          mvn package -DskipTests
-#          mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
-#          cd jira-e2e-tests
-#          ./postgres/inject-license
-#          JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
+      - name: Test with maven
+        if: matrix.profile != 'smoketest' && matrix.profile != 'functest'
+        run: mvn -B clean verify -P ${{ matrix.profile}}
+
+      - name: Smoke-test with production image
+        timeout-minutes: 20
+        if: matrix.profile == 'smoketest'
+        env:
+          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+          CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
+          CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
+          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
+        run: |
+          mvn package -DskipTests
+          mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
+          cd jira-e2e-tests
+          ./postgres/inject-license
+          JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
       - name: End to end test with production image
-          timeout-minutes: 20
-          if: matrix.profile == 'end2end'
-          env:
-            JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
-            CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
-            CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
-            CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
-          run: |
-            mvn package -DskipTests
-            mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
-            cd jira-e2e-tests
-            ./postgres/inject-license
-            JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
+        timeout-minutes: 20
+        if: matrix.profile == 'end2end'
+        env:
+          JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
+          CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
+          CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
+          CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
+        run: |
+          mvn package -DskipTests
+          mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
+          cd jira-e2e-tests
+          ./postgres/inject-license
+          JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
       - name: REST API tests with production image
         timeout-minutes: 20

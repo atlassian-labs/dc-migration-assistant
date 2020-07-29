@@ -50,19 +50,29 @@ describe('Migration plugin', () => {
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
 
-    beforeEach(() => {
+    before(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
+        Cypress.Cookies.defaults({ whitelist: ['JSESSIONID', 'atlassian.xsrf.token'] });
         cy.jira_login(ctx);
+
         if (shouldReset) {
             cy.reset_migration(ctx);
         }
-
-        cy.visit(ctx.pluginFullUrl);
     });
 
-    it('runs full migration', () => {
+    beforeEach(() => {
+        // cy.visit(ctx.pluginFullUrl);
+    });
+
+    afterEach(function () {
+        if (this.currentTest.state === 'failed') {
+            Cypress.runner.stop();
+        }
+    });
+
+    it.skip('runs full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -92,28 +102,45 @@ describe('Migration plugin', () => {
         showsValidationPage();
     });
 
-    it.skip('starts and monitor filesystem copy', () => {
+    it('starts migration', () => {
+        startMigration(ctx);
+    });
+
+    it('fills credentials', () => {
+        fillCrendetialsOnAuthPage(ctx, region, credentials);
+        selectPrefixOnASIPage(ctx);
+    });
+
+    it('configures AWS Quickstart', () => {
+        configureQuickStartFormWithoutVPC(ctx, {
+            stackName: `teststack-${testId}`,
+            dbPassword: `XadD54^${testId}`,
+            dbMasterPassword: `YadD54^${testId}`,
+        });
+        submitQuickstartForm();
+    });
+
+    it('waits for provisioning', () => {
+        waitForProvisioning(ctx);
+    });
+
+    it.skip('starts and monitor filesystem', () => {
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
 
-    it.skip('monitors filesystem migration', () => {
-        monitorFileSystemMigration(ctx);
-    });
-
-    it.skip('show warning to block access access', () => {
+    it('show warning to block access access', () => {
         showsBlockUserWarning();
         continueWithMigration();
+    });
+
+    it('runs final sync', () => {
         runFinalSync();
         monitorFinalSync(ctx);
     });
 
-    it.skip('runs final sync', () => {
-        runFinalSync();
-    });
-
     let serviceURL: string
-    it.skip('shows validation page after migration finishes', () => {
+    it('shows validation page after migration finishes', () => {
         let serviceURL = showsValidationPage();
     });
 
