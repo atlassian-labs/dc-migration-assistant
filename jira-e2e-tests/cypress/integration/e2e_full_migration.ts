@@ -125,7 +125,7 @@ describe('Migration plugin', () => {
         waitForProvisioning(ctx);
     });
 
-    it.skip('starts and monitor filesystem', () => {
+    it('starts and monitor filesystem', () => {
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
