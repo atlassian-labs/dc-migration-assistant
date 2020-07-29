@@ -1,4 +1,6 @@
-export const showsValidationPage = () => {
+export const showsValidationPage = (): string? => {
+    let serviceUrl = null
+
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.contain('/plugins/servlet/dc-migration-assistant/validation');
     });
@@ -6,8 +8,11 @@ export const showsValidationPage = () => {
     cy.get('#dc-migration-assistant-root p > a')
         .contains('http://')
         .then((href) => {
-            const serviceUrl = href.attr('href');
-            if (typeof serviceUrl === 'string') cy.log(serviceUrl);
+            const hval = href.attr('href');
+            if (typeof hval === 'string') {
+                serviceUrl = hval
+                cy.log(serviceUrl)
+            }
         });
 
     cy.get('#dc-migration-assistant-root section h1').contains(
@@ -30,4 +35,6 @@ export const showsValidationPage = () => {
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.contain('/home');
     });
+
+    return serviceUrl
 };
