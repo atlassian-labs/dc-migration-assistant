@@ -49,13 +49,14 @@ services:
       - CYPRESS_AWS_ACCESS_KEY_ID=${CYPRESS_AWS_ACCESS_KEY_ID}
       - CYPRESS_AWS_SECRET_ACCESS_KEY=${CYPRESS_AWS_SECRET_ACCESS_KEY}
       - CYPRESS_ADMIN_PASSWORD=${CYPRESS_ADMIN_PASSWORD}
+      - CYPRESS_TARGET_TESTSUITE=${CYPRESS_TARGET_TESTSUITE}
     command: >
-      bash -c '
+      bash -c "
           cd /opt/cypress &&
           yarn install &&
           jira-wait http://jira:8080/jira/ &&
-          yarn test --spec integration/smoketest.ts
-      '
+          yarn test --spec integration/${CYPRESS_TARGET_TESTSUITE}.ts
+      "
 
   functests:
     build:
@@ -72,4 +73,3 @@ services:
           jira-wait http://jira:8080/jira/ &&
           mvn verify
       '
-
