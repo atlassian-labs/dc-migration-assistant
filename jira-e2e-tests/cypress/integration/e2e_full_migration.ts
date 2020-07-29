@@ -16,8 +16,10 @@
 
 /// <reference types="Cypress" />
 
+import type { AWSCredentials } from '../support/common'
+
 import { waitForProvisioning } from '../support/pages/ProvisioningPage';
-import { getContext } from '../support/jira';
+import { getContext, validate_issue } from '../support/jira';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
@@ -29,10 +31,9 @@ import {
     startFileSystemInitialMigration,
     monitorFileSystemMigration,
 } from '../support/pages/FileSystemMigration';
-import {
-    showsBlockUserWarning,
-    continueWithMigration as confirmBlockAndContinue,
-} from '../support/pages/BlockUsersPage';
+import { showsBlockUserWarning, continueWithMigration } from '../support/pages/BlockUsersPage';
+import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
+import { showsValidationPage } from '../support/pages/ValidationPage';
 
 const shouldReset = true;
 
@@ -61,7 +62,7 @@ describe('Migration plugin', () => {
         cy.visit(ctx.pluginFullUrl);
     });
 
-    it.skip('runs full migration', () => {
+    it('runs full migration', () => {
         startMigration(ctx);
 
         fillCrendetialsOnAuthPage(ctx, region, credentials);
@@ -82,12 +83,13 @@ describe('Migration plugin', () => {
 
         monitorFileSystemMigration(ctx);
 
-        showsBlockUserWarning(ctx);
-        confirmBlockAndContinue();
+        showsBlockUserWarning();
+        continueWithMigration();
 
-        // db sync + final fs sync
+        runFinalSync();
+        monitorFinalSync(ctx);
 
-        //validation
+        showsValidationPage();
     });
 
     it.skip('starts and monitor filesystem copy', () => {
@@ -100,6 +102,27 @@ describe('Migration plugin', () => {
     });
 
     it.skip('show warning to block access access', () => {
-        showsBlockUserWarning(ctx);
+        showsBlockUserWarning();
+        continueWithMigration();
+        runFinalSync();
+        monitorFinalSync(ctx);
     });
+
+    it.skip('runs final sync', () => {
+        runFinalSync();
+    });
+
+    let serviceURL: string
+    it.skip('shows validation page after migration finishes', () => {
+        let serviceURL = showsValidationPage();
+    });
+
+    it('Validate issues with inline attachment', () => {
+        validate_issue("TEST-17", ctx, serviceURL, "vbackground.png", "3393ce5431bcb31aea66541c3a1c6a56", "43ef675cf099a8d5108b1de45e221dac")
+    });
+
+    it('Validate issues with large attachment', () => {
+        validate_issue("TEST-18", ctx, serviceURL, "random.bin", "cdb8239c10b894beef502af29eaa3cf1", null)
+    });
+
 });

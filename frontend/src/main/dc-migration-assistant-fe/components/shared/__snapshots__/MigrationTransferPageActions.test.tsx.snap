@@ -3,6 +3,7 @@
 exports[`Migration step action should render a spinner button when loading 1`] = `
 <button
   class="css-1wbvwgu"
+  data-testid="button-start"
   style="padding: 5px;"
   type="button"
 >
