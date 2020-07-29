@@ -62,7 +62,7 @@ class CloudformationDeploymentServiceTest {
     @BeforeEach
     void setup() {
         lenient().doNothing().when(context).save();
-        when(migrationService.getCurrentContext()).thenReturn(context);
+        lenient().when(migrationService.getCurrentContext()).thenReturn(context);
         sut = new CloudformationDeploymentService(mockCfnApi, migrationService) {
             @Override
             protected void handleFailedDeployment(String message) {
