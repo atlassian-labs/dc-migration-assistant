@@ -92,7 +92,7 @@ export const reindex = (issues: string[], ctx: AppContext, targetURL: string) =>
     })
 }
 
-export const validate_issue = (issueKey: string, ctx: AppContext, targetURL: string, att_name: string?, att_hash: string?, att_thumb_hash: string?) => {
+export const validate_issue = (issueKey: string, ctx: AppContext, targetURL: string, attName: string?, attHash: string?, attThumbHash: string?) => {
     reindex([issueKey], ctx, targetURL);
 
     let req = {
@@ -104,8 +104,8 @@ export const validate_issue = (issueKey: string, ctx: AppContext, targetURL: str
         .then((issue) => {
             expect(issue).property('key').to.equal(issueKey)
             expect(issue).property('fields').property('attachment').to.have.length(1)
-            if (att_name != null && att_name != undefined) {
-                expect(issue.fields.attachment[0]).property('filename').to.equal(att_name)
+            if (attName != null && attName != undefined) {
+                expect(issue.fields.attachment[0]).property('filename').to.equal(attName)
                 let imgURL = issue.fields.attachment[0].content;
                 let thumbURL = issue.fields.attachment[0].thumbnail;
                 return [imgURL, thumbURL]
@@ -117,13 +117,13 @@ export const validate_issue = (issueKey: string, ctx: AppContext, targetURL: str
             if (imgURL != null) {
                 cy.request({url: imgURL, auth: ctx.restAuth, encoding: 'binary'})
                     .then((resp) => {
-                        common.checksum(resp.body, att_hash)
+                        common.checksum(resp.body, attHash)
                     })
             }
             if (thumbURL != null) {
                 cy.request({url: thumbURL, auth: ctx.restAuth,encoding: 'binary'})
                     .then((resp) => {
-                        common.checksum(resp.body, att_thumb_hash)
+                        common.checksum(resp.body, attThumbHash)
                     })
             }
         })
