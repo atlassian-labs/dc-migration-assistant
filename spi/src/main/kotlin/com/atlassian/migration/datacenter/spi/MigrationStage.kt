@@ -114,16 +114,16 @@ enum class MigrationStage {
         if (this == stage || this == NOT_STARTED) return false
         if (this == FINISHED || this == ERROR) return true
         // If we encounter a cycle and haven't found the stage return false
-        if (visited.contains(stage)) return false
-        return this.validAncestorStages.map {
+        if (visited.contains(this)) return false
+        visited.add(this)
+        val ancestorsValid = this.validAncestorStages.map {
             when (it) {
                 stage -> true
-                else -> {
-                    visited.add(it)
-                    return it.isAfter(stage, visited)
-                }
+                ERROR, PROVISIONING_ERROR, FS_MIGRATION_ERROR, FINAL_SYNC_ERROR -> false
+                else -> it.isAfter(stage, visited)
             }
-        }.contains(true)
+        }
+        return ancestorsValid.contains(true)
     }
 
     // Hacky, but OK for now.

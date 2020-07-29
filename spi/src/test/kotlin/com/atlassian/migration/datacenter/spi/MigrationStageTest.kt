@@ -58,15 +58,17 @@ internal class MigrationStageTest {
     fun testIsAfterStage(){
         assertTrue(FINISHED.isAfter(NOT_STARTED))
         assertTrue(VALIDATE.isAfter(FINAL_SYNC_WAIT))
+        assertTrue(FS_MIGRATION_COPY.isAfter(PROVISION_MIGRATION_STACK_WAIT))
         assertTrue(VALIDATE.isAfter(PROVISION_APPLICATION))
         assertTrue(PROVISION_MIGRATION_STACK_WAIT.isAfter(PROVISION_MIGRATION_STACK))
         assertTrue(ERROR.isAfter(PROVISION_APPLICATION))
 
+        assertFalse(PROVISION_APPLICATION.isAfter(PROVISION_APPLICATION_WAIT))
         assertFalse(NOT_STARTED.isAfter(FINISHED))
-        assertFalse(DB_MIGRATION_EXPORT_WAIT.isAfter(FINAL_SYNC_WAIT))
         assertFalse(NOT_STARTED.isAfter(PROVISION_APPLICATION))
         assertFalse(FS_MIGRATION_COPY.isAfter(FS_MIGRATION_COPY_WAIT))
         assertFalse(FS_MIGRATION_COPY_WAIT.isAfter(FS_MIGRATION_COPY_WAIT))
+        assertFalse(DB_MIGRATION_EXPORT_WAIT.isAfter(FINAL_SYNC_WAIT))
     }
 
     @Test
