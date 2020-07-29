@@ -132,7 +132,7 @@ const fsMigrationTranferPageProps: MigrationTransferProps = {
     heading: I18n.getText('atlassian.migration.datacenter.fs.title'),
     description: I18n.getText('atlassian.migration.datacenter.fs.description'),
     nextText: I18n.getText('atlassian.migration.datacenter.fs.nextStep'),
-    inProgressStages: [MigrationStage.FS_MIGRATION_COPY_WAIT],
+    inProgressStages: [MigrationStage.FS_MIGRATION_COPY_WAIT, MigrationStage.FS_MIGRATION_ERROR],
     startMigrationPhase: fs.startFsMigration,
     startButtonText: I18n.getText('atlassian.migration.datacenter.fs.startCopy'),
     processes: [
