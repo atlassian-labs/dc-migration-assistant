@@ -16,8 +16,10 @@
 
 /// <reference types="Cypress" />
 
+import type { AWSCredentials } from '../support/common'
+
 import { waitForProvisioning } from '../support/pages/ProvisioningPage';
-import { getContext } from '../support/jira';
+import { getContext, validate_issue } from '../support/jira';
 import {
     configureQuickStartFormWithoutVPC,
     submitQuickstartForm,
@@ -110,7 +112,17 @@ describe('Migration plugin', () => {
         runFinalSync();
     });
 
+    let serviceURL: string
     it.skip('shows validation page after migration finishes', () => {
-        showsValidationPage();
+        let serviceURL = showsValidationPage();
     });
+
+    it('Validate issues with inline attachment', () => {
+        validate_issue("TEST-17", ctx, serviceURL, "vbackground.png", "3393ce5431bcb31aea66541c3a1c6a56", "43ef675cf099a8d5108b1de45e221dac")
+    });
+
+    it('Validate issues with large attachment', () => {
+        validate_issue("TEST-18", ctx, serviceURL, "random.bin", "cdb8239c10b894beef502af29eaa3cf1", null)
+    });
+
 });

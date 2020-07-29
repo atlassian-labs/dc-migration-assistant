@@ -1,5 +1,5 @@
-export const showsValidationPage = (): string? => {
-    let serviceUrl = null
+export const showsValidationPage = (): string => {
+    let serviceUrl
 
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.contain('/plugins/servlet/dc-migration-assistant/validation');
