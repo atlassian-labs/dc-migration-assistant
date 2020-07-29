@@ -47,9 +47,7 @@ class MigrationEndpoint(private val migrationService: MigrationService) {
         val currentStage = migrationService.currentStage
 
         val responseEntity = mapOf(
-            "stage" to
-                if (currentStage.isErrorStage())
-                    MigrationStage.ERROR.toString() else currentStage.toString()
+            "stage" to currentStage.toString()
         )
 
         return Response
