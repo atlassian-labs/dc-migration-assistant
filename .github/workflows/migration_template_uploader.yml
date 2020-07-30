@@ -27,8 +27,8 @@ jobs:
       - name: Lint generated template
 #        if: github.ref == env.MASTER
         uses: scottbrenner/cfn-lint-action@master
-          with:
-            args: "./templates/migration-stack/migration-helper.yml"
+        with:
+          args: "./templates/migration-stack/migration-helper.yml"
 #      - name: Upload Migration stack template
 #        if: github.ref == env.MASTER
 #        uses: jakejarvis/s3-sync-action@master
