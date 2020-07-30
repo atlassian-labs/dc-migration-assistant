@@ -63,44 +63,10 @@ describe('Migration plugin', () => {
         cy.visit(ctx.pluginFullUrl);
     });
 
-    beforeEach(() => {
-        // cy.visit(ctx.pluginFullUrl);
-    });
-
     afterEach(function () {
         if (this.currentTest.state === 'failed') {
             Cypress.runner.stop();
         }
-    });
-
-    it.skip('runs full migration', () => {
-        startMigration(ctx);
-
-        fillCrendetialsOnAuthPage(ctx, region, credentials);
-
-        selectPrefixOnASIPage(ctx);
-
-        configureQuickStartFormWithoutVPC(ctx, {
-            stackName: `teststack-${testId}`,
-            dbPassword: `XadD54^${testId}`,
-            dbMasterPassword: `YadD54^${testId}`,
-        });
-
-        submitQuickstartForm();
-
-        waitForProvisioning(ctx);
-
-        startFileSystemInitialMigration(ctx);
-
-        monitorFileSystemMigration(ctx);
-
-        showsBlockUserWarning();
-        continueWithMigration();
-
-        runFinalSync();
-        monitorFinalSync(ctx);
-
-        showsValidationPage();
     });
 
     it('starts migration', () => {
@@ -126,22 +92,28 @@ describe('Migration plugin', () => {
     });
 
     it('starts and monitor filesystem', () => {
+        refreshLogin(); //we are usually logged out
+
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
 
-    it('show warning to block access access', () => {
+    it('shows warning to block user access', () => {
         showsBlockUserWarning();
         continueWithMigration();
     });
 
-    it('runs final sync', () => {
+    it('runs final database migration and final fs sync', () => {
+        refreshLogin(); //we are usually logged out
+
         runFinalSync();
         monitorFinalSync(ctx);
     });
 
     let serviceURL: string
-    it('shows validation page after migration finishes', () => {
+    it('shows validation page after migration finishes and close migration app', () => {
+        refreshLogin(); //we are usually logged out
+
         let serviceURL = showsValidationPage();
     });
 
@@ -153,4 +125,8 @@ describe('Migration plugin', () => {
         validate_issue("TEST-18", ctx, serviceURL, "random.bin", "cdb8239c10b894beef502af29eaa3cf1", null)
     });
 
+    const refreshLogin = () => {
+        cy.jira_login(ctx);
+        cy.visit(ctx.pluginHomePage);
+    };
 });

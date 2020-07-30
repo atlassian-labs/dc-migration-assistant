@@ -52,8 +52,3 @@ Cypress.Commands.add('reset_migration', (ctx) => {
         window.AtlassianMigration.resetMigration();
     });
 });
-
-Cypress.Commands.add('relogin', (ctx) => {
-    cy.jira_login(ctx);
-    cy.visit(ctx.pluginHomePage);
-});

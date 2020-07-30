@@ -29,6 +29,4 @@ export const waitForProvisioning = (ctx: AppContext) => {
     cy.log('Provisioned migration stack stack');
 
     cy.get('button[data-testid=button-next]').contains('Next', { timeout: 60000 }).click();
-
-    cy.relogin(ctx);
 };
