@@ -39,6 +39,11 @@ this will enable you to make quick changes with instant preview.
 
 Go to `http://localhost:3333` to run the frontend without Jira
 
+The webpack dev-server proxies all API requests to `localhost:2990/jira`. To get
+proper authorisation for these API calls, you need to define the `JIRA_ADMIN_PASSWORD`
+environment variable with the password for the `admin` user of the local Jira application.
+e.g. `JIRA_ADMIN_PASSWORD=admin yarn start`
+
 If you want to test in-app, run `mvn amps:run --product [jira|refapp|confluence]` while the dev server is running
 
 ### Backend
