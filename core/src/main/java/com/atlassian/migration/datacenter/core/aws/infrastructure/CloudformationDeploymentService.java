@@ -17,6 +17,8 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
+import com.atlassian.migration.datacenter.dto.MigrationContext;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.slf4j.Logger;
@@ -41,14 +43,16 @@ public abstract class CloudformationDeploymentService {
 
     private final CfnApi cfnApi;
     private final int deployStatusPollIntervalSeconds;
+    private final MigrationService migrationService;
     private ScheduledFuture<?> deploymentWatcher;
 
-    CloudformationDeploymentService(CfnApi cfnApi) {
-        this(cfnApi, 30);
+    CloudformationDeploymentService(CfnApi cfnApi, MigrationService migrationService) {
+        this(cfnApi, 30, migrationService);
     }
 
-    CloudformationDeploymentService(CfnApi cfnApi, int deployStatusPollIntervalSeconds) {
+    CloudformationDeploymentService(CfnApi cfnApi, int deployStatusPollIntervalSeconds, MigrationService migrationService) {
         this.cfnApi = cfnApi;
+        this.migrationService = migrationService;
         this.deployStatusPollIntervalSeconds = deployStatusPollIntervalSeconds;
     }
 
@@ -76,9 +80,8 @@ public abstract class CloudformationDeploymentService {
         beginWatchingDeployment(stackName);
     }
 
-    protected InfrastructureDeploymentState getDeploymentStatus(String stackName) {
-        requireNonNull(stackName);
-        return cfnApi.getStatus(stackName);
+    protected InfrastructureDeploymentState getDeploymentStatus() {
+        return migrationService.getCurrentContext().getDeploymentState();
     }
 
     private void beginWatchingDeployment(String stackName) {
@@ -88,6 +91,9 @@ public abstract class CloudformationDeploymentService {
 
         deploymentWatcher = scheduledExecutorService.scheduleAtFixedRate(() -> {
             final InfrastructureDeploymentState status = cfnApi.getStatus(stackName);
+            MigrationContext context = migrationService.getCurrentContext();
+            context.setDeploymentState(status);
+            context.save();
             if (status.equals(InfrastructureDeploymentState.CREATE_COMPLETE)) {
                 logger.info("stack {} creation succeeded", stackName);
                 handleSuccessfulDeployment();
