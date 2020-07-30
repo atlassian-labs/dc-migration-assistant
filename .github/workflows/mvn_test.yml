@@ -81,6 +81,12 @@ jobs:
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-results
+          path: /opt/cypress/
+
       - name: REST API tests with production image
         timeout-minutes: 20
         if: matrix.profile == 'functest'
