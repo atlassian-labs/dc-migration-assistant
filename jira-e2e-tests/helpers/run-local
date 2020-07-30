@@ -11,6 +11,18 @@ if [[ $jsrc -nt $jtarget ]]; then
     cp $jsrc $jtarget
 fi
 
+
+source .env
+for arg do
+  shift
+  if [[ "$arg" == "--allowAnyTransition" ]]; then
+      JVM_SUPPORT_RECOMMENDED_ARGS="-Dspring.profiles.active=allowAnyTransition ${JVM_SUPPORT_RECOMMENDED_ARGS}"
+      continue
+  fi
+  set -- "$@" "$arg"
+done
+export JVM_SUPPORT_RECOMMENDED_ARGS
+
 cd jira-e2e-tests/
 ./postgres/inject-license
 
