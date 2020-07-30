@@ -110,7 +110,7 @@ describe('Migration plugin', () => {
         monitorFinalSync(ctx);
     });
 
-    let serviceURL: string
+    let serviceURL: string;
     it('shows validation page after migration finishes and close migration app', () => {
         refreshLogin(); //we are usually logged out
 
@@ -118,11 +118,25 @@ describe('Migration plugin', () => {
     });
 
     it('Validate issues with inline attachment', () => {
-        validate_issue("TEST-17", ctx, serviceURL, "vbackground.png", "3393ce5431bcb31aea66541c3a1c6a56", "43ef675cf099a8d5108b1de45e221dac")
+        validate_issue(
+            'TEST-17',
+            ctx,
+            serviceURL,
+            'vbackground.png',
+            '3393ce5431bcb31aea66541c3a1c6a56',
+            '43ef675cf099a8d5108b1de45e221dac'
+        );
     });
 
     it('Validate issues with large attachment', () => {
-        validate_issue("TEST-18", ctx, serviceURL, "random.bin", "cdb8239c10b894beef502af29eaa3cf1", null)
+        validate_issue(
+            'TEST-18',
+            ctx,
+            serviceURL,
+            'random.bin',
+            'cdb8239c10b894beef502af29eaa3cf1',
+            null
+        );
     });
 
     const refreshLogin = () => {
