@@ -85,7 +85,7 @@ jobs:
         if: failure()
         with:
           name: cypress-results
-          path: /opt/cypress/
+          path: /tmp/cypress/ # this is coming from the docker-compose volume mounts
 
       - name: REST API tests with production image
         timeout-minutes: 20
