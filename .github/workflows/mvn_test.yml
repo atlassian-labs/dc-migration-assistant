@@ -6,7 +6,6 @@ jobs:
   run_tests:
     name: Java${{ matrix.java }} ${{ matrix.profile }} test
     runs-on: ubuntu-latest
-    timeout-minutes: 120
 
     strategy:
       matrix:
@@ -68,7 +67,7 @@ jobs:
 
       - name: End to end test with production image
         timeout-minutes: 120
-        if: matrix.profile == 'end2end'
+        if: ${{ matrix.profile == 'end2end' && matrix.java == '11' }}
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
