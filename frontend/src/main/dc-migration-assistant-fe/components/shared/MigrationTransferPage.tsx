@@ -270,22 +270,23 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                             )}
                                         </ProgressContainer>
                                         {index !== processInfo.length - 1 && <Divider />}
-                                        {progress.errorMessage && (
-                                            <RetryMenuContainer>
-                                                <RetryMenu
-                                                    {...retryProps}
-                                                    onRetry={(): Promise<void> => {
-                                                        setProgressLoading(true);
-                                                        return retryProps
-                                                            .onRetry()
-                                                            .then(() => updateProgress())
-                                                            .finally(() =>
-                                                                setProgressLoading(false)
-                                                            );
-                                                    }}
-                                                />
-                                            </RetryMenuContainer>
-                                        )}
+                                        {progress.errorMessage ||
+                                            (commandResult?.criticalError && (
+                                                <RetryMenuContainer>
+                                                    <RetryMenu
+                                                        {...retryProps}
+                                                        onRetry={(): Promise<void> => {
+                                                            setProgressLoading(true);
+                                                            return retryProps
+                                                                .onRetry()
+                                                                .then(() => updateProgress())
+                                                                .finally(() =>
+                                                                    setProgressLoading(false)
+                                                                );
+                                                        }}
+                                                    />
+                                                </RetryMenuContainer>
+                                            ))}
                                     </>
                                 );
                             })}
