@@ -179,12 +179,12 @@ public class SsmPsqlDatabaseRestoreService {
         }
     }
 
-    public boolean isCriticalError(String inputStr) {
-        if(StringUtils.isNotBlank(inputStr)) {
+    public boolean isCriticalError(String errorString) {
+        if(StringUtils.isNotBlank(errorString)) {
             return Arrays
                     .stream(CRITICAL_ERRORS)
                     .parallel()
-                    .anyMatch(inputStr::contains);
+                    .anyMatch(errorString::contains);
         }
         return false;
     }
