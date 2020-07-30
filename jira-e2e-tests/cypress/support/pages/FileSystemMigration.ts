@@ -1,5 +1,5 @@
 import { waitForStatus, EndpointType } from '../waiters';
-import {AppContext} from "../common";
+import { AppContext } from '../common';
 
 const header = 'Step 4 of 7: Copy Content';
 
@@ -30,15 +30,9 @@ export const monitorFileSystemMigration = (ctx: AppContext) => {
 
     cy.get('#dc-migration-assistant-root').then(($section) => {
         if ($section.text().includes('Ignore and continue')) {
-            cy.get('a', { timeout: 20000 })
-                .contains('Ignore and continue')
-                .should('be.visible')
-                .click();
+            cy.get('a', { timeout: 20000 }).contains('Ignore and continue').click();
         } else {
-            cy.get('button[data-testid=button-next]', { timeout: 20000 })
-                .contains('Next')
-                .should('be.visible')
-                .click();
+            cy.get('button[data-testid=button-next]', { timeout: 20000 }).contains('Next').click();
         }
     });
 };
