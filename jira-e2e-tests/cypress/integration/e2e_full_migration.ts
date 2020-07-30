@@ -114,7 +114,7 @@ describe('Migration plugin', () => {
     it('shows validation page after migration finishes and close migration app', () => {
         refreshLogin(); //we are usually logged out
 
-        let serviceURL = showsValidationPage();
+        serviceURL = showsValidationPage();
     });
 
     it('Validate issues with inline attachment', () => {
