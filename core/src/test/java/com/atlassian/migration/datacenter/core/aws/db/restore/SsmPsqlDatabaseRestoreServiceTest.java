@@ -90,7 +90,6 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
 
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertEquals("error-message", commandOutputs.errorMessage);
         assertFalse(commandOutputs.criticalError);
         assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
@@ -105,10 +104,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
         
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertTrue(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     @Test
@@ -119,10 +115,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
 
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertTrue(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     @Test
@@ -133,10 +126,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
 
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertTrue(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     @Test
@@ -147,10 +137,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
 
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertTrue(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     @Test
@@ -161,10 +148,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
 
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertTrue(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     @Test
@@ -175,10 +159,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
         
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertFalse(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     @Test
@@ -189,10 +170,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
 
         final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
         assertFalse(commandOutputs.criticalError);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
     private void setupExpectations(String mockCommandId, String mockInstance, String errorMessage, String s3bucket, String s3prefix, SsmPsqlDatabaseRestoreService spy) throws InfrastructureDeploymentError {
