@@ -47,7 +47,7 @@ const watchConfig = {
         proxy: {
             '/rest': {
                 target: 'http://localhost:2990/jira',
-                auth: 'admin:admin',
+                auth: `admin:${process.env.JIRA_ADMIN_PASSWORD}`,
             },
         },
     },

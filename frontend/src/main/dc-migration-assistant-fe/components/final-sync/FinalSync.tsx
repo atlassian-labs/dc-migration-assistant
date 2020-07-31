@@ -42,6 +42,7 @@ const finalSyncInProgressStages = [
     MigrationStage.DB_MIGRATION_UPLOAD,
     MigrationStage.DB_MIGRATION_UPLOAD_WAIT,
     MigrationStage.FINAL_SYNC_WAIT,
+    MigrationStage.FINAL_SYNC_ERROR,
     MigrationStage.VALIDATE, // Because of the auto-transition from FINAL_SYNC_WAIT to VALIDATE, we need to add/hack this in here :(
 ];
 
