@@ -26,6 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
+
 public class MigrationRunner
 {
     private static final Logger logger = LoggerFactory.getLogger(MigrationRunner.class);
@@ -37,7 +41,7 @@ public class MigrationRunner
         this.schedulerService = schedulerService;
     }
 
-    public boolean runMigration(JobId jobId, MigrationJobRunner runner) {
+    public boolean runMigration(JobId jobId, MigrationJobRunner runner, Map<String, Serializable> parameters) {
         final JobRunnerKey runnerKey = JobRunnerKey.of(runner.getKey());
         logger.info("Starting filesystem migration");
 
@@ -50,8 +54,9 @@ public class MigrationRunner
         logger.info("Registered new job runner for "+runnerKey);
 
         JobConfig jobConfig = JobConfig.forJobRunnerKey(runnerKey)
-            .withSchedule(null) // run now
-            .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER);
+                .withSchedule(null) // run now
+                .withRunMode(RunMode.RUN_ONCE_PER_CLUSTER)
+                .withParameters(parameters);
         try {
             logger.info("Scheduling new job for runner "+runner.getKey());
             schedulerService.scheduleJob(jobId, jobConfig);
@@ -62,6 +67,10 @@ public class MigrationRunner
             this.schedulerService.unscheduleJob(jobId);
             return false;
         }
+    }
+
+    public boolean runMigration(JobId jobId, MigrationJobRunner runner) {
+        return runMigration(jobId, runner, Collections.emptyMap());
     }
 
     public boolean abortJobIfPresent(JobId jobId) {
