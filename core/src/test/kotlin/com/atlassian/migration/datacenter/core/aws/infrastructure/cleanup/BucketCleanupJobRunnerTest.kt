@@ -16,37 +16,29 @@
 
 package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
-import com.atlassian.migration.datacenter.core.util.MigrationRunner
-import com.atlassian.migration.datacenter.dto.MigrationContext
-import com.atlassian.migration.datacenter.spi.MigrationService
-import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
 import com.atlassian.scheduler.JobRunnerRequest
+import com.atlassian.scheduler.config.JobConfig
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.*
 import java.util.function.Consumer
 import java.util.function.Supplier
-import kotlin.concurrent.thread
 
 @ExtendWith(MockKExtension::class)
 internal class BucketCleanupJobRunnerTest {
 
     @MockK
-    lateinit var migrationService: MigrationService
-    @MockK
-    lateinit var context: MigrationContext
-    @MockK
     lateinit var s3Client: S3Client
     @MockK
     lateinit var jobRunnerRequest: JobRunnerRequest
+    @MockK
+    lateinit var jobConfig: JobConfig
 
     private var clientSupplier = Supplier { s3Client }
     private lateinit var sut: BucketCleanupJobRunner
@@ -55,12 +47,12 @@ internal class BucketCleanupJobRunnerTest {
 
     @BeforeEach
     internal fun setUp() {
-        sut = BucketCleanupJobRunner(migrationService, clientSupplier)
+        sut = BucketCleanupJobRunner(clientSupplier)
     }
 
     @Test
     fun shouldDeleteBucketIfItExists() {
-        givenBucketNameIsInMigrationContext()
+        givenBucketNameIsInJobConfigParameters()
         givenObjectsAreInBucket(0)
         andBucketWillBeDeleted()
 
@@ -75,7 +67,7 @@ internal class BucketCleanupJobRunnerTest {
     @Test
     fun shouldDeleteForEveryObjectInBucket() {
         val numObjects = 3
-        givenBucketNameIsInMigrationContext()
+        givenBucketNameIsInJobConfigParameters()
         givenObjectsAreInBucket(numObjects)
         andObjectsWillBeDeleted()
         andBucketWillBeDeleted()
@@ -115,9 +107,9 @@ internal class BucketCleanupJobRunnerTest {
         } returns DeleteBucketResponse.builder().build()
     }
 
-    private fun givenBucketNameIsInMigrationContext() {
-        every { migrationService.currentContext } returns context
-        every { context.migrationBucketName } returns bucketName
+    private fun givenBucketNameIsInJobConfigParameters() {
+        every { jobRunnerRequest.jobConfig } returns jobConfig
+        every { jobConfig.parameters } returns mapOf(MigrationBucketCleanupService.bucketNameParameterKey to bucketName)
     }
 
 

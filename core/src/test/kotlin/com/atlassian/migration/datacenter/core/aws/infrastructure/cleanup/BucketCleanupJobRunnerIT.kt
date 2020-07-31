@@ -19,10 +19,9 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 import cloud.localstack.TestUtils
 import cloud.localstack.docker.LocalstackDockerExtension
 import cloud.localstack.docker.annotation.LocalstackDockerProperties
-import com.atlassian.migration.datacenter.dto.MigrationContext
-import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.util.AwsCredentialsProviderShim
 import com.atlassian.scheduler.JobRunnerRequest
+import com.atlassian.scheduler.config.JobConfig
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -40,11 +39,9 @@ import java.util.function.Supplier
 internal class BucketCleanupJobRunnerIT {
 
     @MockK
-    lateinit var context: MigrationContext
-    @MockK
-    lateinit var migrationService: MigrationService
-    @MockK
     lateinit var jobRunnerRequest: JobRunnerRequest
+    @MockK
+    lateinit var jobConfig: JobConfig
 
     private lateinit var client: S3Client
     private lateinit var sut: BucketCleanupJobRunner
@@ -60,7 +57,7 @@ internal class BucketCleanupJobRunnerIT {
                 .region(Region.of(TestUtils.DEFAULT_REGION))
                 .credentialsProvider(AwsCredentialsProviderShim(TestUtils.getCredentialsProvider()))
                 .build()
-        sut = BucketCleanupJobRunner(migrationService, Supplier { client })
+        sut = BucketCleanupJobRunner(Supplier { client })
     }
 
     @Test
@@ -80,8 +77,8 @@ internal class BucketCleanupJobRunnerIT {
             kotlin.test.assertEquals("$keyPrefix$i", objects.contents()[i].key())
         }
 
-        every { migrationService.currentContext } returns context
-        every { context.migrationBucketName } returns bucket
+        every { jobRunnerRequest.jobConfig } returns jobConfig
+        every { jobConfig.parameters } returns mapOf(MigrationBucketCleanupService.bucketNameParameterKey to bucket)
 
         sut.runJob(jobRunnerRequest)
 
