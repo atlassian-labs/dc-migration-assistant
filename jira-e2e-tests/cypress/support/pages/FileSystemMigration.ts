@@ -20,18 +20,22 @@ export const monitorFileSystemMigration = (ctx: AppContext) => {
     cy.get('#dc-migration-assistant-root h1').contains(header);
     cy.get('button[data-testid=button-refresh]').should('be.visible');
 
-    cy.get('#dc-migration-assistant-root h4').contains('Counting and uploading your files to AWS');
-
     waitForStatus(
         ctx.context + '/rest/dc-migration/1.0/migration/fs/report',
         'DONE',
         EndpointType.FILESYSTEM_REPORT
     );
 
+    cy.log("let's wait for 20 seconds");
+    cy.wait(20000);
+
     cy.get('#dc-migration-assistant-root').then(($section) => {
+        cy.log($section.text());
         if ($section.text().includes('Ignore and continue')) {
+            cy.log('We had failing files, we will ignore and continue');
             cy.get('a', { timeout: 20000 }).contains('Ignore and continue').click();
         } else {
+            cy.log('All green, lets continue');
             cy.get('button[data-testid=button-next]', { timeout: 20000 }).contains('Next').click();
         }
     });
