@@ -1,5 +1,5 @@
 export const showsValidationPage = (): string => {
-    let serviceUrl
+    let serviceUrl;
 
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.contain('/plugins/servlet/dc-migration-assistant/validation');
@@ -10,8 +10,8 @@ export const showsValidationPage = (): string => {
         .then((href) => {
             const hval = href.attr('href');
             if (typeof hval === 'string') {
-                serviceUrl = hval
-                cy.log(serviceUrl)
+                serviceUrl = hval;
+                cy.log(serviceUrl);
             }
         });
 
@@ -30,11 +30,14 @@ export const showsValidationPage = (): string => {
         .click({ force: true })
         .should('be.checked');
 
-    cy.get('button').should('contain.text', 'Close the migration app').and('be.enabled').click();
+    cy.get('#dc-migration-assistant-root button')
+        .should('contain.text', 'Close the migration app')
+        .and('be.enabled')
+        .click();
 
     cy.location().should((loc: Location) => {
         expect(loc.pathname).to.contain('/home');
     });
 
-    return serviceUrl
+    return serviceUrl;
 };

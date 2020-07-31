@@ -35,7 +35,7 @@ import { showsBlockUserWarning, continueWithMigration } from '../support/pages/B
 import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
 import { showsValidationPage } from '../support/pages/ValidationPage';
 
-const shouldReset = true;
+const shouldReset = false;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -92,10 +92,10 @@ describe('Migration plugin', () => {
     });
 
     it('starts and monitor filesystem', () => {
+        cy.visit(ctx.pluginFullUrl + '/fs'); // TODO remove if possible
         cy.jira_login(ctx);
-        cy.wait(60000);
         cy.visit(ctx.pluginFullUrl + '/fs');
-        cy.wait(60000);
+
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
@@ -106,23 +106,16 @@ describe('Migration plugin', () => {
     });
 
     it('runs final database migration and final fs sync', () => {
-        cy.jira_login(ctx);
-        cy.wait(60000);
-        cy.visit(ctx.pluginFullUrl + '/final-s');
-        cy.wait(60000);
-
         runFinalSync();
         monitorFinalSync(ctx);
     });
 
     let serviceURL: string;
     it('shows validation page after migration finishes and close migration app', () => {
-        refreshLogin(); //we are usually logged out
-
         serviceURL = showsValidationPage();
     });
 
-    it('Validate issues with inline attachment', () => {
+    it.skip('Validate issues with inline attachment', () => {
         validate_issue(
             'TEST-17',
             ctx,
@@ -133,7 +126,7 @@ describe('Migration plugin', () => {
         );
     });
 
-    it('Validate issues with large attachment', () => {
+    it.skip('Validate issues with large attachment', () => {
         validate_issue(
             'TEST-18',
             ctx,
@@ -143,9 +136,4 @@ describe('Migration plugin', () => {
             null
         );
     });
-
-    const refreshLogin = () => {
-        cy.jira_login(ctx);
-        cy.visit(ctx.pluginHomePage);
-    };
 });

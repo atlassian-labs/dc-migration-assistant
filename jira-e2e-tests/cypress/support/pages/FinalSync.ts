@@ -17,11 +17,7 @@ export const monitorFinalSync = (ctx: AppContext) => {
     cy.get('button[data-testid=button-cancel').should('be.visible');
     cy.get('button[data-testid=button-refresh').should('be.visible');
 
-    waitForStatus(
-        `${ctx.context}/rest/dc-migration/1.0/migration`,
-        'validation',
-        EndpointType.STAGE
-    );
+    waitForStatus(`${ctx.context}/rest/dc-migration/1.0/migration`, 'validate', EndpointType.STAGE);
 
     cy.get('button[data-testid=button-next').should('be.visible').click();
 };
