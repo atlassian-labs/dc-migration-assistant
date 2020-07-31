@@ -16,7 +16,7 @@
 
 /// <reference types="Cypress" />
 
-import type { AWSCredentials } from '../support/common'
+import type { AWSCredentials } from '../support/common';
 
 import { waitForProvisioning } from '../support/pages/ProvisioningPage';
 import { getContext, validate_issue } from '../support/jira';
@@ -92,8 +92,10 @@ describe('Migration plugin', () => {
     });
 
     it('starts and monitor filesystem', () => {
-        refreshLogin(); //we are usually logged out
-
+        cy.jira_login(ctx);
+        cy.wait(60000);
+        cy.visit(ctx.pluginFullUrl + '/fs');
+        cy.wait(60000);
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
@@ -104,7 +106,10 @@ describe('Migration plugin', () => {
     });
 
     it('runs final database migration and final fs sync', () => {
-        refreshLogin(); //we are usually logged out
+        cy.jira_login(ctx);
+        cy.wait(60000);
+        cy.visit(ctx.pluginFullUrl + '/final-s');
+        cy.wait(60000);
 
         runFinalSync();
         monitorFinalSync(ctx);

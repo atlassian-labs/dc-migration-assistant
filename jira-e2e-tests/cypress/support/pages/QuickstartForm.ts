@@ -1,3 +1,5 @@
+import { AppContext, CloudFormationFormValues } from '../common';
+
 export const configureQuickStartFormWithoutVPC = (
     ctx: AppContext,
     values: CloudFormationFormValues
