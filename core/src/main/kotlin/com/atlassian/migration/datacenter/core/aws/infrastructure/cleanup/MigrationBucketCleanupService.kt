@@ -16,7 +16,6 @@
 
 package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
-import com.atlassian.migration.datacenter.core.db.DatabaseMigrationJobRunner
 import com.atlassian.migration.datacenter.core.util.MigrationRunner
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus
@@ -32,12 +31,20 @@ class MigrationBucketCleanupService(private val migrationService: MigrationServi
     : MigrationInfrastructureCleanupService
 {
 
-    private val runner = BucketCleanupJobRunner(migrationService, s3ClientSupplier)
+    companion object {
+        val bucketNameParameterKey = "migration.bucket"
+    }
+
+    private val runner = BucketCleanupJobRunner(s3ClientSupplier)
 
     override fun startMigrationInfrastructureCleanup(): Boolean {
+        val migrationBucketName = migrationService.currentContext.migrationBucketName
+        if (migrationBucketName.isNullOrEmpty()) {
+            return true
+        }
         val jobId = JobId.of(BucketCleanupJobRunner.KEY + migrationService.currentMigration.id)
 
-        val result: Boolean = migrationRunner.runMigration(jobId, runner)
+        val result: Boolean = migrationRunner.runMigration(jobId, runner, mapOf(bucketNameParameterKey to migrationBucketName))
 
         if (!result) {
             migrationService.error("Unable to start database migration job.")
