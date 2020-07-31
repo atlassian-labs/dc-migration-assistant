@@ -17,7 +17,8 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure;
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
-import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.dto.MigrationContext;
+import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +48,12 @@ class CloudformationDeploymentServiceTest {
     @Mock
     CfnApi mockCfnApi;
 
+    @Mock
+    MigrationService migrationService;
+
+    @Mock
+    MigrationContext context;
+
     CloudformationDeploymentService sut;
 
     boolean deploymentFailed = false;
@@ -52,7 +61,9 @@ class CloudformationDeploymentServiceTest {
 
     @BeforeEach
     void setup() {
-        sut = new CloudformationDeploymentService(mockCfnApi) {
+        lenient().doNothing().when(context).save();
+        lenient().when(migrationService.getCurrentContext()).thenReturn(context);
+        sut = new CloudformationDeploymentService(mockCfnApi, migrationService) {
             @Override
             protected void handleFailedDeployment(String message) {
                 deploymentFailed = true;
@@ -74,11 +85,10 @@ class CloudformationDeploymentServiceTest {
 
     @Test
     void shouldReturnInProgressWhileDeploying() throws InfrastructureDeploymentError {
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
-
+        givenDeploymentStateIs(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
         deploySimpleStack();
 
-        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
+        InfrastructureDeploymentState state = sut.getDeploymentStatus();
         assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, state);
     }
 
@@ -94,30 +104,19 @@ class CloudformationDeploymentServiceTest {
         assertTrue(deploymentFailed);
         assertFalse(deploymentSucceeded);
 
-
-        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
-        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, state);
+        verify(context).setDeploymentState(InfrastructureDeploymentState.CREATE_FAILED);
     }
 
     @Test
     void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException, InfrastructureDeploymentError {
-        final String badStatus = "it broke";
-        when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.DELETE_IN_PROGRESS);
+        givenDeploymentStateIs(InfrastructureDeploymentState.CREATE_FAILED);
 
-        deploySimpleStack();
-
-        Thread.sleep(100);
-
-        assertTrue(deploymentFailed);
-        assertFalse(deploymentSucceeded);
-
-
-        InfrastructureDeploymentState state = sut.getDeploymentStatus(STACK_NAME);
-        assertEquals(InfrastructureDeploymentState.DELETE_IN_PROGRESS, state);
+        InfrastructureDeploymentState state = sut.getDeploymentStatus();
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, state);
     }
 
     @Test
-    void shouldCallHandleSuccessfulDeploymentWhenDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
+    void shouldCallHandleSuccessfulDeploymentWhenDeploymentSucceeds() throws InterruptedException, InfrastructureDeploymentError {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         deploySimpleStack();
@@ -130,6 +129,11 @@ class CloudformationDeploymentServiceTest {
 
     private void deploySimpleStack() throws InfrastructureDeploymentError {
         sut.deployCloudformationStack(TEMPLATE_URL, STACK_NAME, STACK_PARAMS);
+    }
+
+    private void givenDeploymentStateIs(InfrastructureDeploymentState state) {
+        when(migrationService.getCurrentContext()).thenReturn(context);
+        when(context.getDeploymentState()).thenReturn(state);
     }
 
 }

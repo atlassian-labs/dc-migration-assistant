@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.aws.infrastructure;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
 import com.atlassian.migration.datacenter.dto.MigrationContext;
 import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
@@ -66,7 +67,6 @@ class AWSMigrationHelperDeploymentServiceTest {
     static final String MIGRATION_ASG = "migration-asg";
     static final String MIGRATION_BUCKET = "migration-bucket";
     static final String MIGRATION_HOST_INSTANCE_ID = "i-12345";
-    public static final String DEPLOYMENT_FAILURE_MESSAGE = "it broke";
     public static final String QUEUE_PHYSICAL_RESOURCE_ID = "https://sqs.someRegion.amazonaws.com/accountId/queue-name";
     public static final String DEAD_LETTER_QUEUE_PHYSICAL_RESOURCE_ID = "https://sqs.someRegion.amazonaws.com/accountId/dead-letter-queue-name";
 
@@ -88,14 +88,9 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
-        when(mockContext.getApplicationDeploymentId()).thenReturn(APPLICATION_DEPLOYMENT);
+        lenient().when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
 
         deploymentId = new AtomicReference<>();
-        doAnswer(invocation -> {
-            deploymentId.set(invocation.getArgument(0));
-            return null;
-        }).when(mockContext).setHelperStackDeploymentId(anyString());
 
         lenient().when(mockContext.getHelperStackDeploymentId()).thenReturn(deploymentId.get());
 
@@ -104,6 +99,11 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @Test
     void shouldNameMigrationStackAfterApplicationStackWithSuffixAndStoreInContext() throws InfrastructureDeploymentError {
+        when(mockContext.getApplicationDeploymentId()).thenReturn(APPLICATION_DEPLOYMENT);
+        doAnswer(invocation -> {
+            deploymentId.set(invocation.getArgument(0));
+            return null;
+        }).when(mockContext).setHelperStackDeploymentId(anyString());
         givenMigrationStackHasStartedDeploying();
 
         assertEquals(DEPLOYMENT_ID, deploymentId.get());
@@ -111,25 +111,24 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @Test
     void shouldProvisionCloudFormationStack() throws InfrastructureDeploymentError {
+        when(mockContext.getApplicationDeploymentId()).thenReturn(APPLICATION_DEPLOYMENT);
         givenMigrationStackHasStartedDeploying();
 
         verify(mockCfn).provisionStack("https://trebuchet-public-resources.s3.amazonaws.com/migration-helper.yml", DEPLOYMENT_ID, Collections.emptyMap());
     }
 
     @Test
-    void shouldReturnInProgressWhileCloudformationDeploymentIsOngoing() throws InfrastructureDeploymentError {
-        givenMigrationStackDeploymentWillBeInProgress();
-        givenMigrationStackHasStartedDeploying();
-        givenMigrationStackNameHasBeenStoredInContext();
+    void shouldReturnInProgressWhileCloudformationDeploymentIsOngoing() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_MIGRATION_STACK_WAIT);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
 
         assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, sut.getDeploymentStatus());
     }
 
     @Test
     void shouldReturnCompleteWhenCloudFormationDeploymentSucceeds() throws InterruptedException, InfrastructureDeploymentError {
-        givenMigrationStackDeploymentWillCompleteSuccessfully();
-        givenMigrationStackHasStartedDeploying();
-        givenMigrationStackNameHasBeenStoredInContext();
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_MIGRATION_STACK);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         Thread.sleep(100);
 
@@ -138,11 +137,8 @@ class AWSMigrationHelperDeploymentServiceTest {
 
     @Test
     void shouldReturnErrorWhenCloudFormationDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
-        givenMigrationStackDeploymentWillFail();
-        givenMigrationStackHasStartedDeploying();
-        givenMigrationStackNameHasBeenStoredInContext();
-
-        Thread.sleep(100);
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
 
         InfrastructureDeploymentState state = sut.getDeploymentStatus();
         assertEquals(InfrastructureDeploymentState.CREATE_FAILED, state);
@@ -166,6 +162,26 @@ class AWSMigrationHelperDeploymentServiceTest {
         Thread.sleep(100);
 
         assertGettingStackOutputsThrowsError();
+    }
+
+    @Test
+    void shouldReturnNotInProgressWhenNotInMigrationStackDeploymentPhase() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_APPLICATION_WAIT);
+
+        assertEquals(InfrastructureDeploymentState.NOT_DEPLOYING, sut.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentCompleteWhenAfterApplicationDeploymentAndNoError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, sut.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentFailedWhenProvisioningError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, sut.getDeploymentStatus());
     }
 
     private void assertGettingStackOutputsThrowsError() {
@@ -198,15 +214,6 @@ class AWSMigrationHelperDeploymentServiceTest {
         } catch (InvalidMigrationStageError invalidMigrationStageError) {
             fail("invalid migration stage error thrown while deploying migration helper", invalidMigrationStageError);
         }
-    }
-
-    private void givenMigrationStackNameHasBeenStoredInContext() {
-        when(mockContext.getHelperStackDeploymentId()).thenReturn(DEPLOYMENT_ID);
-    }
-
-    private void givenMigrationStackDeploymentWillBeInProgress() {
-        givenContextContainsMigrationHelperStackId();
-        when(mockCfn.getStatus(DEPLOYMENT_ID)).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
     }
 
     private void givenMigrationStackDeploymentWillCompleteSuccessfully() {

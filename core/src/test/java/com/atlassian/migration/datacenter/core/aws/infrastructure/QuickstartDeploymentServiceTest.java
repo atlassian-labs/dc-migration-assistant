@@ -48,6 +48,7 @@ import java.util.Properties;
 
 import static com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService.SERVICE_URL_STACK_OUTPUT_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
@@ -103,12 +104,12 @@ class QuickstartDeploymentServiceTest {
     void setUp() {
         Properties properties = new Properties();
         final String passwordPropertyKey = "password";
-        doAnswer(invocation -> {
+        lenient().doAnswer(invocation -> {
             properties.setProperty(passwordPropertyKey, invocation.getArgument(0));
             return null;
         }).when(dbCredentialsStorageService).storeCredentials(anyString());
-        when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
-        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_APPLICATION);
+        lenient().when(mockMigrationService.getCurrentContext()).thenReturn(mockContext);
+        lenient().when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISION_APPLICATION);
 
         lenient().when(mockCfnApi.getStack(STACK_NAME)).thenReturn(Optional.of(Stack.builder().stackName(STACK_NAME).outputs(MOCK_OUTPUTS).build()));
 
@@ -163,10 +164,7 @@ class QuickstartDeploymentServiceTest {
 
     @Test
     void shouldReturnInProgressWhileDeploying() throws InvalidMigrationStageError, InfrastructureDeploymentError {
-        when(mockContext.getApplicationDeploymentId()).thenReturn(STACK_NAME);
-        givenStackDeploymentWillBeInProgress();
-
-        deploySimpleStack();
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_IN_PROGRESS);
 
         InfrastructureDeploymentState state = deploymentService.getDeploymentStatus();
         assertEquals(InfrastructureDeploymentState.CREATE_IN_PROGRESS, state);
@@ -248,7 +246,7 @@ class QuickstartDeploymentServiceTest {
         verify(mockContext).setServiceUrl(testServiceUrl);
         //Caters to the last save call in deployApplication com/atlassian/migration/datacenter/core/aws/infrastructure/QuickstartDeploymentService.java:106.
         // That call must be removed and each setter should save automatically, or the entire block needs to be run in a transaction
-        verify(mockContext, times(3)).save();
+        verify(mockContext, times(4)).save();
     }
 
     @ParameterizedTest
@@ -261,6 +259,26 @@ class QuickstartDeploymentServiceTest {
         }
 
         verify(mockContext).setDeploymentMode(mode);
+    }
+
+    @Test
+    void shouldReturnNotDeployingWhenMigrationPhaseIsNotProvisioningStage() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.AUTHENTICATION);
+
+        assertEquals(InfrastructureDeploymentState.NOT_DEPLOYING, deploymentService.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentCompleteWhenAfterApplicationDeploymentAndNoError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.FS_MIGRATION_COPY);
+        assertEquals(InfrastructureDeploymentState.CREATE_COMPLETE, deploymentService.getDeploymentStatus());
+    }
+
+    @Test
+    void shouldReturnDeploymentFailedWhenProvisioningError() {
+        when(mockMigrationService.getCurrentStage()).thenReturn(MigrationStage.PROVISIONING_ERROR);
+        when(mockContext.getDeploymentState()).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
+        assertEquals(InfrastructureDeploymentState.CREATE_FAILED, deploymentService.getDeploymentStatus());
     }
 
     private void givenStackDeploymentWillBeInProgress() {
