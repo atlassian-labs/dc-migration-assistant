@@ -64,7 +64,7 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
     }
 
     AWSMigrationHelperDeploymentService(CfnApi cfnApi, Supplier<AutoScalingClient> autoScalingClientFactory, MigrationService migrationService, int pollIntervalSeconds) {
-        super(cfnApi, pollIntervalSeconds);
+        super(cfnApi, pollIntervalSeconds, migrationService);
         this.migrationService = migrationService;
         this.cfnApi = cfnApi;
         this.autoScalingClientFactory = autoScalingClientFactory;
@@ -208,7 +208,17 @@ public class AWSMigrationHelperDeploymentService extends CloudformationDeploymen
 
     @Override
     public InfrastructureDeploymentState getDeploymentStatus() {
-        return super.getDeploymentStatus(migrationService.getCurrentContext().getHelperStackDeploymentId());
+        if (isHelperStackDeploymentStage()) {
+            return super.getDeploymentStatus();
+        } else if (migrationService.getCurrentStage().isAfterWithoutRetries(MigrationStage.PROVISION_MIGRATION_STACK_WAIT)) {
+            return InfrastructureDeploymentState.CREATE_COMPLETE;
+        }
+        return InfrastructureDeploymentState.NOT_DEPLOYING;
+    }
+
+    private boolean isHelperStackDeploymentStage() {
+        MigrationStage stage = migrationService.getCurrentStage();
+        return stage == MigrationStage.PROVISION_MIGRATION_STACK || stage == MigrationStage.PROVISION_MIGRATION_STACK_WAIT || stage == MigrationStage.PROVISIONING_ERROR;
     }
 
     private String constructMigrationStackDeploymentIdentifier() {

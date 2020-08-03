@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.cleanup
 
 import com.atlassian.migration.datacenter.core.util.MigrationJobRunner
-import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.scheduler.JobRunnerRequest
 import com.atlassian.scheduler.JobRunnerResponse
 import org.slf4j.Logger
@@ -27,7 +26,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 
-class BucketCleanupJobRunner(private val migrationService: MigrationService, private val s3ClientSupplier: Supplier<S3Client>): MigrationJobRunner {
+class BucketCleanupJobRunner(private val s3ClientSupplier: Supplier<S3Client>): MigrationJobRunner {
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(MigrationBucketCleanupService::class.java)
@@ -39,14 +38,8 @@ class BucketCleanupJobRunner(private val migrationService: MigrationService, pri
     val failedToEmpty = AtomicBoolean(false)
 
 
-    private fun doCleanup(): Boolean {
-
-        val bucket = migrationService.currentContext.migrationBucketName
-
-        if (bucket.isNullOrEmpty()) {
-            logger.info("Bucket is not in context, no cleanup necessary")
-            return true
-        }
+    private fun doCleanup(bucket: String): Boolean {
+        logger.info("attempting to clean up bucket $bucket")
 
         val client = s3ClientSupplier.get()
 
@@ -101,7 +94,7 @@ class BucketCleanupJobRunner(private val migrationService: MigrationService, pri
         }
 
         isRunning.set(true)
-        val result = doCleanup()
+        val result = doCleanup(request.jobConfig.parameters[MigrationBucketCleanupService.bucketNameParameterKey].toString())
         isRunning.set(false)
 
         return if (result)

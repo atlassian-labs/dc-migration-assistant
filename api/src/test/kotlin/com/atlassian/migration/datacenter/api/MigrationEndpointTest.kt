@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
 import com.atlassian.plugins.rest.common.sal.websudo.WebSudoRequiredException
 import com.atlassian.plugins.rest.common.sal.websudo.WebSudoResourceContext
 import com.atlassian.plugins.rest.common.sal.websudo.WebSudoResourceFilterFactory
@@ -56,6 +57,9 @@ class MigrationEndpointTest {
     @MockK
     lateinit var migrationContext: MigrationContext
 
+    @MockK
+    lateinit var cleanupService: MigrationInfrastructureCleanupService
+
     @InjectMockKs
     lateinit var sut: MigrationEndpoint
 
@@ -69,15 +73,6 @@ class MigrationEndpointTest {
         val response = sut.getMigrationStatus()
 
         assertThat(response.entity.toString(), Matchers.containsString(MigrationStage.AUTHENTICATION.toString()))
-    }
-
-    @Test
-    fun shouldBeErrorWhenStageIsASpecificErrorStage() {
-        every { migrationService.currentStage } returns MigrationStage.FINAL_SYNC_ERROR
-
-        val response = sut.getMigrationStatus()
-
-        assertThat(response.entity.toString(), Matchers.containsString(MigrationStage.ERROR.toString()))
     }
 
     @Test
@@ -152,13 +147,15 @@ class MigrationEndpointTest {
     }
 
     @Test
-    fun shouldResetMigration() {
+    fun shouldCleanUpInfrastructureAndResetMigration() {
         every { migrationService.deleteMigrations() } just Runs
+        every { cleanupService.startMigrationInfrastructureCleanup() } returns true
 
         val response = sut.resetMigration()
 
         assertThat(response.status, equalTo(Response.Status.OK.statusCode))
         verify { migrationService.deleteMigrations() }
+        verify { cleanupService.startMigrationInfrastructureCleanup() }
     }
 
     @Test

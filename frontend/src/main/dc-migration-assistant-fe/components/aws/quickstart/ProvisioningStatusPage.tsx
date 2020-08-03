@@ -110,7 +110,7 @@ const inProgressStages = [
     MigrationStage.PROVISION_APPLICATION_WAIT,
     MigrationStage.PROVISION_MIGRATION_STACK,
     MigrationStage.PROVISION_MIGRATION_STACK_WAIT,
-    MigrationStage.ERROR,
+    MigrationStage.PROVISIONING_ERROR,
 ];
 
 type DeploymentMode = {

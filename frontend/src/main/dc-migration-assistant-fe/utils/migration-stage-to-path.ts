@@ -31,9 +31,13 @@ export const getPathForStage = (stage: MigrationStage): string => {
             return paths.quickstartStatusPath;
         case 'provision_migration_stack_wait':
             return paths.quickstartStatusPath;
+        case 'provisioning_error':
+            return paths.quickstartStatusPath;
         case 'fs_migration_copy':
             return paths.fsPath;
         case 'fs_migration_copy_wait':
+            return paths.fsPath;
+        case 'fs_migration_error':
             return paths.fsPath;
         case 'offline_warning':
             return paths.warningPath;
@@ -48,6 +52,10 @@ export const getPathForStage = (stage: MigrationStage): string => {
         case 'data_migration_import':
             return paths.finalSyncPath;
         case 'data_migration_import_wait':
+            return paths.finalSyncPath;
+        case 'final_sync_wait':
+            return paths.finalSyncPath;
+        case 'final_sync_error':
             return paths.finalSyncPath;
         case 'validate':
             return paths.validationPath;

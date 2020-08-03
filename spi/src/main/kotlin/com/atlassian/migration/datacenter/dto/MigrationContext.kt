@@ -15,6 +15,7 @@
  */
 package com.atlassian.migration.datacenter.dto
 
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState
 import com.atlassian.migration.datacenter.spi.infrastructure.ProvisioningConfig
 import net.java.ao.Entity
 import net.java.ao.schema.StringLength
@@ -31,6 +32,7 @@ interface MigrationContext : Entity {
     fun getErrorMessage(): String
 
     var deploymentMode: ProvisioningConfig.DeploymentMode
+    var deploymentState: InfrastructureDeploymentState
 
     var startEpoch: Long
     var endEpoch: Long
