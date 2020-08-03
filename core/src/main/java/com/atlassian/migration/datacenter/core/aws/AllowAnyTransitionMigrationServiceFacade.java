@@ -24,14 +24,16 @@ import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 
 import java.nio.file.Path;
 
 public class AllowAnyTransitionMigrationServiceFacade extends AwsMigrationServiceWrapper implements MigrationService {
     public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects,
                                                     ApplicationConfiguration applicationConfiguration,
-                                                    EventPublisher eventPublisher) {
-        super(activeObjects, applicationConfiguration, eventPublisher);
+                                                    EventPublisher eventPublisher,
+                                                    MigrationInfrastructureCleanupService cleanupService) {
+        super(activeObjects, applicationConfiguration, eventPublisher, cleanupService);
     }
 
     @Override

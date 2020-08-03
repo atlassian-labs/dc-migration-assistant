@@ -33,8 +33,8 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Bean
     @Profile("allowAnyTransition")
     @Primary
-    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, eventPublisher);
+    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher, MigrationInfrastructureCleanupService cleanupService) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, eventPublisher, cleanupService);
     }
 
     @Bean

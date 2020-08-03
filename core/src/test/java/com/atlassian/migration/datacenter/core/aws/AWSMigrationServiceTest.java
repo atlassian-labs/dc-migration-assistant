@@ -33,6 +33,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 import com.atlassian.scheduler.SchedulerService;
 import net.java.ao.EntityManager;
 import net.java.ao.Query;
@@ -95,12 +96,14 @@ public class AWSMigrationServiceTest {
     private DatabaseExtractor databaseExtractor;
     @Mock
     private EventPublisher eventPublisher;
+    @Mock
+    private MigrationInfrastructureCleanupService cleanupService;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AwsMigrationServiceWrapper(ao, applicationConfiguration, eventPublisher);
+        sut = new AwsMigrationServiceWrapper(ao, applicationConfiguration, eventPublisher, cleanupService);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
         when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
@@ -285,6 +288,14 @@ public class AWSMigrationServiceTest {
         assertNumberOfMigrations(0);
         assertNumberOfMigrationContexts(0);
         assertNumberOfFileSyncRecords(0);
+    }
+
+    @Test
+    public void shouldCleanInfraWhenResettingMigration() {
+        initializeAndCreateSingleMigrationWithStage(FS_MIGRATION_COPY);
+        sut.resetMigration();
+
+        verify(cleanupService).startMigrationInfrastructureCleanup();
     }
 
     @Test
