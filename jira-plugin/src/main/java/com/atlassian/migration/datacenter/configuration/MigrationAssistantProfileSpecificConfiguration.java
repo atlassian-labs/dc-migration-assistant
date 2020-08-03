@@ -22,7 +22,9 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
 import com.atlassian.migration.datacenter.core.aws.ReuseInfrastructureAWSMigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureCleanupStatus;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -33,14 +35,32 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Bean
     @Profile("allowAnyTransition")
     @Primary
-    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher, MigrationInfrastructureCleanupService cleanupService) {
-        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, eventPublisher, cleanupService);
+    public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher) {
+        return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, eventPublisher);
     }
 
     @Bean
     @Profile("retainInfra")
     @Primary
-    public MigrationService reuseInfrastructureAWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher, MigrationInfrastructureCleanupService cleanupService) {
-        return new ReuseInfrastructureAWSMigrationService(ao, applicationConfiguration, eventPublisher, cleanupService);
+    public MigrationService reuseInfrastructureAWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher) {
+        return new ReuseInfrastructureAWSMigrationService(ao, applicationConfiguration, eventPublisher);
+    }
+
+    @Bean
+    @Profile("retainInfra")
+    @Primary
+    public MigrationInfrastructureCleanupService noCleanupService() {
+        return new MigrationInfrastructureCleanupService() {
+            @Override
+            public boolean startMigrationInfrastructureCleanup() {
+                return true;
+            }
+
+            @NotNull
+            @Override
+            public InfrastructureCleanupStatus getMigrationInfrastructureCleanupStatus() {
+                return InfrastructureCleanupStatus.CLEANUP_COMPLETE;
+            }
+        };
     }
 }

@@ -31,9 +31,8 @@ import java.nio.file.Path;
 public class AllowAnyTransitionMigrationServiceFacade extends AwsMigrationServiceWrapper implements MigrationService {
     public AllowAnyTransitionMigrationServiceFacade(ActiveObjects activeObjects,
                                                     ApplicationConfiguration applicationConfiguration,
-                                                    EventPublisher eventPublisher,
-                                                    MigrationInfrastructureCleanupService cleanupService) {
-        super(activeObjects, applicationConfiguration, eventPublisher, cleanupService);
+                                                    EventPublisher eventPublisher) {
+        super(activeObjects, applicationConfiguration, eventPublisher);
     }
 
     @Override

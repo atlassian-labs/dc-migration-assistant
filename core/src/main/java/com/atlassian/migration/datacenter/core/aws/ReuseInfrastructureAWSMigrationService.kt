@@ -32,14 +32,12 @@ class ReuseInfrastructureAWSMigrationService
 (
         private val ao: ActiveObjects,
         applicationConfiguration: ApplicationConfiguration,
-        eventPublisher: EventPublisher,
-        cleanupService: MigrationInfrastructureCleanupService
+        eventPublisher: EventPublisher
 ) : AwsMigrationServiceWrapper
 (
         ao,
         applicationConfiguration,
-        eventPublisher,
-        cleanupService)
+        eventPublisher)
 {
 
     companion object {

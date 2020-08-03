@@ -96,14 +96,12 @@ public class AWSMigrationServiceTest {
     private DatabaseExtractor databaseExtractor;
     @Mock
     private EventPublisher eventPublisher;
-    @Mock
-    private MigrationInfrastructureCleanupService cleanupService;
 
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new AwsMigrationServiceWrapper(ao, applicationConfiguration, eventPublisher, cleanupService);
+        sut = new AwsMigrationServiceWrapper(ao, applicationConfiguration, eventPublisher);
         setupEntities();
         when(applicationConfiguration.getPluginVersion()).thenReturn("DUMMY");
         when(databaseExtractorFactory.getExtractor()).thenReturn(databaseExtractor);
@@ -288,14 +286,6 @@ public class AWSMigrationServiceTest {
         assertNumberOfMigrations(0);
         assertNumberOfMigrationContexts(0);
         assertNumberOfFileSyncRecords(0);
-    }
-
-    @Test
-    public void shouldCleanInfraWhenResettingMigration() {
-        initializeAndCreateSingleMigrationWithStage(FS_MIGRATION_COPY);
-        sut.resetMigration();
-
-        verify(cleanupService).startMigrationInfrastructureCleanup();
     }
 
     @Test

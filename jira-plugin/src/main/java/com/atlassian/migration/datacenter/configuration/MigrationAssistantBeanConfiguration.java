@@ -425,7 +425,6 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    @Primary
     public MigrationInfrastructureCleanupService awsMigrationInfrastructureCleanupService(AWSCleanupTaskFactory cleanupTaskFactory) {
         return new AWSMigrationInfrastructureCleanupService(cleanupTaskFactory);
     }
