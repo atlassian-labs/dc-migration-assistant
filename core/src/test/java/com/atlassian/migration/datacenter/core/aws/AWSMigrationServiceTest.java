@@ -260,7 +260,7 @@ public class AWSMigrationServiceTest {
 
         assertNumberOfMigrations(2);
 
-        sut.deleteMigrations();
+        sut.resetMigration();
 
         assertNumberOfMigrations(0);
 
@@ -280,7 +280,7 @@ public class AWSMigrationServiceTest {
         assertNumberOfMigrationContexts(1);
         assertNumberOfFileSyncRecords(3);
 
-        sut.deleteMigrations();
+        sut.resetMigration();
 
         assertNumberOfMigrations(0);
         assertNumberOfMigrationContexts(0);
