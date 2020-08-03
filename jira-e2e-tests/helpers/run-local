@@ -11,16 +11,25 @@ if [[ $jsrc -nt $jtarget ]]; then
     cp $jsrc $jtarget
 fi
 
+SPRING_PROFILES=""
+
 
 source .env
 for arg do
   shift
   if [[ "$arg" == "--allowAnyTransition" ]]; then
-      JVM_SUPPORT_RECOMMENDED_ARGS="-Dspring.profiles.active=allowAnyTransition ${JVM_SUPPORT_RECOMMENDED_ARGS}"
+      SPRING_PROFILES="allowAnyTransition"
+      continue
+  fi
+  if [[ "$arg" == "--retainInfra" ]]; then
+      SPRING_PROFILES="retainInfra"
       continue
   fi
   set -- "$@" "$arg"
 done
+
+JVM_SUPPORT_RECOMMENDED_ARGS="-Dspring.profiles.active=${SPRING_PROFILES}"
+
 export JVM_SUPPORT_RECOMMENDED_ARGS
 
 cd jira-e2e-tests/
