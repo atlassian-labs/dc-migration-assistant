@@ -4,7 +4,7 @@ import { AppContext } from '../common';
 const header = 'Step 4 of 7: Copy Content';
 
 export const startFileSystemInitialMigration = (ctx: AppContext) => {
-    cy.location().should((loc: Location) => {
+    cy.location({timeout: 20000}).should((loc: Location) => {
         expect(loc.pathname).to.eq(ctx.pluginPath + '/fs');
     });
     cy.get('#dc-migration-assistant-root h1').contains(header);

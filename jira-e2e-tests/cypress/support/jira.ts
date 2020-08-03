@@ -77,6 +77,7 @@ export const getContext = () => {
         case 'local': {
             return dockerLocalContext;
         }
+        case 'compose':
         default:
             return dockerComposeContext;
     }
