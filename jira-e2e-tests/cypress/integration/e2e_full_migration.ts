@@ -35,7 +35,7 @@ import { showsBlockUserWarning, continueWithMigration } from '../support/pages/B
 import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
 import { showsValidationPage } from '../support/pages/ValidationPage';
 
-const shouldReset = false;
+const shouldReset = true;
 
 const getAwsTokens = (): AWSCredentials => {
     return {
@@ -92,7 +92,6 @@ describe('Migration plugin', () => {
     });
 
     it('starts and monitor filesystem', () => {
-        cy.visit(ctx.pluginFullUrl + '/fs'); // TODO remove if possible
         cy.jira_login(ctx);
         cy.visit(ctx.pluginFullUrl + '/fs');
 

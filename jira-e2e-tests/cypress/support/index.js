@@ -27,7 +27,7 @@ Cypress.Commands.add('jira_login', (ctx) => {
 
     // Ensure we have full admin access before doing anything
     cy.visit(ctx.sudoURL);
-    cy.get('#login-form-authenticatePassword').type(ctx.password);
+    cy.get('#login-form-authenticatePassword').type(ctx.password, { log: false });
     cy.get('#login-form-submit').click();
 });
 
