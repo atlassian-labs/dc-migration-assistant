@@ -23,6 +23,7 @@ import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.jira.util.BuildUtilsInfo;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
+import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
 import com.atlassian.migration.datacenter.core.aws.AwsMigrationServiceWrapper;
 import com.atlassian.migration.datacenter.core.aws.CancellableMigrationServiceHandler;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
@@ -264,8 +265,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher, MigrationInfrastructureCleanupService cleanupService) {
-        return new AwsMigrationServiceWrapper(activeObjects, applicationConfiguration, eventPublisher, cleanupService);
+    public MigrationService migrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher) {
+        return new AwsMigrationServiceWrapper(activeObjects, applicationConfiguration, eventPublisher);
     }
 
     @Bean

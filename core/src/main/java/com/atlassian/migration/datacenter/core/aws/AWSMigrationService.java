@@ -39,7 +39,6 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
-import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 import net.java.ao.Query;
 import net.swiftzer.semver.SemVer;
 import org.apache.commons.lang3.SystemUtils;
@@ -64,19 +63,16 @@ public abstract class AWSMigrationService implements MigrationService {
 
     protected ApplicationConfiguration applicationConfiguration;
     protected EventPublisher eventPublisher;
-    private final MigrationInfrastructureCleanupService cleanupService;
 
     /**
      * Creates a new, unstarted AWS Migration
      */
     public AWSMigrationService(ActiveObjects ao,
                                ApplicationConfiguration applicationConfiguration,
-                               EventPublisher eventPublisher,
-                               MigrationInfrastructureCleanupService cleanupService) {
+                               EventPublisher eventPublisher) {
         this.ao = requireNonNull(ao);
         this.applicationConfiguration = applicationConfiguration;
         this.eventPublisher = eventPublisher;
-        this.cleanupService = cleanupService;
     }
 
     @Override
@@ -119,7 +115,6 @@ public abstract class AWSMigrationService implements MigrationService {
     // When we add support for multiple migrations, we need to revisit this and ensure that, on migration cancel, we should remove the active migration, not all migrations.
     @Override
     public void resetMigration() {
-        cleanupService.startMigrationInfrastructureCleanup();
         log.info("Deleting all migrations");
         for (Migration migration : findAllMigrations()) {
             int migrationId = migration.getID();
