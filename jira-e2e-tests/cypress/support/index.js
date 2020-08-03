@@ -23,12 +23,13 @@ Cypress.Commands.add('jira_login', (ctx) => {
     cy.get('#login-form-password').type(ctx.password, { log: false });
     cy.get('#login-form-submit').click();
     // Force wait for dashboard to avoid flakiness.
-    //cy.get('[class=g-intro]').should('exist');
+    cy.wait(20000)
 
     // Ensure we have full admin access before doing anything
     cy.visit(ctx.sudoURL);
     cy.get('#login-form-authenticatePassword').type(ctx.password, { log: false });
     cy.get('#login-form-submit').click();
+    cy.wait(20000)
 });
 
 Cypress.Commands.add('jira_setup', () => {

@@ -87,10 +87,13 @@ describe('Migration plugin', () => {
         submitQuickstartForm();
     });
 
-   
+    it('waits for provisioning', () => {
+        waitForProvisioning(ctx);
+    });
 
     it('starts and monitor filesystem', () => {
-        waitForProvisioning(ctx);
+        cy.jira_login(ctx);
+        cy.visit(ctx.pluginFullUrl + '/fs');
 
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
