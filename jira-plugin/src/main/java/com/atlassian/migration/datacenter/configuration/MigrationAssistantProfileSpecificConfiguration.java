@@ -20,7 +20,9 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AllowAnyTransitionMigrationServiceFacade;
+import com.atlassian.migration.datacenter.core.aws.ReuseInfrastructureAWSMigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationService;
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -33,5 +35,12 @@ public class MigrationAssistantProfileSpecificConfiguration {
     @Primary
     public MigrationService allowAnyTransitionMigrationService(ActiveObjects activeObjects, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher) {
         return new AllowAnyTransitionMigrationServiceFacade(activeObjects, applicationConfiguration, eventPublisher);
+    }
+
+    @Bean
+    @Profile("retainInfra")
+    @Primary
+    public MigrationService reuseInfrastructureAWSMigrationService(ActiveObjects ao, ApplicationConfiguration applicationConfiguration, EventPublisher eventPublisher, MigrationInfrastructureCleanupService cleanupService) {
+        return new ReuseInfrastructureAWSMigrationService(ao, applicationConfiguration, eventPublisher, cleanupService);
     }
 }
