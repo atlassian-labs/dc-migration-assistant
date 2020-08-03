@@ -20,7 +20,6 @@ import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException
-import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
 import com.atlassian.sal.api.websudo.WebSudoRequired
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import javax.ws.rs.Consumes
@@ -38,7 +37,7 @@ import javax.ws.rs.core.Response
  */
 @Path("/migration")
 @WebSudoRequired
-class MigrationEndpoint(private val migrationService: MigrationService, private val cleanupService: MigrationInfrastructureCleanupService) {
+class MigrationEndpoint(private val migrationService: MigrationService) {
     /**
      * @return A response with the status of the current migration
      */
@@ -112,7 +111,6 @@ class MigrationEndpoint(private val migrationService: MigrationService, private 
     @Path("/reset")
     @Produces(MediaType.APPLICATION_JSON)
     fun resetMigration(): Response {
-        cleanupService.startMigrationInfrastructureCleanup()
         migrationService.resetMigration()
         return Response.ok().build()
     }

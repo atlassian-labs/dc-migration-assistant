@@ -7,12 +7,13 @@ import com.atlassian.migration.datacenter.core.application.ApplicationConfigurat
 import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage.*
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.math.min
 
 
-open class AwsMigrationServiceWrapper(ao: ActiveObjects?, applicationConfiguration: ApplicationConfiguration?, eventPublisher: EventPublisher?) : AWSMigrationService(ao, applicationConfiguration, eventPublisher), MigrationService {
+open class AwsMigrationServiceWrapper(ao: ActiveObjects?, applicationConfiguration: ApplicationConfiguration?, eventPublisher: EventPublisher?, cleanupService: MigrationInfrastructureCleanupService) : AWSMigrationService(ao, applicationConfiguration, eventPublisher, cleanupService), MigrationService {
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(AwsMigrationServiceWrapper::class.java)
