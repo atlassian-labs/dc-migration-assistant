@@ -21,6 +21,7 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService
 import com.atlassian.migration.datacenter.core.fs.captor.FinalFileSyncStatus
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService
+import com.atlassian.migration.datacenter.dto.MigrationContext
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.fasterxml.jackson.core.JsonParser
@@ -41,7 +42,7 @@ import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Duration
-import java.util.Optional
+import java.util.*
 import javax.ws.rs.core.Response
 import kotlin.test.assertEquals
 
@@ -63,6 +64,8 @@ internal class FinalSyncEndpointTest {
     lateinit var ssmPsqlDatabaseRestoreService: SsmPsqlDatabaseRestoreService
     @MockK
     lateinit var s3FinalSyncService: S3FinalSyncService
+    @MockK
+    lateinit var migrationContext: MigrationContext
     @InjectMockKs
     lateinit var sut: FinalSyncEndpoint
 
@@ -79,6 +82,8 @@ internal class FinalSyncEndpointTest {
     fun shouldReportDbSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
+        every { migrationService.currentContext } returns migrationContext
+        every { migrationContext.getErrorMessage() } returns ""
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
 
         val resp = sut.getMigrationStatus()
@@ -94,6 +99,8 @@ internal class FinalSyncEndpointTest {
     fun shouldReportFsSyncStatus() {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(0))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
+        every { migrationService.currentContext } returns migrationContext
+        every { migrationContext.getErrorMessage() } returns ""
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
 
         val resp = sut.getMigrationStatus()
