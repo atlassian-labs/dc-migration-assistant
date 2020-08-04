@@ -102,22 +102,22 @@ describe('Migration plugin', () => {
     });
 
     it('shows warning to block user access', () => {
-        cy.visit(ctx.pluginFullUrl + '/warning');
+        cy.visit(`${ctx.pluginFullUrl}/warning`);
 
         showsBlockUserWarning();
-        // continueWithMigration();
+        continueWithMigration();
     });
 
     it('runs final database migration and final fs sync', () => {
-        cy.visit(ctx.pluginFullUrl + '/final-sync');
-
         runFinalSync();
         monitorFinalSync(ctx);
     });
 
     let serviceURL: string;
     it('shows validation page after migration finishes and close migration app', () => {
+        cy.visit(`${ctx.pluginFullUrl}/validation`)
         serviceURL = showsValidationPage();
+        cy.log(serviceURL);
     });
 
     it.skip('Validate issues with inline attachment', () => {
