@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 
 class ReuseInfrastructureAWSMigrationService
 (
-        private val ao: ActiveObjects,
+        ao: ActiveObjects,
         applicationConfiguration: ApplicationConfiguration,
         eventPublisher: EventPublisher
 ) : AwsMigrationServiceWrapper
@@ -52,13 +52,14 @@ class ReuseInfrastructureAWSMigrationService
 
         val context = currentContext
 
-        val migration = ao.create(Migration::class.java)
+        super.resetMigration()
+
+        val migration = super.createMigration()
+
         migration.stage = MigrationStage.FS_MIGRATION_COPY
         migration.save()
 
-        val newContext = ao.create(MigrationContext::class.java)
-        context.migration = migration
-        context.startEpoch = System.currentTimeMillis() / 1000L
+        val newContext = migration.context
 
         newContext.applicationDeploymentId = context.applicationDeploymentId
         newContext.helperStackDeploymentId = context.helperStackDeploymentId
@@ -75,7 +76,7 @@ class ReuseInfrastructureAWSMigrationService
         newContext.fsRestoreStatusSsmDocument = context.fsRestoreStatusSsmDocument
         newContext.rdsRestoreSsmDocument = context.rdsRestoreSsmDocument
 
-        context.save()
+        newContext.save()
 
         eventPublisher.publish(MigrationCreatedEvent(applicationConfiguration.pluginVersion))
     }
