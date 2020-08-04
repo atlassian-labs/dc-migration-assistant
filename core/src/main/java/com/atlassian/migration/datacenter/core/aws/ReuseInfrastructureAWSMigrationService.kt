@@ -81,4 +81,8 @@ class ReuseInfrastructureAWSMigrationService
         eventPublisher.publish(MigrationCreatedEvent(applicationConfiguration.pluginVersion))
     }
 
+    override fun finishCurrentMigration() {
+        resetMigration()
+    }
+
 }
