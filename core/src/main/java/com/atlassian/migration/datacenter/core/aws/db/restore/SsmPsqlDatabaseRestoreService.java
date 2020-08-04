@@ -98,21 +98,20 @@ public class SsmPsqlDatabaseRestoreService {
                 migrationInstanceId);
         
         migrationStageCallback.transitionToServiceWaitStage();
-
+        
         try {
             consumer.handleCommandOutput();
+            checkForCriticalError(migrationInstanceId);
             migrationStageCallback.transitionToServiceNextStage();
-            
-            /*
-             * On successful DB restore start Jira
-             */
-            remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.START);
         } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException
                 | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
             final String errorMessage = "Error restoring database. Either download of database dump from S3 failed or pg_restore failed";
-            migrationStageCallback
-                    .transitionToServiceErrorStage(String.format("%s. %s", errorMessage, e.getMessage()));
             throw new DatabaseMigrationFailure(errorMessage, e);
+        } finally {
+            /*
+             * Start Jira
+             */
+            remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.START);
         }
     }
 
@@ -176,6 +175,13 @@ public class SsmPsqlDatabaseRestoreService {
 
         public SsmCommandNotInitialisedException(String message, Throwable cause) {
             super(message, cause);
+        }
+    }
+
+    public void checkForCriticalError(String migrationInstanceId) throws DatabaseMigrationFailure {
+        String errorContent = ssm.getSSMCommand(getCommandId(), migrationInstanceId).standardErrorContent();
+        if(isCriticalError(errorContent)) {
+            throw new DatabaseMigrationFailure(errorContent);
         }
     }
 

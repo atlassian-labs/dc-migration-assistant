@@ -22,11 +22,12 @@ import { MigrationTransferActions, MigrationStepState } from './MigrationTransfe
 import { Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
-import { CommandDetails as CommandResult } from '../../api/final-sync';
+import {CommandDetails, CommandDetails as CommandResult, dbLogsEndpoint} from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 import { ErrorFlag } from './ErrorFlag';
 import { MigrationProcess, RetryProperties } from './MigrationProcess';
 import { RetryMenu } from './RetryMigrationProcessMenu';
+import { callAppRest } from '../../utils/api';
 
 const POLL_INTERVAL_MILLIS = 8000;
 
@@ -269,24 +270,23 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                                 />
                                             )}
                                         </ProgressContainer>
+                                        {progress.errorMessage && (
+                                            <RetryMenuContainer>
+                                                <RetryMenu
+                                                    {...retryProps}
+                                                    onRetry={(): Promise<void> => {
+                                                        setProgressLoading(true);
+                                                        return retryProps
+                                                            .onRetry()
+                                                            .then(() => updateProgress())
+                                                            .finally(() =>
+                                                                setProgressLoading(false)
+                                                            );
+                                                    }}
+                                                />
+                                            </RetryMenuContainer>
+                                        )}
                                         {index !== processInfo.length - 1 && <Divider />}
-                                        {progress.errorMessage ||
-                                            (commandResult?.criticalError && (
-                                                <RetryMenuContainer>
-                                                    <RetryMenu
-                                                        {...retryProps}
-                                                        onRetry={(): Promise<void> => {
-                                                            setProgressLoading(true);
-                                                            return retryProps
-                                                                .onRetry()
-                                                                .then(() => updateProgress())
-                                                                .finally(() =>
-                                                                    setProgressLoading(false)
-                                                                );
-                                                        }}
-                                                    />
-                                                </RetryMenuContainer>
-                                            ))}
                                     </>
                                 );
                             })}

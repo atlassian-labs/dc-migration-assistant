@@ -34,10 +34,7 @@ import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -70,16 +67,58 @@ class SsmPsqlDatabaseRestoreServiceTest {
 
     @Test
     void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
-        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS);
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, null);
 
         sut.restoreDatabase();
     }
 
     @Test
     void shouldThrowWhenCommandStatusIsFailed() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
-        givenCommandCompletesWithStatus(CommandInvocationStatus.FAILED);
+        givenCommandCompletesWithStatus(CommandInvocationStatus.FAILED, null);
 
         assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_001() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "could not connect to server");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_002() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "could not translate host name");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_003() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "Connection timed out");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_004() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "No route to host");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_005() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "Name or service not known");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldNotThrowDatabaseMigrationFailure() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "non-critical-error");
+
+        assertDoesNotThrow(() -> sut.restoreDatabase());
     }
 
     @Test
@@ -188,7 +227,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
         );
     }
 
-    private void givenCommandCompletesWithStatus(CommandInvocationStatus status) throws InfrastructureDeploymentError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
+    private void givenCommandCompletesWithStatus(CommandInvocationStatus status, String errorContent) throws InfrastructureDeploymentError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         final String mocument = "ssm-document";
         final String outputUrl = "output-url";
         final String errorUrl = "error-url";
@@ -203,6 +242,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
                         .status(status)
                         .standardOutputUrl(outputUrl)
                         .standardErrorUrl(errorUrl)
+                        .standardErrorContent(errorContent)
                         .sdkHttpResponse(SdkHttpResponse.builder().statusText("it failed").build())
                         .build()
         );

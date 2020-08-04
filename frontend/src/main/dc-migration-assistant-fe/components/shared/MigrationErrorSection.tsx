@@ -42,9 +42,7 @@ export const MigrationErrorSection: FunctionComponent<CommandResultProps> = ({
                         : I18n.getText('atlassian.migration.datacenter.db.warning.title')
                 }
             >
-                <p>HI DYLAN HERE</p>
                 <p>{commandResult.errorMessage}</p>
-
                 <p>
                     {commandResult?.criticalError === true
                         ? I18n.getText('atlassian.migration.datacenter.db.retry.error')

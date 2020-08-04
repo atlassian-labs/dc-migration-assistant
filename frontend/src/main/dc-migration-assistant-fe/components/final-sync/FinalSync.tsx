@@ -46,15 +46,25 @@ const finalSyncInProgressStages = [
     MigrationStage.VALIDATE, // Because of the auto-transition from FINAL_SYNC_WAIT to VALIDATE, we need to add/hack this in here :(
 ];
 
-const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => {
+const dbStatusToProgress = (status: FinalSyncStatus): Progress => {
+    const { db, errorMessage } = status;
     const builder = new ProgressBuilder();
 
-    builder.setPhase(statusToI18nString(status.status));
-    builder.setElapsedSeconds(status.elapsedTime.seconds);
-    if (status.status === DBMigrationStatus.FAILED) {
-        builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
+    builder.setPhase(statusToI18nString(db.status));
+    builder.setElapsedSeconds(db.elapsedTime.seconds);
+    if (db.status === DBMigrationStatus.FAILED) {
+        builder.setError(
+            <p>
+                {I18n.getText('atlassian.migration.datacenter.db.retry.error')}
+                <br />
+                <p />
+                <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
+                <br />
+                {errorMessage}
+            </p>
+        );
     }
-    switch (status.status) {
+    switch (db.status) {
         case 'DONE':
             builder.setCompleteness(1);
             break;
@@ -79,7 +89,7 @@ const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => 
 };
 
 const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
-    const { fs, db } = status;
+    const { fs, db, errorMessage } = status;
     const { downloaded, uploaded, failed, hasProgressedToNextStage } = fs;
     const builder = new ProgressBuilder();
     builder.setPhase(I18n.getText('atlassian.migration.datacenter.sync.fs.phase'));
@@ -108,6 +118,11 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
                 <a href="https://status.aws.amazon.com/" target="_blank" rel="noreferrer noopener">
                     {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
                 </a>
+                <br />
+                <p />
+                <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
+                <br />
+                {errorMessage}
             </p>
         );
     }
@@ -125,7 +140,7 @@ const startFinalSync = async (): Promise<void> => {
 
 const getProgressFromStatus = async (): Promise<Array<Progress>> => {
     return fetchFinalSyncStatus().then(result => {
-        return [dbStatusToProgress(result.db), fsSyncStatusToProgress(result)];
+        return [dbStatusToProgress(result), fsSyncStatusToProgress(result)];
     });
 };
 

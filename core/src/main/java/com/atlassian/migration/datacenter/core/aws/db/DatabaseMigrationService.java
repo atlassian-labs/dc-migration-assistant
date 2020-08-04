@@ -110,7 +110,7 @@ public class DatabaseMigrationService implements CancellableMigrationService, Di
 
         return report;
     }
-
+    
     public Optional<Duration> getElapsedTime() {
         Optional<LocalDateTime> start = startTime.get();
         if (!start.isPresent()) {
