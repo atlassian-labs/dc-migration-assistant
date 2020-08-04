@@ -26,9 +26,6 @@ export const monitorFileSystemMigration = (ctx: AppContext) => {
         EndpointType.FILESYSTEM_REPORT
     );
 
-    cy.log("let's wait for 20 seconds");
-    cy.wait(20000);
-
     cy.get('#dc-migration-assistant-root').then(($section) => {
         cy.log($section.text());
         if ($section.text().includes('Ignore and continue')) {

@@ -92,8 +92,6 @@ describe('Migration plugin', () => {
     });
 
     it('starts and monitor filesystem', () => {
-        cy.jira_fill_websudo(ctx);
-
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });

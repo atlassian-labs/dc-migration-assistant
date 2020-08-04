@@ -30,8 +30,8 @@ Cypress.Commands.add('jira_login', (ctx) => {
 });
 
 Cypress.Commands.add('jira_fill_websudo', (ctx) => {
-  cy.get('#login-form-authenticatePassword').type(ctx.password, { log: false });
-  cy.get('#login-form-submit').click();
+    cy.get('#login-form-authenticatePassword').type(ctx.password, { log: false });
+    cy.get('#login-form-submit').click();
 });
 
 Cypress.Commands.add('jira_setup', () => {
@@ -53,5 +53,21 @@ Cypress.Commands.add('reset_migration', (ctx) => {
     cy.get('#dc-migration-assistant-root').should('exist');
     cy.window().then((window) => {
         window.AtlassianMigration.resetMigration();
+    });
+});
+
+Cypress.on('window:before:load', function (win) {
+    const original = win.EventTarget.prototype.addEventListener;
+
+    win.EventTarget.prototype.addEventListener = function () {
+        if (arguments && arguments[0] === 'beforeunload') {
+            return;
+        }
+        return original.apply(this, arguments);
+    };
+
+    Object.defineProperty(win, 'onbeforeunload', {
+        get: function () {},
+        set: function () {},
     });
 });
