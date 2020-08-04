@@ -42,7 +42,7 @@ import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Duration
-import java.util.*
+import java.util.Optional
 import javax.ws.rs.core.Response
 import kotlin.test.assertEquals
 
@@ -83,7 +83,7 @@ internal class FinalSyncEndpointTest {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
         every { migrationService.currentContext } returns migrationContext
-        every { migrationContext.getErrorMessage() } returns ""
+        every { migrationContext.getErrorMessage() } returns "foobar"
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
 
         val resp = sut.getMigrationStatus()
@@ -100,7 +100,7 @@ internal class FinalSyncEndpointTest {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(0))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
         every { migrationService.currentContext } returns migrationContext
-        every { migrationContext.getErrorMessage() } returns ""
+        every { migrationContext.getErrorMessage() } returns "foobar"
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
 
         val resp = sut.getMigrationStatus()

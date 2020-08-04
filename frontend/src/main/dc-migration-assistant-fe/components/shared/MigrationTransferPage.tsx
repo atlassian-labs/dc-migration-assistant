@@ -22,7 +22,11 @@ import { MigrationTransferActions, MigrationStepState } from './MigrationTransfe
 import { Progress } from './Progress';
 import { migration, MigrationStage } from '../../api/migration';
 import { MigrationProgress } from './MigrationTransferProgress';
-import {CommandDetails, CommandDetails as CommandResult, dbLogsEndpoint} from '../../api/final-sync';
+import {
+    CommandDetails,
+    CommandDetails as CommandResult,
+    dbLogsEndpoint,
+} from '../../api/final-sync';
 import { MigrationErrorSection } from './MigrationErrorSection';
 import { ErrorFlag } from './ErrorFlag';
 import { MigrationProcess, RetryProperties } from './MigrationProcess';
