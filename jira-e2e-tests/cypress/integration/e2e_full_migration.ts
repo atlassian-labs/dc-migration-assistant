@@ -94,16 +94,23 @@ describe('Migration plugin', () => {
     it('starts and monitor filesystem', () => {
         cy.jira_fill_websudo(ctx);
 
+        cy.visit(`${ctx.pluginFullUrl}/fs`);
+
+
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
 
     it('shows warning to block user access', () => {
+        cy.visit(ctx.pluginFullUrl + '/warning');
+
         showsBlockUserWarning();
-        continueWithMigration();
+        // continueWithMigration();
     });
 
     it('runs final database migration and final fs sync', () => {
+        cy.visit(ctx.pluginFullUrl + '/final-sync');
+
         runFinalSync();
         monitorFinalSync(ctx);
     });

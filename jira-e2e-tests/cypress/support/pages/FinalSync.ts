@@ -19,5 +19,5 @@ export const monitorFinalSync = (ctx: AppContext) => {
 
     waitForStatus(`${ctx.context}/rest/dc-migration/1.0/migration`, 'validate', EndpointType.STAGE);
 
-    cy.get('button[data-testid=button-next').should('be.visible').click();
+    cy.get('button[data-testid=button-next').should('be.visible');
 };
