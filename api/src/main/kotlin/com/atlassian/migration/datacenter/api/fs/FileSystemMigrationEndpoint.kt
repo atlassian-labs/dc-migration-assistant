@@ -139,12 +139,6 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @Path("/retry")
     fun retryFileSystemMigration(): Response {
         log.debug("[Retry operation] Retrying file system migration")
-        try {
-            log.debug("[Retry operation] Aborting current migration, if there is a migration in progress")
-            fsMigrationService.abortMigration()
-        } catch (e: InvalidMigrationStageError) {
-            log.error("[Retry operation] Unable to abort a migration. Proceeding with retrying the migration.", e)
-        }
 
         try {
             log.debug("[Retry operation] Transitioning stage to File system start stage")

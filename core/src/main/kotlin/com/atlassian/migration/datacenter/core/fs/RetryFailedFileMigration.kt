@@ -17,11 +17,22 @@
 package com.atlassian.migration.datacenter.core.fs
 
 import com.atlassian.migration.datacenter.core.util.UploadQueue
+import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-class RetryFailedFileMigration(private val reportManager: FileSystemMigrationReportManager, private val uploaderFactory: UploaderFactory) {
+class RetryFailedFileMigration(private val reportManager: FileSystemMigrationReportManager, private val uploaderFactory: UploaderFactory, private val fsMigrationService: FilesystemMigrationService) {
+
+    companion object {
+        val log: Logger = LoggerFactory.getLogger(RetryFailedFileMigration::class.java)
+    }
 
     fun uploadFailedFiles() {
+        log.debug("[Retry operation] Aborting current file system migration, if there is a migration in progress")
+
+        fsMigrationService.abortMigration()
+
         val report = reportManager.getCurrentReport(ReportType.Filesystem) ?: throw Error("No report")
         val newReport = reportManager.resetReport(ReportType.Filesystem)
 
