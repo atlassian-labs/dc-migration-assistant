@@ -68,6 +68,8 @@ class RetryFailedFileMigration(
         val uploader = uploaderFactory.newUploader(report)
 
         uploader.upload(uploadQueue)
+
+        migrationService.transition(MigrationStage.OFFLINE_WARNING)
     }
 
 }
