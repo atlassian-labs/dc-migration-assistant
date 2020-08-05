@@ -18,6 +18,8 @@ package com.atlassian.migration.datacenter.core.fs
 
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport
 import com.atlassian.migration.datacenter.core.util.UploadQueue
+import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
 import io.mockk.every
@@ -46,6 +48,12 @@ internal class RetryFailedFileMigrationTest {
     @MockK
     lateinit var uploader: Uploader
 
+    @MockK
+    lateinit var fsMigrationService: FilesystemMigrationService
+
+    @MockK
+    lateinit var migrationService: MigrationService
+
     @InjectMockKs
     lateinit var sut: RetryFailedFileMigration
 
@@ -56,10 +64,12 @@ internal class RetryFailedFileMigrationTest {
     fun setup() {
         prevReport = DefaultFileSystemMigrationReport()
         newReport = DefaultFileSystemMigrationReport()
-        every { reportManager.getCurrentReport(ReportType.Filesystem) } returnsMany  listOf(prevReport, newReport)
+        every { reportManager.getCurrentReport(ReportType.Filesystem) } returnsMany listOf(prevReport, newReport)
         every { uploaderFactory.newUploader(prevReport) } returns uploader
         every { uploader.upload(any()) } just runs
         every { reportManager.resetReport(ReportType.Filesystem) } returns newReport
+        every { fsMigrationService.abortMigration() } just runs
+        every { migrationService.transition(any())} just runs
     }
 
     @Test
@@ -71,9 +81,15 @@ internal class RetryFailedFileMigrationTest {
         val filesDownloaded = uploadedFiles
 
         failedPaths.forEach { prevReport.reportFileNotMigrated(FailedFileMigration(it, "bogus reason")) }
-        for (i in 0 until foundFiles) { prevReport.reportFileFound() }
-        for (i in 0 until uploadsCommenced) { prevReport.reportFileUploadCommenced() }
-        for (i in 0 until uploadedFiles) { prevReport.reportFileUploaded() }
+        for (i in 0 until foundFiles) {
+            prevReport.reportFileFound()
+        }
+        for (i in 0 until uploadsCommenced) {
+            prevReport.reportFileUploadCommenced()
+        }
+        for (i in 0 until uploadedFiles) {
+            prevReport.reportFileUploaded()
+        }
         prevReport.setNumberOfFilesDownloaded(filesDownloaded.toLong())
 
         sut.uploadFailedFiles()
