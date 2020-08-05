@@ -37,14 +37,10 @@ class RetryFailedFileMigration(
         val log: Logger = LoggerFactory.getLogger(RetryFailedFileMigration::class.java)
     }
 
-    @Throws(InvalidMigrationStageError::class)
+    @Throws(FileSystemMigrationFailure::class)
     fun uploadFailedFiles() {
-        try {
-            log.debug("[FS Retry] Aborting current file system migration, if there is a migration in progress")
-            fsMigrationService.abortMigration()
-        } catch (e: InvalidMigrationStageError) {
-            throw FileSystemMigrationFailure("[FS Retry] Error aborting fs migration", e)
-        }
+        log.debug("[FS Retry] Aborting current file system migration, if there is a migration in progress")
+        fsMigrationService.abortMigration()
 
         try {
             log.debug("[FS Retry] Transitioning stage to File system start stage")

@@ -20,6 +20,8 @@ import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMig
 import com.atlassian.migration.datacenter.core.util.UploadQueue
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
+import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure
+import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
@@ -33,6 +35,7 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -111,6 +114,20 @@ internal class RetryFailedFileMigrationTest {
             migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT)
             migrationService.transition(MigrationStage.OFFLINE_WARNING)
         }
+    }
+
+    @Test
+    fun shouldThrowWhenCannotTransitionToStartStage() {
+        every { migrationService.transition(MigrationStage.FS_MIGRATION_COPY) } throws InvalidMigrationStageError("bad transition")
+
+        assertThrows<FileSystemMigrationFailure> { sut.uploadFailedFiles() }
+    }
+
+    @Test
+    fun shouldThrowWhenUploadFails() {
+        every { uploader.upload(any()) } throws FileUploadException("unable to upload")
+
+        assertThrows<FileSystemMigrationFailure> { sut.uploadFailedFiles() }
     }
 
     private fun setupPreviousReportData() {
