@@ -19,6 +19,7 @@ package com.atlassian.migration.datacenter.core.fs
 import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport
 import com.atlassian.migration.datacenter.core.util.UploadQueue
 import com.atlassian.migration.datacenter.spi.MigrationService
+import com.atlassian.migration.datacenter.spi.MigrationStage
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
@@ -29,6 +30,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
+import io.mockk.verifySequence
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -60,6 +62,12 @@ internal class RetryFailedFileMigrationTest {
     private lateinit var prevReport: FileSystemMigrationReport
     private lateinit var newReport: FileSystemMigrationReport
 
+    private val failedPaths = listOf(Paths.get("foo"), Paths.get("bar"), Paths.get("baz"))
+    private val foundFiles = 30
+    private val uploadsCommenced = foundFiles
+    private val uploadedFiles = foundFiles - failedPaths.size
+    private val filesDownloaded = uploadedFiles
+
     @BeforeEach
     fun setup() {
         prevReport = DefaultFileSystemMigrationReport()
@@ -70,16 +78,42 @@ internal class RetryFailedFileMigrationTest {
         every { reportManager.resetReport(ReportType.Filesystem) } returns newReport
         every { fsMigrationService.abortMigration() } just runs
         every { migrationService.transition(any())} just runs
+
+        setupPreviousReportData()
     }
 
     @Test
     fun shouldUploadFilesFailed() {
-        val failedPaths = listOf(Paths.get("foo"), Paths.get("bar"), Paths.get("baz"))
-        val foundFiles = 30
-        val uploadsCommenced = foundFiles
-        val uploadedFiles = foundFiles - failedPaths.size
-        val filesDownloaded = uploadedFiles
+        sut.uploadFailedFiles()
 
+        val queue = UploadQueue<Path>(3)
+        failedPaths.forEach { queue.put(it) }
+
+        verify { uploader.upload(queue) }
+        verify { reportManager.resetReport(ReportType.Filesystem) }
+
+        assertEquals(failedPaths.size.toLong(), newReport.getNumberOfFilesFound())
+    }
+
+    @Test
+    fun shouldAbortRunningFileMigration() {
+        sut.uploadFailedFiles()
+
+        verify { fsMigrationService.abortMigration() }
+    }
+
+    @Test
+    fun shouldTransitionThroughFSMigrationStages() {
+        sut.uploadFailedFiles()
+
+        verifySequence {
+            migrationService.transition(MigrationStage.FS_MIGRATION_COPY)
+            migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT)
+            migrationService.transition(MigrationStage.OFFLINE_WARNING)
+        }
+    }
+
+    private fun setupPreviousReportData() {
         failedPaths.forEach { prevReport.reportFileNotMigrated(FailedFileMigration(it, "bogus reason")) }
         for (i in 0 until foundFiles) {
             prevReport.reportFileFound()
@@ -91,16 +125,6 @@ internal class RetryFailedFileMigrationTest {
             prevReport.reportFileUploaded()
         }
         prevReport.setNumberOfFilesDownloaded(filesDownloaded.toLong())
-
-        sut.uploadFailedFiles()
-
-        val queue = UploadQueue<Path>(3)
-        failedPaths.forEach { queue.put(it) }
-
-        verify { uploader.upload(queue) }
-        verify { reportManager.resetReport(ReportType.Filesystem) }
-
-        assertEquals(failedPaths.size.toLong(), newReport.getNumberOfFilesFound())
     }
 
 }
