@@ -181,6 +181,7 @@ public class SsmPsqlDatabaseRestoreService {
     public void checkForCriticalError(String migrationInstanceId) throws DatabaseMigrationFailure {
         String errorContent = ssm.getSSMCommand(getCommandId(), migrationInstanceId).standardErrorContent();
         if(isCriticalError(errorContent)) {
+            logger.error("Encountered a critical error when performing DB restore: {}", errorContent);
             throw new DatabaseMigrationFailure(errorContent);
         }
     }

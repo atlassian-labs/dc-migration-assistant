@@ -23,7 +23,6 @@ import { callAppRest } from '../../utils/api';
 import {
     finalSyncStatusEndpoint,
     finalSyncStartEndpoint,
-    DatabaseMigrationStatusResult,
     statusToI18nString,
     dbLogsEndpoint,
     DBMigrationStatus,
