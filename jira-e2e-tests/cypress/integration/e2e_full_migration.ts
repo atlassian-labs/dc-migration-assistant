@@ -109,6 +109,7 @@ describe('Migration plugin', () => {
     });
 
     it('runs final database migration and final fs sync', () => {
+        cy.visit(`${ctx.pluginFullUrl}/final-sync`);
         runFinalSync();
         monitorFinalSync(ctx);
     });
