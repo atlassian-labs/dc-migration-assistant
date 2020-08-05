@@ -17,6 +17,7 @@ package com.atlassian.migration.datacenter.api.fs
 
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.ReportType
+import com.atlassian.migration.datacenter.core.fs.RetryFailedFileMigration
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
 import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.MigrationStage
@@ -45,7 +46,8 @@ import javax.ws.rs.core.Response
 class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService,
                                   private val attachmentSyncManager: AttachmentSyncManager,
                                   private val reportManager: FileSystemMigrationReportManager,
-                                  private val migrationService: MigrationService
+                                  private val migrationService: MigrationService,
+                                  private val retryFsMigrationService: RetryFailedFileMigration
 )
 {
 
@@ -154,11 +156,11 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
             return Response.status(Response.Status.BAD_REQUEST).build()
         }
 
-        val isMigrationScheduled = fsMigrationService.scheduleMigration()
+        retryFsMigrationService.uploadFailedFiles()
 
-        log.info("[Retry operation] Retrying FS migration operation success status {}", isMigrationScheduled)
+        log.info("[Retry operation] Retrying FS migration operation success")
 
-        return Response.status(if (isMigrationScheduled) Response.Status.ACCEPTED else Response.Status.CONFLICT).build()
+        return Response.status(Response.Status.ACCEPTED).build()
     }
 
     init {
