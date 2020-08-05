@@ -140,14 +140,6 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     fun retryFileSystemMigration(): Response {
         log.debug("[Retry operation] Retrying file system migration")
 
-        try {
-            log.debug("[Retry operation] Transitioning stage to File system start stage")
-            migrationService.transition(MigrationStage.FS_MIGRATION_COPY)
-        } catch (e: InvalidMigrationStageError) {
-            log.error("[Retry operation] Unable to transition stage to {}", MigrationStage.FS_MIGRATION_COPY, e)
-            return Response.status(Response.Status.BAD_REQUEST).build()
-        }
-
         val isMigrationScheduled = fsMigrationService.scheduleMigration()
 
         log.info("[Retry operation] Retrying FS migration operation success status {}", isMigrationScheduled)
