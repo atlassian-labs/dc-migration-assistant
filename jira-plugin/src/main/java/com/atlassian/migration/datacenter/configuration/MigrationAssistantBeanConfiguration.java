@@ -23,7 +23,6 @@ import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.jira.util.BuildUtilsInfo;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
-import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
 import com.atlassian.migration.datacenter.core.aws.AwsMigrationServiceWrapper;
 import com.atlassian.migration.datacenter.core.aws.CancellableMigrationServiceHandler;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
@@ -69,6 +68,7 @@ import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationRepo
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
+import com.atlassian.migration.datacenter.core.fs.RetryFailedFileMigration;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.S3UploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
@@ -453,5 +453,10 @@ public class MigrationAssistantBeanConfiguration {
                 s3FinalSyncService,
                 filesystemMigrationService,
                 databaseMigrationService);
+    }
+
+    @Bean
+    public RetryFailedFileMigration retryFailedFileMigration(FileSystemMigrationReportManager reportManager, UploaderFactory uploaderFactory) {
+        return new RetryFailedFileMigration(reportManager, uploaderFactory);
     }
 }
