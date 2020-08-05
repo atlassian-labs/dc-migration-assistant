@@ -94,6 +94,7 @@ export const reindex = (issues: string[], ctx: AppContext, targetURL: string) =>
 }
 
 export const validate_issue = (issueKey: string, ctx: AppContext, targetURL: string, attName: string?, attHash: string?, attThumbHash: string?) => {
+    cy.log(targetURL)
     reindex([issueKey], ctx, targetURL);
 
     let req = {

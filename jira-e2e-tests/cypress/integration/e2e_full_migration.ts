@@ -133,6 +133,15 @@ describe('Migration plugin', () => {
     });
 
     it('Validate issues with inline attachment', () => {
+        cy.log(serviceURL);
+
+        cy.wait(1000 * 60 * 5);
+
+        cy.request(serviceURL + '/status').then((resp) => {
+            cy.log(`status> ${resp.status.toString()}`);
+            cy.log(`body> ${resp.body}`);
+        });
+
         validate_issue(
             'TEST-17',
             ctx,
