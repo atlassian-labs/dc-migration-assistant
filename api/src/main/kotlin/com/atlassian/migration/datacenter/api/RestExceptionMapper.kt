@@ -16,6 +16,8 @@
 
 package com.atlassian.migration.datacenter.api
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.Exception
@@ -25,8 +27,14 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider
 
+/***
+ * Any uncaught exceptions in the REST API will by default return XML to the caller.
+ * This forces a JSON wrapper around the exception.
+ */
 @Provider
-class RestExceptionMapper : ExceptionMapper<Exception> {
+class RestExceptionMapper : ExceptionMapper<Exception>
+{
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     private fun traceToString(e: Exception): String {
         val sw = StringWriter()
@@ -36,10 +44,14 @@ class RestExceptionMapper : ExceptionMapper<Exception> {
 
     @Produces(MediaType.APPLICATION_JSON)
     override fun toResponse(e: Exception): Response {
+        val strace = traceToString(e)
+        val se = e.toString()
+        log.error("Caught uncaught API exception: {}: {}", se, strace)
+
         return Response.status(500)
                 .entity(mapOf(
-                        "exception" to e.toString(),
-                        "stacktrace" to traceToString(e)
+                        "exception" to se,
+                        "stacktrace" to strace
                 )).build()
     }
 }
