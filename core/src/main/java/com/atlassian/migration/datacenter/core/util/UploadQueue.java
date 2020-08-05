@@ -67,4 +67,13 @@ public class UploadQueue<T> {
     public int size() {
         return queue.size();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof UploadQueue<?>) {
+            UploadQueue<?> other = (UploadQueue<?>)obj;
+            return other.queue.containsAll(queue);
+        }
+        return false;
+    }
 }
