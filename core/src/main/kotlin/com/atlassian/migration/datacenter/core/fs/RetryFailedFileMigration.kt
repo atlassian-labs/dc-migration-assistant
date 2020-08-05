@@ -63,6 +63,8 @@ class RetryFailedFileMigration(
             newReport.reportFileFound()
         }
 
+        migrationService.transition(MigrationStage.FS_MIGRATION_COPY_WAIT)
+
         val uploader = uploaderFactory.newUploader(report)
 
         uploader.upload(uploadQueue)
