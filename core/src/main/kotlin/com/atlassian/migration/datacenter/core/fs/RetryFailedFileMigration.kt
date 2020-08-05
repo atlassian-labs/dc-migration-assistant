@@ -17,15 +17,25 @@
 package com.atlassian.migration.datacenter.core.fs
 
 import com.atlassian.migration.datacenter.core.util.UploadQueue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 class RetryFailedFileMigration(private val reportManager: FileSystemMigrationReportManager, private val uploaderFactory: UploaderFactory) {
 
+    companion object {
+        val log: Logger = LoggerFactory.getLogger(RetryFailedFileMigration::class.java);
+    }
+
     fun uploadFailedFiles() {
+        log.info("Got request to upload failed files")
+
         val report = reportManager.getCurrentReport(ReportType.Filesystem) ?: throw Error("No report")
         val newReport = reportManager.resetReport(ReportType.Filesystem)
 
-        val uploadQueue = UploadQueue<Path>(report.failedFiles.size)
+        val numFailedFiles = report.failedFiles.size
+        log.info("found {} failed files to re-upload", numFailedFiles)
+        val uploadQueue = UploadQueue<Path>(numFailedFiles)
 
         report.failedFiles.forEach {
             uploadQueue.put(it.filePath)
