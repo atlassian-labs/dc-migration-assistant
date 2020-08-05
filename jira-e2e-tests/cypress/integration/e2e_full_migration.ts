@@ -49,6 +49,7 @@ describe('Migration plugin', () => {
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
+    let serviceUrl;
 
     before(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
@@ -96,7 +97,6 @@ describe('Migration plugin', () => {
 
         cy.visit(`${ctx.pluginFullUrl}/fs`);
 
-
         startFileSystemInitialMigration(ctx);
         monitorFileSystemMigration(ctx);
     });
@@ -115,12 +115,24 @@ describe('Migration plugin', () => {
 
     let serviceURL: string;
     it('shows validation page after migration finishes and close migration app', () => {
-        cy.visit(`${ctx.pluginFullUrl}/validation`)
-        serviceURL = showsValidationPage();
+        cy.visit(`${ctx.pluginFullUrl}/validation`);
+
+        cy.get('#dc-migration-assistant-root p > a')
+            .contains('http://')
+            .then((href) => {
+                const _serviceURL = href.attr('href');
+                if (typeof _serviceURL === 'string') {
+                    serviceURL = _serviceURL;
+                } else {
+                    serviceURL = 'cannot fetch URL';
+                }
+            });
         cy.log(serviceURL);
+
+        showsValidationPage();
     });
 
-    it.skip('Validate issues with inline attachment', () => {
+    it('Validate issues with inline attachment', () => {
         validate_issue(
             'TEST-17',
             ctx,
@@ -131,7 +143,7 @@ describe('Migration plugin', () => {
         );
     });
 
-    it.skip('Validate issues with large attachment', () => {
+    it('Validate issues with large attachment', () => {
         validate_issue(
             'TEST-18',
             ctx,
