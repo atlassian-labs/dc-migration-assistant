@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 
 public class SsmPsqlDatabaseRestoreService {
 
@@ -132,7 +131,7 @@ public class SsmPsqlDatabaseRestoreService {
 
         final SsmCommandResult ssmCommandOutputs = new SsmCommandResult();
         ssmCommandOutputs.errorMessage = response.standardErrorContent();
-        ssmCommandOutputs.criticalError = isCriticalError(response.standardErrorContent());
+        ssmCommandOutputs.criticalError = isCritical(response.standardErrorContent());
         
         final String migrationS3BucketName;
         try {
@@ -180,18 +179,18 @@ public class SsmPsqlDatabaseRestoreService {
 
     public void checkForCriticalError(String migrationInstanceId) throws DatabaseMigrationFailure {
         String error = ssm.getSSMCommand(getCommandId(), migrationInstanceId).standardErrorContent();
-        if(isCriticalError(error)) {
+        if(isCritical(error)) {
             logger.error("Encountered a critical error when performing DB restore: {}", error);
             throw new DatabaseMigrationFailure(error);
         }
     }
 
-    public boolean isCriticalError(String errorString) {
-        if(StringUtils.isNotBlank(errorString)) {
+    public boolean isCritical(String error) {
+        if(StringUtils.isNotBlank(error)) {
             return Arrays
                     .stream(CRITICAL_ERRORS)
                     .parallel()
-                    .anyMatch(errorString::contains);
+                    .anyMatch(error::contains);
         }
         return false;
     }
