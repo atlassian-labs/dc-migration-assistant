@@ -69,6 +69,7 @@ import com.atlassian.migration.datacenter.core.fs.DefaultFileSystemMigrationRepo
 import com.atlassian.migration.datacenter.core.fs.DefaultFilesystemUploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager;
 import com.atlassian.migration.datacenter.core.fs.FilesystemUploaderFactory;
+import com.atlassian.migration.datacenter.core.fs.RetryFailedFileMigration;
 import com.atlassian.migration.datacenter.core.fs.S3FilesystemMigrationService;
 import com.atlassian.migration.datacenter.core.fs.S3UploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
@@ -453,5 +454,10 @@ public class MigrationAssistantBeanConfiguration {
                 s3FinalSyncService,
                 filesystemMigrationService,
                 databaseMigrationService);
+    }
+
+    @Bean
+    public RetryFailedFileMigration retryFailedFileMigration(FileSystemMigrationReportManager reportManager, UploaderFactory uploaderFactory, FilesystemMigrationService fsMigrationService, MigrationService migrationService) {
+        return new RetryFailedFileMigration(reportManager, uploaderFactory, fsMigrationService, migrationService);
     }
 }
