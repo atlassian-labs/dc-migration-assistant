@@ -53,6 +53,7 @@ describe('Migration plugin', () => {
 
     before(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
+        cy.viewport('macbook-15');
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
         Cypress.Cookies.defaults({ whitelist: ['JSESSIONID', 'atlassian.xsrf.token'] });
@@ -158,8 +159,7 @@ describe('Migration plugin', () => {
             ctx,
             serviceURL,
             'random.bin',
-            'cdb8239c10b894beef502af29eaa3cf1',
-            null
+            'cdb8239c10b894beef502af29eaa3cf1'
         );
     });
 });
