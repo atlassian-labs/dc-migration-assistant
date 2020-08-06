@@ -143,7 +143,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
 
         addDeploymentIdToMigrationContext(deploymentId, context);
 
-        storeDbCredentials(params);
+        dbCredentialsStorageService.storeCredentials(params.get("DBPassword"));
     }
 
     @Override
@@ -189,10 +189,6 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
         MigrationContext context = migrationService.getCurrentContext();
         context.setServiceUrl(serviceUrl);
         context.save();
-    }
-
-    private void storeDbCredentials(Map<String, String> params) {
-        dbCredentialsStorageService.storeCredentials(params.get("DBPassword"));
     }
 
     /**
