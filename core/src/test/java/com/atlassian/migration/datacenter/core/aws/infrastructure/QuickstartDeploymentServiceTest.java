@@ -222,7 +222,7 @@ class QuickstartDeploymentServiceTest {
             put("HelperVpcId", testVpc);
         }};
 
-        when(standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputsFromApplicationStack(any())).thenReturn(expectedMigrationStackParams);
+        when(standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputs(any())).thenReturn(expectedMigrationStackParams);
 
         deploySimpleStack();
 

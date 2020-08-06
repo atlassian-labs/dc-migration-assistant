@@ -14,6 +14,9 @@ Parameters:
   RDSSecurityGroup:
     Description: "The Security Group attached to RDS, access to PostgreSQL port will be open from Migration Helper Security Group"
     Type: String
+  RDSPasswordSecretIdentifier:
+    Description: "The AWS Secrets manager key identifier that securely stores the database password"
+    Type: String
   RDSEndpoint:
     Description: "The RDS endpoint address that hosts the database on AWS"
     Type: String
@@ -286,7 +289,7 @@ Resources:
                   PGPASSWORD=$SECRET_PASSWORD psql -h ${DBHost} -U ${DBUser} -d ${DBName} -p ${DBPort} -a -f /opt/atlassian/dc-migration-assistant/db_post_restore_script.sql
                   echo -e "{\"is_restore_complete\":\""$RESTORE_COMPLETE"\",\"is_error_present\":\""$ERRORS_EXIST"\", "return_code":\""$PG_RESTORE_EXIT_CODE"\"}"
                 - {
-                  SecretIdentifier: !Sub "atl-${AWS::StackName}-app-rds-password",
+                  SecretIdentifier: !Ref RDSPasswordSecretIdentifier,
                   MigrationBucket: !Ref MigrationBucket,
                   DBHost: !Ref RDSEndpoint,
                   DBPort: !Ref RDSPort,

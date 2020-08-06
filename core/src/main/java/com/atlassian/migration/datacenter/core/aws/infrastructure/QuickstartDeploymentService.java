@@ -170,7 +170,7 @@ public class QuickstartDeploymentService extends CloudformationDeploymentService
             storeServiceURLInContext(applicationStackOutputsMap.get(SERVICE_URL_STACK_OUTPUT_KEY));
 
             Map<String, String> migrationStackParams =
-                    strategyFactory.getInputGatheringStrategy(migrationService.getCurrentContext().getDeploymentMode()).gatherMigrationStackInputsFromApplicationStack(applicationStack);
+                    strategyFactory.getInputGatheringStrategy(migrationService.getCurrentContext().getDeploymentMode()).gatherMigrationStackInputs(applicationStack);
 
             migrationHelperDeploymentService.deployMigrationInfrastructure(migrationStackParams);
 

@@ -17,12 +17,12 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
-import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService
+import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
 import software.amazon.awssdk.services.cloudformation.model.Stack
 
-open class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi) : MigrationStackInputGatheringStrategy {
+open class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi, private val dbCredentialsStorageService: TargetDbCredentialsStorageService) : MigrationStackInputGatheringStrategy {
 
-    override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
+    override fun gatherMigrationStackInputs(stack: Stack): Map<String, String> {
         val applicationStackOutputsMap = stack.outputs().associateBy({ it.outputKey() }, { it.outputValue() })
 
         val exportPrefix = stack.parameters().stream()
@@ -35,14 +35,17 @@ open class QuickstartStandaloneMigrationStackInputGatheringStrategy(private val 
 
         val applicationResources = cfnApi.getStackResources(stack.stackName())
         val efsId = applicationResources["ElasticFileSystem"]!!.physicalResourceId()
+        val dbCredentialsIdentifier = dbCredentialsStorageService.secretName
 
         return mapOf(
                 "NetworkPrivateSubnet" to cfnExports["${exportPrefix}PriNets"]!!.split(",")[0],
                 "EFSFileSystemId" to efsId,
                 "EFSSecurityGroup" to applicationStackOutputsMap[securityGroupStackOutputKey]!!,
+                "RDSPasswordSecretIdentifier" to dbCredentialsIdentifier,
                 "RDSSecurityGroup" to applicationStackOutputsMap[securityGroupStackOutputKey]!!,
                 "RDSEndpoint" to applicationStackOutputsMap[dbEndpointAddressStackOutputKey]!!,
                 "HelperInstanceType" to "c5.large",
                 "HelperVpcId" to cfnExports["${exportPrefix}VPCID"]!!
-        )    }
+        )
+    }
 }

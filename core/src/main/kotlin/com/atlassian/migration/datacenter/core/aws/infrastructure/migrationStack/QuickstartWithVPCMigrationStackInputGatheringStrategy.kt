@@ -22,13 +22,13 @@ import software.amazon.awssdk.services.cloudformation.model.Stack
 
 open class QuickstartWithVPCMigrationStackInputGatheringStrategy(private val cfnApi: CfnApi, private val standaloneMigrationStackInputGatheringStrategy: QuickstartStandaloneMigrationStackInputGatheringStrategy) : MigrationStackInputGatheringStrategy {
 
-    override fun gatherMigrationStackInputsFromApplicationStack(stack: Stack): Map<String, String> {
+    override fun gatherMigrationStackInputs(stack: Stack): Map<String, String> {
         val applicationResources = cfnApi.getStackResources(stack.stackName())
 
         val jiraStackResource = applicationResources["JiraDCStack"]
         val jiraStack = cfnApi.getStack(jiraStackResource!!.physicalResourceId())
         if (jiraStack.isPresent) {
-            return standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputsFromApplicationStack(jiraStack.get())
+            return standaloneMigrationStackInputGatheringStrategy.gatherMigrationStackInputs(jiraStack.get())
         }
         throw InfrastructureDeploymentError("unable to find JiraDCStack resource in with-vpc cloudformation deployment: ${stack.stackName()}")
     }

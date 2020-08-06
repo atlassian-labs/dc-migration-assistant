@@ -27,5 +27,7 @@ interface TargetDbCredentialsStorageService {
      */
     fun storeCredentials(password: String)
 
+    //TODO: Access to the secret name should come from migration context.
+    @Deprecated("access to secret name should come from migration context instead")
     val secretName: String
 }

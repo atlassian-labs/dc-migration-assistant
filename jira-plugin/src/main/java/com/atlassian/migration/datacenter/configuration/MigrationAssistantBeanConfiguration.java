@@ -436,8 +436,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneMigrationStackInputGatheringStrategy(CfnApi cfnApi) {
-        return new QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi);
+    public QuickstartStandaloneMigrationStackInputGatheringStrategy standaloneMigrationStackInputGatheringStrategy(CfnApi cfnApi, TargetDbCredentialsStorageService dbCredentialsStorageService) {
+        return new QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi, dbCredentialsStorageService);
     }
 
     @Bean

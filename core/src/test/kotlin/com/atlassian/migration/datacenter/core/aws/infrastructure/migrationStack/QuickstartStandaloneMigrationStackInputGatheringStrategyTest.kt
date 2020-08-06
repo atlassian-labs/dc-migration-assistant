@@ -17,7 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
-import com.atlassian.migration.datacenter.core.aws.infrastructure.QuickstartDeploymentService
+import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -38,6 +38,9 @@ internal class QuickstartStandaloneMigrationStackInputGatheringStrategyTest {
     @MockK
     lateinit var cfnApi: CfnApi
 
+    @MockK
+    lateinit var credentialsStorageService: TargetDbCredentialsStorageService
+
     private val stackName = "my-stack"
 
     private val testSg = "test-sg"
@@ -46,6 +49,7 @@ internal class QuickstartStandaloneMigrationStackInputGatheringStrategyTest {
     private val testSubnet2 = "subnet-456"
     private val testVpc = "vpc-01234"
     private val testEfs = "fs-1234"
+    private val dbSecretIdentifier = "foo-secret-id"
 
     private val mockResources = mapOf("ElasticFileSystem" to StackResource.builder().physicalResourceId(testEfs).build())
     private val mockOutputs = listOf(
@@ -60,20 +64,22 @@ internal class QuickstartStandaloneMigrationStackInputGatheringStrategyTest {
 
     @BeforeEach
     internal fun setUp() {
-        sut = QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi)
+        sut = QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi, credentialsStorageService)
         every { cfnApi.getStack(stackName) } returns Optional.of(stack)
         every { cfnApi.getStackResources(stackName) } returns mockResources
         every { cfnApi.exports } returns mockExports
+        every { credentialsStorageService.secretName } returns dbSecretIdentifier
     }
 
     @Test
     fun shouldGatherInputs() {
-        val params = sut.gatherMigrationStackInputsFromApplicationStack(stack)
+        val params = sut.gatherMigrationStackInputs(stack)
 
         val expectation = mapOf(
                 "NetworkPrivateSubnet" to testSubnet1,
                 "EFSFileSystemId" to testEfs,
                 "EFSSecurityGroup" to testSg,
+                "RDSPasswordSecretIdentifier" to dbSecretIdentifier,
                 "RDSSecurityGroup" to testSg,
                 "RDSEndpoint" to testDbEndpoint,
                 "HelperInstanceType" to "c5.large",
