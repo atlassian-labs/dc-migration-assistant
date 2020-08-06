@@ -15,23 +15,7 @@
  */
 package com.atlassian.migration.datacenter.core.aws.db.restore
 
-import com.atlassian.migration.datacenter.dto.MigrationContext
-import com.atlassian.migration.datacenter.spi.MigrationService
-import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure
-import org.slf4j.LoggerFactory
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
-import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest
-import java.util.*
-import java.util.function.Supplier
-
-/**
- * Service for managing credentials for the target database in the migrated environment.
- * The migration should store the target database password with this service. It will be stored securely.
- * The database username is managed as it is constant in Quick Start environments.
- */
-class TargetDbCredentialsStorageService(private val clientFactory: Supplier<SecretsManagerClient>, private val migrationService: MigrationService) {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
+interface TargetDbCredentialsStorageService {
     /**
      * Stores the given database password in AWS [Secrets Manager](https://aws.amazon.com/secrets-manager/)
      * to be used later to restore the database. Will be stored under the key:
@@ -41,36 +25,7 @@ class TargetDbCredentialsStorageService(private val clientFactory: Supplier<Secr
      * @throws NullPointerException if the password is null
      * @see MigrationContext.getApplicationDeploymentId
      */
-    fun storeCredentials(password: String) {
-        Objects.requireNonNull(password)
-        val name = secretName
-        logger.info("Storing secret $name")
-        val client = clientFactory.get()
-        val request = CreateSecretRequest.builder() /*
-                The secret is named like this because it makes it easier for the migration stack to download
-                the secret. This allows the migration stack to use "atl-${AWS::StackName}-app-rds-password" as the
-                secret name. The migration stack name is deterministic given the application stack name
-                (see AWSMigrationHelperDeploymentService#deployMigrationInfrastructure) so we use it here even though
-                it hasn't been deployed yet.
-                */
-                .name(name)
-                .secretString(password)
-                .description("Password for the application user in you new AWS deployment")
-                .build()
-        val response = client.createSecret(request)
-        val httpResponse = response.sdkHttpResponse()
-        if (!httpResponse.isSuccessful) {
-            val errorMessage = "Unable to store target database password with AWS secrets manager"
-            if (httpResponse.statusText().isPresent) {
-                throw DatabaseMigrationFailure(errorMessage + ": " + httpResponse.statusText().get())
-            }
-            throw DatabaseMigrationFailure(errorMessage)
-        }
-    }
+    fun storeCredentials(password: String)
 
     val secretName: String
-        get() {
-            val context = migrationService.currentContext
-            return String.format("atl-%s-migration-app-rds-password", context.applicationDeploymentId)
-        }
 }

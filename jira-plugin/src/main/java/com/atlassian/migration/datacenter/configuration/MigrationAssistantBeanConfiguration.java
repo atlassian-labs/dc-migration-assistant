@@ -23,7 +23,6 @@ import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.jira.util.BuildUtilsInfo;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
-import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
 import com.atlassian.migration.datacenter.core.aws.AwsMigrationServiceWrapper;
 import com.atlassian.migration.datacenter.core.aws.CancellableMigrationServiceHandler;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
@@ -43,6 +42,7 @@ import com.atlassian.migration.datacenter.core.aws.db.DatabaseArtifactS3UploadSe
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseMigrationService;
 import com.atlassian.migration.datacenter.core.aws.db.DatabaseUploadStageTransitionCallback;
 import com.atlassian.migration.datacenter.core.aws.db.restore.DatabaseRestoreStageTransitionCallback;
+import com.atlassian.migration.datacenter.core.aws.db.restore.SecretsManagerDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.SsmPsqlDatabaseRestoreService;
 import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService;
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService;
@@ -187,7 +187,7 @@ public class MigrationAssistantBeanConfiguration {
 
     @Bean
     public TargetDbCredentialsStorageService targetDbCredentialsStorageService(Supplier<SecretsManagerClient> clientSupplier, MigrationService migrationService) {
-        return new TargetDbCredentialsStorageService(clientSupplier, migrationService);
+        return new SecretsManagerDbCredentialsStorageService(clientSupplier, migrationService);
     }
 
     @Bean
@@ -404,9 +404,9 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DatabaseSecretCleanupService databaseSecretCleanupService(Supplier<SecretsManagerClient> secretsManagerClientSupplier, TargetDbCredentialsStorageService targetDbCredentialsStorageService
+    public DatabaseSecretCleanupService databaseSecretCleanupService(Supplier<SecretsManagerClient> secretsManagerClientSupplier, TargetDbCredentialsStorageService dbCredentialsStorageService
     ) {
-        return new DatabaseSecretCleanupService(secretsManagerClientSupplier, targetDbCredentialsStorageService);
+        return new DatabaseSecretCleanupService(secretsManagerClientSupplier, dbCredentialsStorageService);
     }
 
     @Bean
