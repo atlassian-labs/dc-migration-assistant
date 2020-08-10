@@ -2,6 +2,9 @@ name: Tests
 
 on: [push]
 
+env:
+  MAIN_BRANCH_REF: ${{ secrets.MAIN_BRANCH_REF }}
+
 jobs:
   run_tests:
     name: Java${{ matrix.java }} ${{ matrix.profile }} test
@@ -10,7 +13,7 @@ jobs:
     strategy:
       matrix:
         java: [ 8, 11 ]
-        profile: ['end2end']
+        profile: ['integration', '!integration', 'smoketest', 'functest', 'end2end']
 
     steps:
       - name: Checkout code
@@ -46,12 +49,12 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Test with maven
-        if: matrix.profile != 'smoketest' && matrix.profile != 'functest'
+        if: matrix.profile != 'smoketest' && matrix.profile != 'functest' && matrix.profile != 'end2end'
         run: mvn -B clean verify -P ${{ matrix.profile}}
 
       - name: Smoke-test with production image
         timeout-minutes: 20
-        if: matrix.profile == 'smoketest'
+        if: matrix.profile == 'smoketest' && matrix.java == '11'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
@@ -67,7 +70,7 @@ jobs:
 
       - name: End to end test with production image
         timeout-minutes: 120
-        if: ${{ matrix.profile == 'end2end' && matrix.java == '11' }}
+        if: ${{ matrix.profile == 'end2end' && matrix.java == '11' && github.ref == env.MAIN_BRANCH_REF }}
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
