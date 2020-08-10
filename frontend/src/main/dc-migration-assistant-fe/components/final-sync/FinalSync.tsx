@@ -52,16 +52,20 @@ const dbStatusToProgress = (status: FinalSyncStatus): Progress => {
     builder.setPhase(statusToI18nString(db.status));
     builder.setElapsedSeconds(db.elapsedTime.seconds);
     if (db.status === DBMigrationStatus.FAILED) {
-        builder.setError(
-            <p>
-                {I18n.getText('atlassian.migration.datacenter.db.retry.error')}
-                <br />
-                <p />
-                <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
-                <br />
-                {errorMessage}
-            </p>
-        );
+        if (errorMessage) {
+            builder.setError(
+                <p>
+                    {I18n.getText('atlassian.migration.datacenter.db.retry.error')}
+                    <br />
+                    <p />
+                    <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
+                    <br />
+                    {errorMessage}
+                </p>
+            );
+        } else {
+            builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
+        }
     }
     switch (db.status) {
         case 'DONE':
@@ -111,19 +115,44 @@ const fsSyncStatusToProgress = (status: FinalSyncStatus): Progress => {
     );
 
     if (failed) {
-        builder.setError(
-            <p>
-                {I18n.getText('atlassian.migration.datacenter.sync.fs.download.error', fs.failed)}
-                <a href="https://status.aws.amazon.com/" target="_blank" rel="noreferrer noopener">
-                    {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
-                </a>
-                <br />
-                <p />
-                <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
-                <br />
-                {errorMessage}
-            </p>
-        );
+        if (errorMessage) {
+            builder.setError(
+                <p>
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.sync.fs.download.error',
+                        fs.failed
+                    )}
+                    <a
+                        href="https://status.aws.amazon.com/"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >
+                        {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
+                    </a>
+                    <br />
+                    <p />
+                    <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
+                    <br />
+                    {errorMessage}
+                </p>
+            );
+        } else {
+            builder.setError(
+                <p>
+                    {I18n.getText(
+                        'atlassian.migration.datacenter.sync.fs.download.error',
+                        fs.failed
+                    )}
+                    <a
+                        href="https://status.aws.amazon.com/"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >
+                        {I18n.getText('atlassian.migration.datacenter.common.aws.status')}
+                    </a>
+                </p>
+            );
+        }
     }
 
     return builder.build();
