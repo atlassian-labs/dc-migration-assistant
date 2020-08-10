@@ -24,6 +24,7 @@ import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 
 import java.nio.file.Path;
 

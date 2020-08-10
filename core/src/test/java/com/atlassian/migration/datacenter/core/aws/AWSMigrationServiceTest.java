@@ -33,6 +33,7 @@ import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.exceptions.MigrationAlreadyExistsException;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
+import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
 import com.atlassian.scheduler.SchedulerService;
 import net.java.ao.EntityManager;
 import net.java.ao.Query;
@@ -260,7 +261,7 @@ public class AWSMigrationServiceTest {
 
         assertNumberOfMigrations(2);
 
-        sut.deleteMigrations();
+        sut.resetMigration();
 
         assertNumberOfMigrations(0);
 
@@ -280,7 +281,7 @@ public class AWSMigrationServiceTest {
         assertNumberOfMigrationContexts(1);
         assertNumberOfFileSyncRecords(3);
 
-        sut.deleteMigrations();
+        sut.resetMigration();
 
         assertNumberOfMigrations(0);
         assertNumberOfMigrationContexts(0);

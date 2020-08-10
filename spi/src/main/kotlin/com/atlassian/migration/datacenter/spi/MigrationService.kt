@@ -61,9 +61,9 @@ interface MigrationService {
     val currentContext: MigrationContext
 
     /**
-     * Deletes all migrations and associated contexts.
+     * Clears out the current migration to a "not started" state.
      */
-    fun deleteMigrations()
+    fun resetMigration()
 
     /**
      * Tries to transition the migration state from one to another
