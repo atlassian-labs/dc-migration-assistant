@@ -114,7 +114,7 @@ public abstract class AWSMigrationService implements MigrationService {
     //Note: Delete migrations deletes all migrations, even `Finished` ones
     // When we add support for multiple migrations, we need to revisit this and ensure that, on migration cancel, we should remove the active migration, not all migrations.
     @Override
-    public void deleteMigrations() {
+    public void resetMigration() {
         log.info("Deleting all migrations");
         for (Migration migration : findAllMigrations()) {
             int migrationId = migration.getID();

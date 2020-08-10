@@ -113,7 +113,7 @@ class MigrationEndpoint(private val migrationService: MigrationService, private 
     @Produces(MediaType.APPLICATION_JSON)
     fun resetMigration(): Response {
         cleanupService.startMigrationInfrastructureCleanup()
-        migrationService.deleteMigrations()
+        migrationService.resetMigration()
         return Response.ok().build()
     }
 
