@@ -17,9 +17,9 @@ package com.atlassian.migration.datacenter.api.fs
 
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.ReportType
+import com.atlassian.migration.datacenter.core.fs.RetryFailedFileMigration
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
-import com.atlassian.migration.datacenter.spi.MigrationService
-import com.atlassian.migration.datacenter.spi.MigrationStage
+import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.sal.api.websudo.WebSudoNotRequired
@@ -45,9 +45,8 @@ import javax.ws.rs.core.Response
 class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigrationService,
                                   private val attachmentSyncManager: AttachmentSyncManager,
                                   private val reportManager: FileSystemMigrationReportManager,
-                                  private val migrationService: MigrationService
-)
-{
+                                  private val retryService: RetryFailedFileMigration
+) {
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(FileSystemMigrationEndpoint::class.java)
@@ -63,21 +62,21 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
         return if (fsMigrationService.isRunning) {
             val report = reportManager.getCurrentReport(ReportType.Filesystem)
             Response
-                .status(Response.Status.CONFLICT)
-                .entity(mapOf("status" to report!!.status))
-                .build()
+                    .status(Response.Status.CONFLICT)
+                    .entity(mapOf("status" to report!!.status))
+                    .build()
         } else try {
             val started = fsMigrationService.scheduleMigration()
             val builder =
-                if (started) Response.status(Response.Status.ACCEPTED) else Response.status(Response.Status.CONFLICT)
+                    if (started) Response.status(Response.Status.ACCEPTED) else Response.status(Response.Status.CONFLICT)
             builder
-                .entity(mapOf("migrationScheduled" to started))
-                .build()
+                    .entity(mapOf("migrationScheduled" to started))
+                    .build()
         } catch (invalidMigrationStageError: InvalidMigrationStageError) {
             Response
-                .status(Response.Status.CONFLICT)
-                .entity(mapOf("error" to invalidMigrationStageError.message))
-                .build()
+                    .status(Response.Status.CONFLICT)
+                    .entity(mapOf("error" to invalidMigrationStageError.message))
+                    .build()
         }
     }
 
@@ -102,19 +101,19 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @WebSudoNotRequired // Avoids tripping the websudo redirect until advancing to the next stage. The report should not contain any sensitive information.
     fun getFilesystemMigrationStatus(): Response {
         val report = reportManager.getCurrentReport(ReportType.Filesystem)
-            ?: return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity(mapOf("error" to "no file system migration exists"))
-                .build()
+                ?: return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(mapOf("error" to "no file system migration exists"))
+                        .build()
         return try {
             Response
-                .ok(mapper.writeValueAsString(report))
-                .build()
+                    .ok(mapper.writeValueAsString(report))
+                    .build()
         } catch (e: JsonProcessingException) {
             Response
-                .serverError()
-                .entity("Unable to get file system status. Please contact support and show them this error: ${e.message}")
-                .build()
+                    .serverError()
+                    .entity("Unable to get file system status. Please contact support and show them this error: ${e.message}")
+                    .build()
         }
     }
 
@@ -125,12 +124,12 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
         return try {
             fsMigrationService.abortMigration()
             Response
-                .ok(mapOf("cancelled" to true))
-                .build()
+                    .ok(mapOf("cancelled" to true))
+                    .build()
         } catch (e: InvalidMigrationStageError) {
             Response.status(Response.Status.CONFLICT)
-                .entity(mapOf("error" to "filesystem migration is not in progress"))
-                .build()
+                    .entity(mapOf("error" to "filesystem migration is not in progress"))
+                    .build()
         }
     }
 
@@ -139,26 +138,17 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
     @Path("/retry")
     fun retryFileSystemMigration(): Response {
         log.debug("[Retry operation] Retrying file system migration")
-        try {
-            log.debug("[Retry operation] Aborting current migration, if there is a migration in progress")
-            fsMigrationService.abortMigration()
-        } catch (e: InvalidMigrationStageError) {
-            log.error("[Retry operation] Unable to abort a migration. Proceeding with retrying the migration.", e)
-        }
 
         try {
-            log.debug("[Retry operation] Transitioning stage to File system start stage")
-            migrationService.transition(MigrationStage.FS_MIGRATION_COPY)
-        } catch (e: InvalidMigrationStageError) {
-            log.error("[Retry operation] Unable to transition stage to {}", MigrationStage.FS_MIGRATION_COPY, e)
-            return Response.status(Response.Status.BAD_REQUEST).build()
+            retryService.uploadFailedFiles()
+        } catch (e: FileSystemMigrationFailure) {
+            return Response.status(Response.Status.CONFLICT).build()
         }
 
-        val isMigrationScheduled = fsMigrationService.scheduleMigration()
 
-        log.info("[Retry operation] Retrying FS migration operation success status {}", isMigrationScheduled)
+        log.info("[Retry operation] Retrying FS migration operation")
 
-        return Response.status(if (isMigrationScheduled) Response.Status.ACCEPTED else Response.Status.CONFLICT).build()
+        return Response.status(Response.Status.ACCEPTED).build()
     }
 
     init {

@@ -17,8 +17,8 @@ package com.atlassian.migration.datacenter.api.fs
 
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
 import com.atlassian.migration.datacenter.core.fs.ReportType
+import com.atlassian.migration.datacenter.core.fs.RetryFailedFileMigration
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager
-import com.atlassian.migration.datacenter.spi.MigrationService
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService
 import com.atlassian.migration.datacenter.spi.fs.reporting.FailedFileMigration
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport
@@ -59,7 +59,7 @@ class FileSystemMigrationProgressEndpointTest {
     lateinit var fsMigrationService: FilesystemMigrationService
 
     @MockK
-    lateinit var migrationService: MigrationService
+    lateinit var retryService: RetryFailedFileMigration
 
     @InjectMockKs
     lateinit var endpoint: FileSystemMigrationEndpoint
@@ -156,8 +156,8 @@ class FileSystemMigrationProgressEndpointTest {
 
         assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
         assertThat<String?>(
-            response.entity.toString(),
-            Matchers.containsString("no file system migration exists")
+                response.entity.toString(),
+                Matchers.containsString("no file system migration exists")
         )
     }
 
