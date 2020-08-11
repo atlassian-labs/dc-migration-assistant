@@ -8,10 +8,12 @@ export const waitForStatus = (
 ) => {
     cy.request({
         url: route,
-        auth: { user: 'admin', password: Cypress.env('ADMIN_PASSWORD') },
+        auth: { user: 'admin', password: Cypress.env('ADMIN_PASSWORD'), timeout: 10000 },
     }).then((response) => {
         const provisioningStatus: string = getStatus(type, response);
-        cy.log(`run #${iteration}, status ${provisioningStatus}`);
+        cy.log(
+            `run #${iteration}, status ${provisioningStatus}, expected status ${expectedStatus}`
+        );
         if (provisioningStatus === expectedStatus) {
             return;
         } else if (finishedStatuses.includes(provisioningStatus)) {
@@ -19,7 +21,9 @@ export const waitForStatus = (
         } else if (maxRetries < iteration) {
             throw Error(`Maximum amount of retries reached (${maxRetries})`);
         } else {
+            cy.log(`The expected status was not found, wating ${waitPeriodInMs}`);
             cy.wait(waitPeriodInMs);
+            cy.log(`Running the recursion, iteration #${iteration + 1}`);
             waitForStatus(route, expectedStatus, type, iteration + 1, waitPeriodInMs, maxRetries);
         }
     });
