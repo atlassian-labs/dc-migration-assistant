@@ -132,7 +132,7 @@ class FinalSyncEndpoint(
         val fsSyncStatus = finalSyncService.getFinalSyncStatus()
 
         val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount - fsSyncStatus.failedFileCount, fsSyncStatus.failedFileCount, isCurrentStageAfterFinalSync)
-        val status = if (errorMessage.isNotBlank()) FinalSyncStatus(db, fs, errorMessage) else FinalSyncStatus(db, fs)
+        val status = if (!errorMessage.isNullOrEmpty()) FinalSyncStatus(db, fs, errorMessage) else FinalSyncStatus(db, fs)
         return try {
             Response
                     .ok(mapper.writeValueAsString(status))
