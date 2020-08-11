@@ -148,13 +148,13 @@ class MigrationEndpointTest {
 
     @Test
     fun shouldCleanUpInfrastructureAndResetMigration() {
-        every { migrationService.deleteMigrations() } just Runs
+        every { migrationService.resetMigration() } just Runs
         every { cleanupService.startMigrationInfrastructureCleanup() } returns true
 
         val response = sut.resetMigration()
 
         assertThat(response.status, equalTo(Response.Status.OK.statusCode))
-        verify { migrationService.deleteMigrations() }
+        verify { migrationService.resetMigration() }
         verify { cleanupService.startMigrationInfrastructureCleanup() }
     }
 
