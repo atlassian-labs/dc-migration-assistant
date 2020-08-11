@@ -61,8 +61,10 @@ class FinalSyncEndpoint(
     }
 
     data class FSSyncStatus(val uploaded: Int, val downloaded: Int, val failed: Int, val hasProgressedToNextStage: Boolean)
-    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus, val errorMessage: String?)
-
+    data class FinalSyncStatus(val db: DatabaseMigrationStatus, val fs: FSSyncStatus, val errorMessage: String?) {
+        constructor(db: DatabaseMigrationStatus, fs: FSSyncStatus) : this(db, fs, null)
+    }
+    
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -130,8 +132,7 @@ class FinalSyncEndpoint(
         val fsSyncStatus = finalSyncService.getFinalSyncStatus()
 
         val fs = FSSyncStatus(fsSyncStatus.uploadedFileCount, fsSyncStatus.uploadedFileCount - fsSyncStatus.enqueuedFileCount - fsSyncStatus.failedFileCount, fsSyncStatus.failedFileCount, isCurrentStageAfterFinalSync)
-        val status = FinalSyncStatus(db, fs, errorMessage)
-
+        val status = if (errorMessage.isNotBlank()) FinalSyncStatus(db, fs, errorMessage) else FinalSyncStatus(db, fs)
         return try {
             Response
                     .ok(mapper.writeValueAsString(status))

@@ -83,7 +83,7 @@ internal class FinalSyncEndpointTest {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
         every { migrationService.currentContext } returns migrationContext
-        every { migrationContext.getErrorMessage() } returns "foobar"
+        every { migrationContext.getErrorMessage() } returns ""
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
 
         val resp = sut.getMigrationStatus()
@@ -93,6 +93,7 @@ internal class FinalSyncEndpointTest {
 
         assertEquals(20, result.db.elapsedTime.seconds)
         assertEquals(DbMigrationStatus.IMPORTING, result.db.status)
+        assertEquals(null, result.errorMessage)
     }
 
     @Test
@@ -100,7 +101,7 @@ internal class FinalSyncEndpointTest {
         every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(0))
         every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
         every { migrationService.currentContext } returns migrationContext
-        every { migrationContext.getErrorMessage() } returns "foobar"
+        every { migrationContext.getErrorMessage() } returns ""
         every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(150, 50, 12)
 
         val resp = sut.getMigrationStatus()
@@ -110,6 +111,25 @@ internal class FinalSyncEndpointTest {
         assertEquals(150, result.fs.uploaded)
         assertEquals(88, result.fs.downloaded)
         assertEquals(12, result.fs.failed)
+        assertEquals(null, result.errorMessage)
+    }
+
+    @Test
+    fun shouldReportDbSyncStatusWithErrorWhenDbErrorEncountered() {
+        every { databaseMigrationService.elapsedTime } returns Optional.of(Duration.ofSeconds(20))
+        every { migrationService.currentStage } returns MigrationStage.DATA_MIGRATION_IMPORT
+        every { migrationService.currentContext } returns migrationContext
+        every { migrationContext.getErrorMessage() } returns "could not connect to server"
+        every { s3FinalSyncService.getFinalSyncStatus() } returns FinalFileSyncStatus(0, 0, 0)
+
+        val resp = sut.getMigrationStatus()
+        val json = resp.entity as String
+
+        val result = mapper.readValue<FinalSyncEndpoint.FinalSyncStatus>(json)
+
+        assertEquals(20, result.db.elapsedTime.seconds)
+        assertEquals(DbMigrationStatus.IMPORTING, result.db.status)
+        assertEquals("could not connect to server", result.errorMessage)
     }
 
     @Test

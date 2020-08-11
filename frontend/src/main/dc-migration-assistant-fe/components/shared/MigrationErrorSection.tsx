@@ -35,16 +35,16 @@ export const MigrationErrorSection: FunctionComponent<CommandResultProps> = ({
     return (
         <ErrorFragment>
             <SectionMessage
-                appearance={commandResult?.criticalError === true ? 'error' : 'warning'}
+                appearance={commandResult?.criticalError ? 'error' : 'warning'}
                 title={
-                    commandResult?.criticalError === true
+                    commandResult?.criticalError
                         ? I18n.getText('atlassian.migration.datacenter.db.error.title')
                         : I18n.getText('atlassian.migration.datacenter.db.warning.title')
                 }
             >
                 <p>{commandResult.errorMessage}</p>
                 <p>
-                    {commandResult?.criticalError === true
+                    {commandResult?.criticalError
                         ? I18n.getText('atlassian.migration.datacenter.db.retry.error')
                         : I18n.getText('atlassian.migration.datacenter.db.error.warning')}
                 </p>

@@ -97,7 +97,6 @@ public class SsmPsqlDatabaseRestoreService {
                 migrationInstanceId);
         
         migrationStageCallback.transitionToServiceWaitStage();
-        
         try {
             consumer.handleCommandOutput();
             checkForCriticalError(migrationInstanceId);
