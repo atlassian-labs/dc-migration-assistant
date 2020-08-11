@@ -20,14 +20,18 @@ Cypress.Commands.add('jira_login', (ctx) => {
     cy.visit(ctx.loginURL);
 
     cy.get('#login-form-username').type(ctx.username);
-    cy.get('#login-form-password').type(ctx.password);
+    cy.get('#login-form-password').type(ctx.password, { log: false });
     cy.get('#login-form-submit').click();
-    // Force wait for dashboard to avoid flakiness.
-    //cy.get('[class=g-intro]').should('exist');
 
     // Ensure we have full admin access before doing anything
     cy.visit(ctx.sudoURL);
-    cy.get('#login-form-authenticatePassword').type(ctx.password);
+    cy.get('#login-form-authenticatePassword').type(ctx.password, { log: false });
+    cy.get('#login-form-submit').click();
+});
+
+Cypress.Commands.add('jira_fill_websudo', (ctx) => {
+    cy.visit(ctx.sudoURL);
+    cy.get('#login-form-authenticatePassword').type(ctx.password, { log: false });
     cy.get('#login-form-submit').click();
 });
 
@@ -51,9 +55,4 @@ Cypress.Commands.add('reset_migration', (ctx) => {
     cy.window().then((window) => {
         window.AtlassianMigration.resetMigration();
     });
-});
-
-Cypress.Commands.add('relogin', (ctx) => {
-    cy.jira_login(ctx);
-    cy.visit(ctx.pluginHomePage);
 });

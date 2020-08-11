@@ -1,7 +1,6 @@
 version: '3.5'
 
 services:
-
   postgresql:
     build:
       context: ./postgres
@@ -43,6 +42,7 @@ services:
       '
 
   cypress:
+    ipc: host
     build:
       context: ./cypress
     environment:
@@ -50,6 +50,9 @@ services:
       - CYPRESS_AWS_SECRET_ACCESS_KEY=${CYPRESS_AWS_SECRET_ACCESS_KEY}
       - CYPRESS_ADMIN_PASSWORD=${CYPRESS_ADMIN_PASSWORD}
       - CYPRESS_TARGET_TESTSUITE=${CYPRESS_TARGET_TESTSUITE}
+    volumes:
+      - "/tmp/cypress/screenshots:/opt/cypress/screenshots"
+      - "/tmp/cypress/videos:/opt/cypress/videos"
     command: >
       bash -c "
           cd /opt/cypress &&

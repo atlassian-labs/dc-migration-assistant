@@ -28,9 +28,5 @@ export const waitForProvisioning = (ctx: AppContext) => {
     );
     cy.log('Provisioned migration stack stack');
 
-    cy.get('#dc-migration-assistant-root h4').contains('Deployment Complete', { timeout: 60000 });
-
-    cy.get('button[data-testid=button-next]').contains('Next').click();
-
-    cy.relogin(ctx);
+    cy.get('button[data-testid=button-next]').contains('Next', { timeout: 60000 });
 };

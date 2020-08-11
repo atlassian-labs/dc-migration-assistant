@@ -16,7 +16,7 @@
 
 /// <reference types="Cypress" />
 
-import type { AWSCredentials } from '../support/common'
+import type { AWSCredentials } from '../support/common';
 
 import { waitForProvisioning } from '../support/pages/ProvisioningPage';
 import { getContext, validate_issue } from '../support/jira';
@@ -49,80 +49,117 @@ describe('Migration plugin', () => {
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
+    let serviceUrl;
 
-    beforeEach(() => {
+    before(() => {
         cy.on('uncaught:exception', (err, runnable) => false);
+        cy.viewport('macbook-15');
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
+        Cypress.Cookies.defaults({ whitelist: ['JSESSIONID', 'atlassian.xsrf.token'] });
         cy.jira_login(ctx);
+
         if (shouldReset) {
             cy.reset_migration(ctx);
         }
-
         cy.visit(ctx.pluginFullUrl);
     });
 
-    it('runs full migration', () => {
+    afterEach(function () {
+        if (this.currentTest.state === 'failed') {
+            Cypress.runner.stop();
+        }
+    });
+
+    it('starts migration', () => {
         startMigration(ctx);
+    });
 
+    it('fills credentials', () => {
         fillCrendetialsOnAuthPage(ctx, region, credentials);
-
         selectPrefixOnASIPage(ctx);
+    });
 
+    it('configures AWS Quickstart', () => {
         configureQuickStartFormWithoutVPC(ctx, {
             stackName: `teststack-${testId}`,
             dbPassword: `XadD54^${testId}`,
             dbMasterPassword: `YadD54^${testId}`,
         });
-
         submitQuickstartForm();
+    });
 
+    it('waits for provisioning', () => {
         waitForProvisioning(ctx);
+    });
+
+    it('starts and monitor filesystem', () => {
+        cy.jira_fill_websudo(ctx);
+
+        cy.visit(`${ctx.pluginFullUrl}/fs`);
 
         startFileSystemInitialMigration(ctx);
-
         monitorFileSystemMigration(ctx);
+    });
+
+    it('shows warning to block user access', () => {
+        cy.visit(`${ctx.pluginFullUrl}/warning`);
 
         showsBlockUserWarning();
         continueWithMigration();
+    });
 
+    it('runs final database migration and final fs sync', () => {
         runFinalSync();
         monitorFinalSync(ctx);
+    });
+
+    let serviceURL: string;
+    it('shows validation page after migration finishes and close migration app', () => {
+        cy.visit(`${ctx.pluginFullUrl}/validation`);
+
+        cy.get('#dc-migration-assistant-root p > a')
+            .contains('http://')
+            .then((href) => {
+                const _serviceURL = href.attr('href');
+                if (typeof _serviceURL === 'string') {
+                    serviceURL = _serviceURL;
+                } else {
+                    serviceURL = 'cannot fetch URL';
+                }
+            });
+        cy.log(serviceURL);
 
         showsValidationPage();
     });
 
-    it.skip('starts and monitor filesystem copy', () => {
-        startFileSystemInitialMigration(ctx);
-        monitorFileSystemMigration(ctx);
-    });
-
-    it.skip('monitors filesystem migration', () => {
-        monitorFileSystemMigration(ctx);
-    });
-
-    it.skip('show warning to block access access', () => {
-        showsBlockUserWarning();
-        continueWithMigration();
-        runFinalSync();
-        monitorFinalSync(ctx);
-    });
-
-    it.skip('runs final sync', () => {
-        runFinalSync();
-    });
-
-    let serviceURL: string
-    it.skip('shows validation page after migration finishes', () => {
-        let serviceURL = showsValidationPage();
-    });
-
     it('Validate issues with inline attachment', () => {
-        validate_issue("TEST-17", ctx, serviceURL, "vbackground.png", "3393ce5431bcb31aea66541c3a1c6a56", "43ef675cf099a8d5108b1de45e221dac")
+        cy.log(serviceURL);
+
+        cy.wait(1000 * 60 * 5);
+
+        cy.request(serviceURL + '/status').then((resp) => {
+            cy.log(`status> ${resp.status.toString()}`);
+            cy.log(`body> ${resp.body}`);
+        });
+
+        validate_issue(
+            'TEST-17',
+            ctx,
+            serviceURL,
+            'vbackground.png',
+            '3393ce5431bcb31aea66541c3a1c6a56',
+            '43ef675cf099a8d5108b1de45e221dac'
+        );
     });
 
-    it('Validate issues with large attachment', () => {
-        validate_issue("TEST-18", ctx, serviceURL, "random.bin", "cdb8239c10b894beef502af29eaa3cf1", null)
+    it.skip('Validate issues with large attachment', () => {
+        validate_issue(
+            'TEST-18',
+            ctx,
+            serviceURL,
+            'random.bin',
+            'cdb8239c10b894beef502af29eaa3cf1'
+        );
     });
-
 });

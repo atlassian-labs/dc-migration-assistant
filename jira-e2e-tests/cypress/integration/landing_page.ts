@@ -21,13 +21,13 @@ import { getContext } from '../support/jira';
 describe('Landing page', () => {
     const ctx: AppContext = getContext();
 
-    beforeEach(() => {
+    before(() => {
         cy.server();
         cy.jira_login(ctx);
         cy.reset_migration(ctx);
     });
 
-    it('should display warning and disable button when not ready for migration', () => {
+    it.skip('should display warning and disable button when not ready for migration', () => {
         cy.route({
             method: 'GET',
             url: ctx.context + '/rest/dc-migration/1.0/migration/ready',
@@ -52,5 +52,19 @@ describe('Landing page', () => {
         });
 
         cy.get('button[data-test=start-migration]').should('be.disabled');
+    });
+
+    let serviceUrl;
+    it('test async wrapper', () => {
+        cy.get('#dc-migration-assistant-root a')
+            .first()
+            .invoke('text')
+            .then((value) => {
+                serviceUrl = value;
+            });
+    });
+
+    it('test async wrapper', () => {
+        cy.log(serviceUrl);
     });
 });
