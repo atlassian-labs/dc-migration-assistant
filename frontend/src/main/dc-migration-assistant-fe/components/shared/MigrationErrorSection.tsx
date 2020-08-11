@@ -18,8 +18,8 @@ import React, { FunctionComponent } from 'react';
 import SectionMessage from '@atlaskit/section-message';
 import styled from 'styled-components';
 
-import { CommandDetails as CommandResult } from '../../api/final-sync';
 import { I18n } from '@atlassian/wrm-react-i18n';
+import { CommandDetails as CommandResult } from '../../api/final-sync';
 
 const ErrorFragment = styled.div`
     margin-top: 0px;
@@ -35,11 +35,19 @@ export const MigrationErrorSection: FunctionComponent<CommandResultProps> = ({
     return (
         <ErrorFragment>
             <SectionMessage
-                appearance="warning"
-                title={I18n.getText('atlassian.migration.datacenter.db.error.title')}
+                appearance={commandResult?.criticalError ? 'error' : 'warning'}
+                title={
+                    commandResult?.criticalError
+                        ? I18n.getText('atlassian.migration.datacenter.db.error.title')
+                        : I18n.getText('atlassian.migration.datacenter.db.warning.title')
+                }
             >
-                <p>{I18n.getText('atlassian.migration.datacenter.db.error.warning')}</p>
-
+                <p>{commandResult.errorMessage}</p>
+                <p>
+                    {commandResult?.criticalError
+                        ? I18n.getText('atlassian.migration.datacenter.db.retry.error')
+                        : I18n.getText('atlassian.migration.datacenter.db.error.warning')}
+                </p>
                 <p>
                     <a href={commandResult.consoleUrl} target="_blank" rel="noopener noreferrer">
                         {I18n.getText('atlassian.migration.datacenter.db.error.s3link')}

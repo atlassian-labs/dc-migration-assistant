@@ -85,6 +85,7 @@ export const statusToI18nString = (status: DBMigrationStatus): string => {
 export type FinalSyncStatus = {
     db: DatabaseMigrationStatusResult;
     fs: FinalFileSyncStatus;
+    errorMessage?: string;
 };
 
 export type FinalFileSyncStatus = {
@@ -103,4 +104,5 @@ export type DatabaseMigrationStatusResult = {
 export type CommandDetails = {
     errorMessage?: string;
     consoleUrl?: string;
+    criticalError?: boolean;
 };

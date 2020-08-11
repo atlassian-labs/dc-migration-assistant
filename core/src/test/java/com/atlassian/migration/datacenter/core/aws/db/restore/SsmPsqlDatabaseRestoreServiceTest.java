@@ -34,13 +34,17 @@ import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SsmPsqlDatabaseRestoreServiceTest {
+
+    private final String mockCommandId = "fake-command";
+    private final String mockInstance = "i-0353cc9a8ad7dafc2";
+    private final String s3bucket = "s3bucket";
+    private final String s3prefix = "s3prefix";
 
     @Mock
     SSMApi ssmApi;
@@ -63,27 +67,152 @@ class SsmPsqlDatabaseRestoreServiceTest {
 
     @Test
     void shouldBeSuccessfulWhenCommandStatusIsSuccessful() throws InvalidMigrationStageError, S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
-        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS);
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, null);
 
         sut.restoreDatabase();
     }
 
     @Test
     void shouldThrowWhenCommandStatusIsFailed() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
-        givenCommandCompletesWithStatus(CommandInvocationStatus.FAILED);
+        givenCommandCompletesWithStatus(CommandInvocationStatus.FAILED, null);
 
         assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
     }
 
     @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_001() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "could not connect to server");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_002() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "could not translate host name");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_003() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "Connection timed out");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_004() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "No route to host");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldThrowDatabaseMigrationFailureWhen_CRITICAL_ERROR_005() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "Name or service not known");
+
+        assertThrows(DatabaseMigrationFailure.class, () -> sut.restoreDatabase());
+    }
+
+    @Test
+    void shouldNotThrowDatabaseMigrationFailure() throws S3SyncFileSystemDownloader.CannotLaunchCommandException, InfrastructureDeploymentError {
+        givenCommandCompletesWithStatus(CommandInvocationStatus.SUCCESS, "non-critical-error");
+
+        assertDoesNotThrow(() -> sut.restoreDatabase());
+    }
+
+    @Test
     void shouldReturnOutputAndErrorUrls() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
-        final String mockCommandId = "fake-command";
-        final String mockInstance = "i-0353cc9a8ad7dafc2";
         final String errorMessage = "error-message";
-        final String s3bucket = "s3bucket";
-        final String s3prefix = "s3prefix";
+        
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertEquals("error-message", commandOutputs.errorMessage);
+        assertFalse(commandOutputs.criticalError);
+        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
+                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsCriticalFor_CRITICAL_ERROR_001() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = "could not connect to server: No route to host. Is the server running on host (10.0.7.109) and accepting TCP/IP connections on port 5432?";
 
         final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+        
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertTrue(commandOutputs.criticalError);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsCriticalFor_CRITICAL_ERROR_002() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = "could not translate host name";
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertTrue(commandOutputs.criticalError);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsCriticalFor_CRITICAL_ERROR_003() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = "Connection timed out";
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertTrue(commandOutputs.criticalError);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsCriticalFor_CRITICAL_ERROR_004() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = "No route to host";
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertTrue(commandOutputs.criticalError);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsCriticalFor_CRITICAL_ERROR_005() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = "Name or service not known";
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertTrue(commandOutputs.criticalError);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsNonCriticalWhenErrorContentBlank() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = "";
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+        
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertFalse(commandOutputs.criticalError);
+    }
+
+    @Test
+    void shouldReturnOutputIndicatingTheErrorIsNonCriticalWhenErrorContentNull() throws SsmPsqlDatabaseRestoreService.SsmCommandNotInitialisedException, InfrastructureDeploymentError {
+        final String errorMessage = null;
+
+        final SsmPsqlDatabaseRestoreService spy = spy(sut);
+        setupExpectations(mockCommandId, mockInstance, errorMessage, s3bucket, s3prefix, spy);
+
+        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
+        assertFalse(commandOutputs.criticalError);
+    }
+
+    private void setupExpectations(String mockCommandId, String mockInstance, String errorMessage, String s3bucket, String s3prefix, SsmPsqlDatabaseRestoreService spy) throws InfrastructureDeploymentError {
         when(spy.getCommandId()).thenReturn(mockCommandId);
 
         when(migrationHelperDeploymentService.getMigrationHostInstanceId()).thenReturn(mockInstance);
@@ -96,17 +225,9 @@ class SsmPsqlDatabaseRestoreServiceTest {
                         .standardErrorContent(errorMessage)
                         .build()
         );
-
-        final SsmPsqlDatabaseRestoreService.SsmCommandResult commandOutputs = spy.fetchCommandResult();
-
-        assertEquals("error-message", commandOutputs.errorMessage);
-        assertEquals(String.format("https://console.aws.amazon.com/s3/buckets/%s/%s/%s/%s/awsrunShellScript/%s/",
-                s3bucket, s3prefix, mockCommandId, mockInstance, spy.getRestoreDocumentName()), commandOutputs.consoleUrl);
     }
 
-    private void givenCommandCompletesWithStatus(CommandInvocationStatus status) throws InfrastructureDeploymentError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
-        final String mockCommandId = "fake-command";
-        final String mockInstance = "i-0353cc9a8ad7dafc2";
+    private void givenCommandCompletesWithStatus(CommandInvocationStatus status, String errorContent) throws InfrastructureDeploymentError, S3SyncFileSystemDownloader.CannotLaunchCommandException {
         final String mocument = "ssm-document";
         final String outputUrl = "output-url";
         final String errorUrl = "error-url";
@@ -121,6 +242,7 @@ class SsmPsqlDatabaseRestoreServiceTest {
                         .status(status)
                         .standardOutputUrl(outputUrl)
                         .standardErrorUrl(errorUrl)
+                        .standardErrorContent(errorContent)
                         .sdkHttpResponse(SdkHttpResponse.builder().statusText("it failed").build())
                         .build()
         );

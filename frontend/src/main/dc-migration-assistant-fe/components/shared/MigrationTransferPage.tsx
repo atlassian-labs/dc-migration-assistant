@@ -27,6 +27,7 @@ import { MigrationErrorSection } from './MigrationErrorSection';
 import { ErrorFlag } from './ErrorFlag';
 import { MigrationProcess, RetryProperties } from './MigrationProcess';
 import { RetryMenu } from './RetryMigrationProcessMenu';
+import { callAppRest } from '../../utils/api';
 
 const POLL_INTERVAL_MILLIS = 8000;
 
@@ -269,7 +270,6 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                                 />
                                             )}
                                         </ProgressContainer>
-                                        {index !== processInfo.length - 1 && <Divider />}
                                         {progress.errorMessage && (
                                             <RetryMenuContainer>
                                                 <RetryMenu
@@ -286,6 +286,7 @@ export const MigrationTransferPage: FunctionComponent<MigrationTransferProps> = 
                                                 />
                                             </RetryMenuContainer>
                                         )}
+                                        {index !== processInfo.length - 1 && <Divider />}
                                     </>
                                 );
                             })}

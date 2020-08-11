@@ -26,10 +26,12 @@ import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSyst
 import com.atlassian.migration.datacenter.spi.exceptions.DatabaseMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.GetCommandInvocationResponse;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 public class SsmPsqlDatabaseRestoreService {
@@ -40,8 +42,23 @@ public class SsmPsqlDatabaseRestoreService {
     private final AWSMigrationHelperDeploymentService migrationHelperDeploymentService;
     private final MigrationStageCallback migrationStageCallback;
     private final RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService;
+    private final String CRITICAL_ERROR_001 = "could not connect to server";
+    private final String CRITICAL_ERROR_002 = "could not translate host name";
+    private final String CRITICAL_ERROR_003 = "Connection timed out";
+    private final String CRITICAL_ERROR_004 = "No route to host";
+    private final String CRITICAL_ERROR_005 = "Name or service not known";
+    
+    // An array of critical errors that can be encountered when performing the RDS restore
+    private final String[] CRITICAL_ERRORS = {
+            CRITICAL_ERROR_001,
+            CRITICAL_ERROR_002,
+            CRITICAL_ERROR_003,
+            CRITICAL_ERROR_004,
+            CRITICAL_ERROR_005,
+    };
 
     private final String restoreDocumentName = "restoreDatabaseBackupToRDS";
+    
     private String commandId;
 
     public SsmPsqlDatabaseRestoreService(SSMApi ssm, AWSMigrationHelperDeploymentService migrationHelperDeploymentService, DatabaseRestoreStageTransitionCallback migrationStageCallback, RemoteInstanceCommandRunnerService remoteInstanceCommandRunnerService) {
@@ -80,21 +97,19 @@ public class SsmPsqlDatabaseRestoreService {
                 migrationInstanceId);
         
         migrationStageCallback.transitionToServiceWaitStage();
-
         try {
             consumer.handleCommandOutput();
+            checkForCriticalError(migrationInstanceId);
             migrationStageCallback.transitionToServiceNextStage();
-            
-            /*
-             * On successful DB restore start Jira
-             */
-            remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.START);
         } catch (SuccessfulSSMCommandConsumer.UnsuccessfulSSMCommandInvocationException
                 | SuccessfulSSMCommandConsumer.SSMCommandInvocationProcessingError e) {
             final String errorMessage = "Error restoring database. Either download of database dump from S3 failed or pg_restore failed";
-            migrationStageCallback
-                    .transitionToServiceErrorStage(String.format("%s. %s", errorMessage, e.getMessage()));
             throw new DatabaseMigrationFailure(errorMessage, e);
+        } finally {
+            /*
+             * Start Jira
+             */
+            remoteInstanceCommandRunnerService.setJiraRunStateTo(RemoteServiceState.START);
         }
     }
 
@@ -115,7 +130,8 @@ public class SsmPsqlDatabaseRestoreService {
 
         final SsmCommandResult ssmCommandOutputs = new SsmCommandResult();
         ssmCommandOutputs.errorMessage = response.standardErrorContent();
-
+        ssmCommandOutputs.criticalError = isCritical(response.standardErrorContent());
+        
         final String migrationS3BucketName;
         try {
             migrationS3BucketName = migrationHelperDeploymentService.getMigrationS3BucketName();
@@ -147,6 +163,7 @@ public class SsmPsqlDatabaseRestoreService {
     public static class SsmCommandResult {
         public String consoleUrl;
         public String errorMessage;
+        public boolean criticalError;
     }
 
     public static class SsmCommandNotInitialisedException extends Exception {
@@ -157,5 +174,23 @@ public class SsmPsqlDatabaseRestoreService {
         public SsmCommandNotInitialisedException(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+
+    public void checkForCriticalError(String migrationInstanceId) throws DatabaseMigrationFailure {
+        String error = ssm.getSSMCommand(getCommandId(), migrationInstanceId).standardErrorContent();
+        if(isCritical(error)) {
+            logger.error("Encountered a critical error when performing DB restore: {}", error);
+            throw new DatabaseMigrationFailure(error);
+        }
+    }
+
+    public boolean isCritical(String error) {
+        if(StringUtils.isNotBlank(error)) {
+            return Arrays
+                    .stream(CRITICAL_ERRORS)
+                    .parallel()
+                    .anyMatch(error::contains);
+        }
+        return false;
     }
 }

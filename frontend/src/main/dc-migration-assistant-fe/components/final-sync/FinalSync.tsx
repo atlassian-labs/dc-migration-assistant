@@ -23,7 +23,6 @@ import { callAppRest } from '../../utils/api';
 import {
     finalSyncStatusEndpoint,
     finalSyncStartEndpoint,
-    DatabaseMigrationStatusResult,
     statusToI18nString,
     dbLogsEndpoint,
     DBMigrationStatus,
@@ -46,15 +45,29 @@ const finalSyncInProgressStages = [
     MigrationStage.VALIDATE, // Because of the auto-transition from FINAL_SYNC_WAIT to VALIDATE, we need to add/hack this in here :(
 ];
 
-const dbStatusToProgress = (status: DatabaseMigrationStatusResult): Progress => {
+const dbStatusToProgress = (status: FinalSyncStatus): Progress => {
+    const { db, errorMessage } = status;
     const builder = new ProgressBuilder();
 
-    builder.setPhase(statusToI18nString(status.status));
-    builder.setElapsedSeconds(status.elapsedTime.seconds);
-    if (status.status === DBMigrationStatus.FAILED) {
-        builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
+    builder.setPhase(statusToI18nString(db.status));
+    builder.setElapsedSeconds(db.elapsedTime.seconds);
+    if (db.status === DBMigrationStatus.FAILED) {
+        if (errorMessage) {
+            builder.setError(
+                <p>
+                    {I18n.getText('atlassian.migration.datacenter.db.retry.error')}
+                    <br />
+                    <p />
+                    <strong>{I18n.getText('atlassian.migration.datacenter.generic.error')}:</strong>
+                    <br />
+                    {errorMessage}
+                </p>
+            );
+        } else {
+            builder.setError(I18n.getText('atlassian.migration.datacenter.db.retry.error'));
+        }
     }
-    switch (status.status) {
+    switch (db.status) {
         case 'DONE':
             builder.setCompleteness(1);
             break;
@@ -125,7 +138,7 @@ const startFinalSync = async (): Promise<void> => {
 
 const getProgressFromStatus = async (): Promise<Array<Progress>> => {
     return fetchFinalSyncStatus().then(result => {
-        return [dbStatusToProgress(result.db), fsSyncStatusToProgress(result)];
+        return [dbStatusToProgress(result), fsSyncStatusToProgress(result)];
     });
 };
 
