@@ -1,3 +1,4 @@
+import { AppContext } from './common';
 /*
  * Copyright 2020 Atlassian
  *
@@ -19,8 +20,8 @@
 declare namespace Cypress {
     interface Chainable {
         jira_login(ctx: AppContext): Chainable<Element>;
+        jira_fill_websudo(ctx: AppContext): Chainable<Element>;
         jira_setup(): Chainable<Element>;
         reset_migration(ctx: AppContext): Chainable<Element>;
-        relogin(ctx: AppContext): Chainable<Element>;
     }
 }
