@@ -70,7 +70,7 @@ jobs:
 
       - name: End to end test with production image
         timeout-minutes: 120
-        if: ${{ matrix.profile == 'end2end' && matrix.java == '11' && github.ref == env.MAIN_BRANCH_REF }}
+        if: matrix.profile == 'end2end' && matrix.java == '11' && ( github.ref == env.MAIN_BRANCH_REF || startsWith(github.ref, 'releases/') )
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
