@@ -22,7 +22,7 @@ The wrapper Docker image injects a pre-configured Jira database. The database
 has had the license field removed, and in must be injected before use. The
 license can be aquired from several places:
 
-* Members of the DC Deployments team have access to "Jira E2E smoketest license"
+* Members of the DC Deployments team have access to "Trebuchet Jira E2E smoketest license 2"
   in [LastPass](https://lastpass.com).
 * Other Atlassians can generate a license via the [License Encoder
   Service](https://license-encoder-service--app.ap-southeast-2.dev.atl-paas.net/).
