@@ -47,6 +47,7 @@
         <module>frontend</module>
         <module>core</module>
         <module>jira-plugin</module>
+        <module>confluence-plugin</module>
         <module>spi</module>
         <module>filesystem-processor</module>
         <module>build-utils</module>
@@ -143,12 +144,6 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.framework</artifactId>
                 <version>${apache.felix.framework.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.atlassian.jira</groupId>
-                <artifactId>jira-api</artifactId>
-                <version>${jira.api.version}</version>
             </dependency>
 
             <dependency>

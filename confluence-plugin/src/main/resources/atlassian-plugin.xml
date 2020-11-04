@@ -1,0 +1,59 @@
+<!--
+  ~ Copyright 2020 Atlassian
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    </plugin-info>
+
+    <!-- This is generated from the events at compile-time; see exec plugin in the pom and GenWhitelist.kt -->
+    <analytics-whitelist key="analytics-whitelist" resource="whitelist/analytics_whitelist.json"/>
+
+    <ao key="ao-module">
+        <description>The module configuring the Active Objects service used by this plugin</description>
+        <entity>com.atlassian.migration.datacenter.dto.Migration</entity>
+        <entity>com.atlassian.migration.datacenter.dto.MigrationContext</entity>
+        <entity>com.atlassian.migration.datacenter.dto.FileSyncRecord</entity>
+    </ao>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="dc-migration-assistant" location="i18n/dc-migration-assistant"/>
+    
+    <servlet key="dc-migration-assistant-servlet" name="DC Migration Assistant Servlet"
+             class="com.atlassian.migration.datacenter.TemplateServlet">
+        <url-pattern>/dc-migration-assistant*</url-pattern>
+    </servlet>
+
+    <web-resource key="dc-migration-assistant-templates" name="DC Migration Assistant Soy Templates">
+        <resource type="soy" name="dc-migration-assistant.soy" location="/templates/dc-migration-assistant.soy"/>
+        <dependency>com.atlassian.auiplugin:soy</dependency>
+        <dependency>com.atlassian.soy.soy-template-plugin:soy-deps</dependency>
+    </web-resource>
+
+    <web-item key="migrationAssistantItem" name="Jira DC Migration Plugin" section="admin_system_menu/advanced_menu_section"
+              weight="200"
+              application="jira">
+        <label key="atlassian.migration.datacenter.title"/>
+        <description>Jira admin menu item for this app</description>
+        <link linkId="dc-migration-assistant">/plugins/servlet/dc-migration-assistant</link>
+    </web-item>
+
+    <rest name="DC Migration Resource" i18n-name-key="atlassian.migration.datacenter.rest.name" key="dc-migration-rest" path="/dc-migration" version="1.0">
+        <description>The AWS migration plugin rest API</description>
+    </rest>
+</atlassian-plugin>

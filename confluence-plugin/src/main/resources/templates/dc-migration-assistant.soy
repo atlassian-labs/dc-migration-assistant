@@ -1,0 +1,19 @@
+{namespace dcmigration}
+
+/**
+ * Main layout which loads React app and all resources.
+ */
+{template .init}
+    {webResourceManager_requireResourcesForContext('dc-migration-assistant')}
+    <html>
+        <head>
+            <title>Hello</title>
+            <meta name="decorator" content="atl.admin"/>
+            <meta name="admin.active.section" content="admin_system_menu/advanced_menu_section"/>
+            <meta name="activeTab" content="migrationAssistantItem"/>
+        </head>
+        <body>
+            <div id="dc-migration-assistant-root"></div>
+        </body>
+    </html>
+{/template}
