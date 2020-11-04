@@ -27,12 +27,12 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @JacksonXmlRootElement(localName = "jira-database-config")
-public class DatabaseConfigurationXmlElement {
+public class JiraDatabaseConfigurationXmlElement {
 
     @JacksonXmlProperty(localName = "database-type")
     private String databaseType;
     @JacksonXmlProperty(localName = "jdbc-datasource")
-    private DbConfigXmlElement dbConfigXmlElement;
+    private JiraDbConfigXmlElement jiraDbConfigXmlElement;
 
     public DatabaseConfiguration toDatabaseConfiguration() {
         DatabaseConfiguration.DBType type = getDBType()
@@ -45,8 +45,8 @@ public class DatabaseConfigurationXmlElement {
         URI dbURI = getURI()
             .orElseThrow(() -> new ConfigurationReadException("No URI in dbconfig.xml"));
 
-        String userName = dbConfigXmlElement.getUserName();
-        String password = dbConfigXmlElement.getPassword();
+        String userName = jiraDbConfigXmlElement.getUserName();
+        String password = jiraDbConfigXmlElement.getPassword();
 
         validateRequiredValues(dbURI.toString(), userName, password);
 
@@ -71,7 +71,7 @@ public class DatabaseConfigurationXmlElement {
 
     public Optional<URI> getURI() {
         try {
-            String urlString = dbConfigXmlElement.getUrl();
+            String urlString = jiraDbConfigXmlElement.getUrl();
             if (urlString == null || urlString.equals(""))
                 return Optional.empty();
 

@@ -69,7 +69,7 @@ public class JiraConfiguration extends CommonApplicationConfiguration
         Path databaseConfig = Paths.get(jiraHome.getLocalHomePath()).resolve("dbconfig.xml");
 
         try {
-            DatabaseConfigurationXmlElement xmlElement = xmlMapper.readValue(databaseConfig.toFile(), DatabaseConfigurationXmlElement.class);
+            JiraDatabaseConfigurationXmlElement xmlElement = xmlMapper.readValue(databaseConfig.toFile(), JiraDatabaseConfigurationXmlElement.class);
             return xmlElement.toDatabaseConfiguration();
         } catch (IOException e) {
             throw new ConfigurationReadException("Unable to parse database configuration XML file", e);

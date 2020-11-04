@@ -30,27 +30,17 @@
     <description>This is the first supported release of the Jira Data Center Migration App. It's supported on Jira Software 8.0.0 (and up), and compatible with instances running on a PostgreSQL database.</description>
 
     <dependencies>
-        <dependency>
-            <groupId>com.atlassian.migration.datacenter</groupId>
-            <artifactId>core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.migration.datacenter</groupId>
-            <artifactId>api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.migration.datacenter</groupId>
-            <artifactId>frontend</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
+        <!-- OSGI Dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.atlassian.plugins</groupId>
+            <artifactId>atlassian-plugins-osgi-javaconfig</artifactId>
+        </dependency>
+        <!-- OSGI Imported services -->
         <dependency>
             <groupId>com.atlassian.activeobjects</groupId>
             <artifactId>activeobjects-plugin</artifactId>
@@ -77,14 +67,38 @@
             <artifactId>jta</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Internal dependencies -->
         <dependency>
-            <groupId>com.atlassian.plugins</groupId>
-            <artifactId>atlassian-plugins-osgi-javaconfig</artifactId>
+            <groupId>com.atlassian.migration.datacenter</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.migration.datacenter</groupId>
+            <artifactId>api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.migration.datacenter</groupId>
+            <artifactId>frontend</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -94,13 +108,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Build dependencies -->
         <dependency>
             <groupId>com.atlassian.migration.datacenter</groupId>
             <artifactId>build-utils</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
     <build>

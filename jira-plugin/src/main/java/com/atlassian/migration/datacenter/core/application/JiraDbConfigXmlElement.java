@@ -21,7 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.Base64;
 
-class DbConfigXmlElement {
+class JiraDbConfigXmlElement {
     private static final String BASE64_CLASS = "com.atlassian.db.config.password.ciphers.base64.Base64Cipher";
 
     private String url;
@@ -31,7 +31,7 @@ class DbConfigXmlElement {
     private String cipher;
     private String password;
 
-    public DbConfigXmlElement() {
+    public JiraDbConfigXmlElement() {
     }
 
     public String getUrl() {
