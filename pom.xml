@@ -15,8 +15,7 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -27,7 +26,7 @@
 
     <groupId>com.atlassian.migration.datacenter</groupId>
     <artifactId>parent</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.4-SNAPSHOT</version>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -518,7 +517,7 @@
         <apache.maven.exec.version>3.0.0</apache.maven.exec.version>
         <ao.version>3.2.2</ao.version>
         <amps.version>8.0.4</amps.version>
-        <amps.jvm.args/>
+        <amps.jvm.args />
         <atlassian.platform.version>5.0.13</atlassian.platform.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
