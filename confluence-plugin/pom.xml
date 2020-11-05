@@ -145,6 +145,7 @@
                         <Import-Package>
                             org.springframework.osgi.*;resolution:="optional",
                             org.eclipse.gemini.blueprint.*;resolution:="optional",
+                            !ch.qos.logback.*,
                             !com.sun.activation.*,
                             !com.google.protobuf.*,
                             !com.jcraft.jzlib,
