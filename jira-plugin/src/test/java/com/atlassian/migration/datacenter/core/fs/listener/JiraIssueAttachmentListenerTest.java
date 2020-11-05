@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.listener;
+package com.atlassian.migration.datacenter.core.fs.listener;
 
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
 import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.attachment.Attachment;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,14 +33,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +72,7 @@ class JiraIssueAttachmentListenerTest {
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_CREATED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedAttachments, contains(aMockAttachment, anotherMockAttachment));
+        MatcherAssert.assertThat(capturedAttachments, Matchers.contains(aMockAttachment, anotherMockAttachment));
     }
 
     @Test
@@ -86,7 +84,7 @@ class JiraIssueAttachmentListenerTest {
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_UPDATED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedAttachments, contains(aMockAttachment, anotherMockAttachment));
+        MatcherAssert.assertThat(capturedAttachments, Matchers.contains(aMockAttachment, anotherMockAttachment));
     }
 
     @Test
@@ -94,7 +92,7 @@ class JiraIssueAttachmentListenerTest {
         IssueEvent mockEvent = new IssueEvent(mockIssue, null, null, null, null, null, EventType.ISSUE_COMMENT_EDITED_ID);
         sut.onIssueEvent(mockEvent);
 
-        assertThat(capturedAttachments.size(), is(0));
+        MatcherAssert.assertThat(capturedAttachments.size(), Matchers.is(0));
         verify(mockIssue, never()).getAttachments();
     }
 

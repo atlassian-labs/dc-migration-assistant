@@ -16,11 +16,9 @@
 
 package com.atlassian.migration.datacenter.core.fs;
 
-import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -29,7 +27,6 @@ import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageEr
 import com.atlassian.migration.datacenter.spi.fs.reporting.FileSystemMigrationReport;
 import com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus;
 import com.atlassian.scheduler.config.JobId;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,7 +35,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
-import static com.atlassian.migration.datacenter.spi.MigrationStage.*;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.AUTHENTICATION;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY_WAIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,7 +65,8 @@ class S3FilesystemMigrationServiceTest {
     @Mock
     Environment mockEnv;
 
-    JiraIssueAttachmentListener attachmentListener;
+    @Mock
+    AttachmentListener attachmentListener;
 
     @Mock
     S3BulkCopy bulkCopy;
@@ -76,27 +76,17 @@ class S3FilesystemMigrationServiceTest {
 
     FileSystemMigrationReportManager reportManager = new DefaultFileSystemMigrationReportManager();
 
-    @BeforeEach
-    void setUp() {
-        attachmentListener = new JiraIssueAttachmentListener(
-                mock(EventPublisher.class),
-                mock(AttachmentCaptor.class)
-        );
-        fsService = new S3FilesystemMigrationService(mockEnv, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
-    }
-
     @Test
     void shouldStartAttachmentListener() throws InvalidMigrationStageError {
-        when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
+        when(migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
 
         fsService.startMigration();
 
-        assertTrue(attachmentListener.isStarted(), "attachment listener was not started");
+        verify(attachmentListener).start();
     }
 
     @Test
-    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FileUploadException
-    {
+    void shouldFailToStartMigrationWhenSharedHomeDirectoryIsInvalid() throws InvalidMigrationStageError, FileUploadException {
         final String errorMessage = "Failed to migrate content. File not found: abc";
         when(this.migrationService.getCurrentStage()).thenReturn(FS_MIGRATION_COPY);
         FileUploadException exception = new FileUploadException(errorMessage);

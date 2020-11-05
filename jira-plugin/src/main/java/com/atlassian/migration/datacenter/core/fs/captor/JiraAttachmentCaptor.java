@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.captor;
-
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.jira.issue.attachment.Attachment;
 
 @FunctionalInterface
-public interface AttachmentCaptor {
+public interface JiraAttachmentCaptor {
+
+    /**
+     * Takes the jira attachment created with a Jira issue
+     * and captures it with the attachments to be uploaded
+     * in the final sync
+     * @param attachment
+     */
     void captureAttachment(Attachment attachment);
+
 }

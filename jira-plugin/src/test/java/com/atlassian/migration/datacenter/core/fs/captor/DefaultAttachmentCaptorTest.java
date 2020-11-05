@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.captor;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
@@ -54,7 +54,7 @@ public class DefaultAttachmentCaptorTest {
     private ActiveObjects ao;
     private EntityManager entityManager;
 
-    private DefaultAttachmentCaptor sut;
+    private DefaultJiraAttachmentCaptor sut;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -69,7 +69,7 @@ public class DefaultAttachmentCaptorTest {
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new DefaultAttachmentCaptor(ao, migrationService, attachmentStore);
+        sut = new DefaultJiraAttachmentCaptor(ao, migrationService, attachmentStore);
         setupEntities();
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.atlassian.migration.datacenter.core.fs.jira.captor;
+package com.atlassian.migration.datacenter.core.fs.captor;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.jira.issue.attachment.Attachment;
@@ -27,21 +27,20 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 
-public class DefaultAttachmentCaptor implements AttachmentCaptor {
+public class DefaultJiraAttachmentCaptor implements JiraAttachmentCaptor {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultAttachmentCaptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultJiraAttachmentCaptor.class);
     private final ActiveObjects ao;
     private final MigrationService migrationService;
     private AttachmentStore attachmentStore;
 
-    public DefaultAttachmentCaptor(ActiveObjects ao, MigrationService migrationService, AttachmentStore
+    public DefaultJiraAttachmentCaptor(ActiveObjects ao, MigrationService migrationService, AttachmentStore
             attachmentStore) {
         this.ao = ao;
         this.migrationService = migrationService;
         this.attachmentStore = attachmentStore;
     }
 
-    @Override
     public void captureAttachment(Attachment attachment) {
         File attachmentFile = this.attachmentStore.getAttachmentFile(attachment);
 

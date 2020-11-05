@@ -18,11 +18,10 @@ package com.atlassian.migration.datacenter.core.fs;
 
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.dto.Migration;
 import com.atlassian.migration.datacenter.spi.MigrationService;
-import com.atlassian.migration.datacenter.spi.MigrationStage;
 import com.atlassian.migration.datacenter.spi.exceptions.FileSystemMigrationFailure;
 import com.atlassian.migration.datacenter.spi.exceptions.InvalidMigrationStageError;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
@@ -33,9 +32,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.env.Environment;
 
-import static com.atlassian.migration.datacenter.spi.MigrationStage.*;
 import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY;
-import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_ERROR;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.FS_MIGRATION_COPY_WAIT;
+import static com.atlassian.migration.datacenter.spi.MigrationStage.OFFLINE_WARNING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DONE;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.DOWNLOADING;
 import static com.atlassian.migration.datacenter.spi.fs.reporting.FilesystemMigrationStatus.FAILED;
@@ -48,7 +47,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
     private final MigrationService migrationService;
     private final MigrationRunner migrationRunner;
     private final S3SyncFileSystemDownloadManager fileSystemDownloadManager;
-    private final JiraIssueAttachmentListener attachmentListener;
+    private final AttachmentListener attachmentListener;
     private final S3BulkCopy bulkCopy;
 
     private FileSystemMigrationReportManager reportManager;
@@ -57,7 +56,7 @@ public class S3FilesystemMigrationService implements FilesystemMigrationService,
                                         S3SyncFileSystemDownloadManager fileSystemDownloadManager,
                                         MigrationService migrationService,
                                         MigrationRunner migrationRunner,
-                                        JiraIssueAttachmentListener attachmentListener,
+                                        AttachmentListener attachmentListener,
                                         S3BulkCopy bulkCopy,
                                         FileSystemMigrationReportManager reportManager) {
         this.environment = environment;

@@ -23,7 +23,6 @@ import com.atlassian.jira.issue.attachment.AttachmentStore;
 import com.atlassian.jira.util.BuildUtilsInfo;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
 import com.atlassian.migration.datacenter.core.application.JiraConfiguration;
-import com.atlassian.migration.datacenter.core.aws.AWSMigrationService;
 import com.atlassian.migration.datacenter.core.aws.AwsMigrationServiceWrapper;
 import com.atlassian.migration.datacenter.core.aws.CancellableMigrationServiceHandler;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
@@ -81,9 +80,9 @@ import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.DefaultAttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultJiraAttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -320,7 +319,7 @@ public class MigrationAssistantBeanConfiguration {
                                                                  S3SyncFileSystemDownloadManager downloadManager,
                                                                  MigrationService migrationService,
                                                                  MigrationRunner migrationRunner,
-                                                                 JiraIssueAttachmentListener attachmentListener,
+                                                                 AttachmentListener attachmentListener,
                                                                  S3BulkCopy bulkCopy,
                                                                  FileSystemMigrationReportManager reportManager)
     {
@@ -358,7 +357,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+    public AttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, DefaultJiraAttachmentCaptor attachmentCaptor) {
         return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
     }
 
@@ -368,8 +367,8 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
-        return new DefaultAttachmentCaptor(activeObjects, migrationService, attachmentStore);
+    public DefaultJiraAttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
+        return new DefaultJiraAttachmentCaptor(activeObjects, migrationService, attachmentStore);
     }
 
     @Bean

@@ -78,8 +78,7 @@ import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.core.fs.jira.captor.AttachmentCaptor;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -320,7 +319,7 @@ public class MigrationAssistantBeanConfiguration {
                                                                  S3SyncFileSystemDownloadManager downloadManager,
                                                                  MigrationService migrationService,
                                                                  MigrationRunner migrationRunner,
-                                                                 JiraIssueAttachmentListener attachmentListener,
+                                                                 AttachmentListener attachmentListener,
                                                                  S3BulkCopy bulkCopy,
                                                                  FileSystemMigrationReportManager reportManager) {
         return new S3FilesystemMigrationService(environment, downloadManager, migrationService, migrationRunner, attachmentListener, bulkCopy, reportManager);
@@ -356,10 +355,11 @@ public class MigrationAssistantBeanConfiguration {
         return new AWSMigrationHelperDeploymentService(cfnApi, autoScalingClientFactory, migrationService);
     }
 
-    @Bean
-    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
-        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
-    }
+    // FIXME replace me with a confluence bean
+//    @Bean
+//    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
+//        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
+//    }
 
     @Bean
     public AttachmentSyncManager attachmentSyncManager(ActiveObjects activeObjects, MigrationService migrationService) {
@@ -381,7 +381,7 @@ public class MigrationAssistantBeanConfiguration {
                                                Supplier<S3AsyncClient> s3ClientSupplier,
                                                AWSMigrationHelperDeploymentService helperDeploymentService,
                                                QueueWatcher queueWatcher,
-                                               JiraIssueAttachmentListener attachmentListener,
+                                               AttachmentListener attachmentListener,
                                                FileSystemMigrationReportManager reportManager,
                                                SqsApi sqsApi) {
         return new S3FinalSyncRunner(attachmentSyncManager, s3ClientSupplier, Paths.get("/var/atlassian/application-data/confluence"), helperDeploymentService, queueWatcher, attachmentListener, reportManager, sqsApi);

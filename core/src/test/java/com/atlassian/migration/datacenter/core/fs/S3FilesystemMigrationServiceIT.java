@@ -21,7 +21,7 @@ import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHe
 import com.atlassian.migration.datacenter.core.aws.region.RegionService;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.MigrationStage;
@@ -76,7 +76,8 @@ class S3FilesystemMigrationServiceIT {
     MigrationRunner migrationRunner;
     @Mock
     S3SyncFileSystemDownloadManager fileSystemDownloader;
-    @Mock JiraIssueAttachmentListener attachmentListener;
+    @Mock
+    AttachmentListener attachmentListener;
 
     S3BulkCopy bulkCopy;
 

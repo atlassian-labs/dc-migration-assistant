@@ -22,8 +22,7 @@ import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManag
 import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig
 import com.atlassian.migration.datacenter.core.fs.S3Uploader
-import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport
+import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener
 import com.atlassian.migration.datacenter.core.util.MigrationJobRunner
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import com.atlassian.scheduler.JobRunnerRequest
@@ -40,7 +39,7 @@ class S3FinalSyncRunner(
         private val home: Path,
         private val migrationHelperDeploymentService: AWSMigrationHelperDeploymentService,
         private val queueWatcher: QueueWatcher,
-        private val attachmentListener: JiraIssueAttachmentListener,
+        private val attachmentListener: AttachmentListener,
         private val reportManager: FileSystemMigrationReportManager,
         private val sqsApi: SqsApi)
     : MigrationJobRunner {
