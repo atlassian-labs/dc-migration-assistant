@@ -83,6 +83,12 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <scm>
+        <connection>scm:git:ssh://git@github.com:atlassian-labs/dc-migration-assistant.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:atlassian-labs/dc-migration-assistant.git</developerConnection>
+        <url>https://github.com/atlassian-labs/dc-migration-assistant</url>
+    </scm>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
