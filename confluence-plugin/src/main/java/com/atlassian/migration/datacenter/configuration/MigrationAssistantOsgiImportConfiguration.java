@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.confluence.status.service.SystemInformationService;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.auth.LoginUriProvider;
@@ -59,6 +60,11 @@ public class MigrationAssistantOsgiImportConfiguration {
     @Bean
     public PluginAccessor getPluginAccessor() {
         return importOsgiService(PluginAccessor.class);
+    }
+
+    @Bean
+    public SystemInformationService systemInformationService() {
+        return importOsgiService(SystemInformationService.class);
     }
 
     @Bean

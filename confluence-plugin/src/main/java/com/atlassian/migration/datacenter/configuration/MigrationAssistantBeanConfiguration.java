@@ -17,8 +17,10 @@
 package com.atlassian.migration.datacenter.configuration;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.confluence.status.service.SystemInformationService;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration;
+import com.atlassian.migration.datacenter.core.application.ConfluenceConfiguration;
 import com.atlassian.migration.datacenter.core.aws.AwsMigrationServiceWrapper;
 import com.atlassian.migration.datacenter.core.aws.CancellableMigrationServiceHandler;
 import com.atlassian.migration.datacenter.core.aws.CfnApi;
@@ -83,6 +85,7 @@ import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.fs.FilesystemMigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.MigrationInfrastructureCleanupService;
+import com.atlassian.plugin.PluginAccessor;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.scheduler.SchedulerService;
 import org.springframework.context.annotation.Bean;
@@ -255,6 +258,11 @@ public class MigrationAssistantBeanConfiguration {
                 s3UploadService,
                 restoreService,
                 migrationHelperDeploymentService);
+    }
+
+    @Bean
+    public ConfluenceConfiguration confluenceConfiguration(SystemInformationService systemInformationService, PluginAccessor pluginAccessor) {
+        return new ConfluenceConfiguration(systemInformationService, pluginAccessor);
     }
 
     @Bean
