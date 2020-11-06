@@ -79,6 +79,7 @@ import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
 import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
+import com.atlassian.migration.datacenter.core.fs.listener.ConfluenceAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
 import com.atlassian.migration.datacenter.core.util.MigrationRunner;
 import com.atlassian.migration.datacenter.spi.MigrationService;
@@ -355,11 +356,10 @@ public class MigrationAssistantBeanConfiguration {
         return new AWSMigrationHelperDeploymentService(cfnApi, autoScalingClientFactory, migrationService);
     }
 
-    // FIXME replace me with a confluence bean
-//    @Bean
-//    public JiraIssueAttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, AttachmentCaptor attachmentCaptor) {
-//        return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
-//    }
+    @Bean
+    public ConfluenceAttachmentListener confluenceAttachmentListener(EventPublisher eventPublisher) {
+        return new ConfluenceAttachmentListener(eventPublisher);
+    }
 
     @Bean
     public AttachmentSyncManager attachmentSyncManager(ActiveObjects activeObjects, MigrationService migrationService) {
