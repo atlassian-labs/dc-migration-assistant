@@ -73,6 +73,8 @@ import com.atlassian.migration.datacenter.core.fs.S3UploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.UploaderFactory;
 import com.atlassian.migration.datacenter.core.fs.captor.AttachmentSyncManager;
 import com.atlassian.migration.datacenter.core.fs.captor.DefaultAttachmentSyncManager;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultPathCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.PathCaptor;
 import com.atlassian.migration.datacenter.core.fs.captor.QueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncRunner;
 import com.atlassian.migration.datacenter.core.fs.captor.S3FinalSyncService;
@@ -80,7 +82,7 @@ import com.atlassian.migration.datacenter.core.fs.captor.SqsQueueWatcher;
 import com.atlassian.migration.datacenter.core.fs.copy.S3BulkCopy;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloadManager;
 import com.atlassian.migration.datacenter.core.fs.download.s3sync.S3SyncFileSystemDownloader;
-import com.atlassian.migration.datacenter.core.fs.captor.DefaultJiraAttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.DefaultJiraAttachmentPathResolver;
 import com.atlassian.migration.datacenter.core.fs.listener.AttachmentListener;
 import com.atlassian.migration.datacenter.core.fs.listener.JiraIssueAttachmentListener;
 import com.atlassian.migration.datacenter.core.util.EncryptionManager;
@@ -357,7 +359,7 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public AttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, DefaultJiraAttachmentCaptor attachmentCaptor) {
+    public AttachmentListener jiraIssueAttachmentListener(EventPublisher eventPublisher, DefaultJiraAttachmentPathResolver attachmentCaptor) {
         return new JiraIssueAttachmentListener(eventPublisher, attachmentCaptor);
     }
 
@@ -367,8 +369,13 @@ public class MigrationAssistantBeanConfiguration {
     }
 
     @Bean
-    public DefaultJiraAttachmentCaptor attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore) {
-        return new DefaultJiraAttachmentCaptor(activeObjects, migrationService, attachmentStore);
+    public PathCaptor pathCaptor(ActiveObjects ao, MigrationService migrationService) {
+        return new DefaultPathCaptor(ao, migrationService);
+    }
+
+    @Bean
+    public DefaultJiraAttachmentPathResolver attachmentCaptor(ActiveObjects activeObjects, MigrationService migrationService, AttachmentStore attachmentStore, PathCaptor pathCaptor) {
+        return new DefaultJiraAttachmentPathResolver(activeObjects, migrationService, attachmentStore, pathCaptor);
     }
 
     @Bean

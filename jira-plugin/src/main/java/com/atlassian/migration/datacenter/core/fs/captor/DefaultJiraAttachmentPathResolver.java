@@ -19,7 +19,6 @@ package com.atlassian.migration.datacenter.core.fs.captor;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.jira.issue.attachment.Attachment;
 import com.atlassian.jira.issue.attachment.AttachmentStore;
-import com.atlassian.migration.datacenter.dto.FileSyncRecord;
 import com.atlassian.migration.datacenter.spi.MigrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +26,23 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 
-public class DefaultJiraAttachmentCaptor implements JiraAttachmentCaptor {
+public class DefaultJiraAttachmentPathResolver implements JiraAttachmentPathResolver {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultJiraAttachmentCaptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultJiraAttachmentPathResolver.class);
     private final ActiveObjects ao;
     private final MigrationService migrationService;
     private AttachmentStore attachmentStore;
+    private final PathCaptor pathCaptor;
 
-    public DefaultJiraAttachmentCaptor(ActiveObjects ao, MigrationService migrationService, AttachmentStore
-            attachmentStore) {
+    public DefaultJiraAttachmentPathResolver(
+            ActiveObjects ao,
+            MigrationService migrationService,
+            AttachmentStore attachmentStore,
+            PathCaptor pathCaptor) {
         this.ao = ao;
         this.migrationService = migrationService;
         this.attachmentStore = attachmentStore;
+        this.pathCaptor = pathCaptor;
     }
 
     public void captureAttachment(Attachment attachment) {
@@ -55,18 +59,7 @@ public class DefaultJiraAttachmentCaptor implements JiraAttachmentCaptor {
         if (attachmentFile != null && attachmentFile.exists()) {
             Path attachmentPath = attachmentFile.toPath();
             logger.debug("Recording file path - {} ", attachmentPath);
-            this.captureAttachmentPath(attachmentPath);
+            pathCaptor.commitPath(attachmentPath);
         }
-    }
-
-    private void captureAttachmentPath(Path attachmentPath) {
-        logger.debug("captured attachment for final sync: {}", attachmentPath.toString());
-
-        FileSyncRecord record = ao.create(FileSyncRecord.class);
-
-        record.setFilePath(attachmentPath.toString());
-        record.setMigration(migrationService.getCurrentMigration());
-
-        record.save();
     }
 }

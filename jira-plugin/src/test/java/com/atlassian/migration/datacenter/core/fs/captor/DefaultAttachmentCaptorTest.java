@@ -54,7 +54,7 @@ public class DefaultAttachmentCaptorTest {
     private ActiveObjects ao;
     private EntityManager entityManager;
 
-    private DefaultJiraAttachmentCaptor sut;
+    private DefaultJiraAttachmentPathResolver sut;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -65,11 +65,14 @@ public class DefaultAttachmentCaptorTest {
     @Mock
     private AttachmentStore attachmentStore;
 
+    @Mock
+    private PathCaptor pathCaptor;
+
     @Before
     public void setup() {
         assertNotNull(entityManager);
         ao = new TestActiveObjects(entityManager);
-        sut = new DefaultJiraAttachmentCaptor(ao, migrationService, attachmentStore);
+        sut = new DefaultJiraAttachmentPathResolver(ao, migrationService, attachmentStore, pathCaptor);
         setupEntities();
     }
 

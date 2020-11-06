@@ -21,7 +21,7 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.jira.event.issue.IssueEvent;
 import com.atlassian.jira.event.type.EventType;
-import com.atlassian.migration.datacenter.core.fs.captor.JiraAttachmentCaptor;
+import com.atlassian.migration.datacenter.core.fs.captor.JiraAttachmentPathResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -35,10 +35,10 @@ public class JiraIssueAttachmentListener implements DisposableBean, AttachmentLi
     private static final List<Long> ISSUE_EVENT_TYPES_TO_LISTEN = Arrays.asList(EventType.ISSUE_CREATED_ID, EventType.ISSUE_UPDATED_ID);
 
     private final EventPublisher eventPublisher;
-    private JiraAttachmentCaptor attachmentCaptor;
+    private JiraAttachmentPathResolver attachmentCaptor;
     private boolean started;
 
-    public JiraIssueAttachmentListener(EventPublisher eventPublisher, JiraAttachmentCaptor attachmentCaptor) {
+    public JiraIssueAttachmentListener(EventPublisher eventPublisher, JiraAttachmentPathResolver attachmentCaptor) {
         this.eventPublisher = eventPublisher;
         this.attachmentCaptor = attachmentCaptor;
     }
