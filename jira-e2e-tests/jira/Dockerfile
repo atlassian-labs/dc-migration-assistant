@@ -4,6 +4,7 @@ FROM atlassian/jira-software:${JIRA_VERSION}
 RUN apt-get update && apt-get install gnupg2 -y -q
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 
+# We need to use PostgreSQL v11 as v12 is not supported for Jira
 RUN apt-get update -y && apt-get upgrade \
     && apt-get install -y --no-install-recommends netcat-openbsd wget \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
