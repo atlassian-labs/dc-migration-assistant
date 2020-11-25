@@ -4,10 +4,13 @@ FROM atlassian/jira-software:${JIRA_VERSION}
 RUN apt-get update && apt-get install gnupg2 -y -q
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends netcat-openbsd \
+RUN apt-get update -y && apt-get upgrade \
+    && apt-get install -y --no-install-recommends netcat-openbsd wget \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ focal"-pgdg main | tee /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update -y \
     && apt-get install -y -q software-properties-common \
-    && apt-get install -y -q postgresql postgresql-client postgresql-contrib \
+    && apt-get install -y -q postgresql-11 \
     && apt-get clean
 
 COPY waitport /usr/local/bin/waitport
