@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [ 8, 11 ]
+        java: [ 8 ]
         profile: ['integration', '!integration', 'smoketest', 'functest', 'end2end']
 
     steps:
@@ -54,7 +54,7 @@ jobs:
 
       - name: Smoke-test with production image
         timeout-minutes: 20
-        if: matrix.profile == 'smoketest' && matrix.java == '11'
+        if: matrix.profile == 'smoketest' && matrix.java == '8'
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
@@ -70,7 +70,7 @@ jobs:
 
       - name: End to end test with production image
         timeout-minutes: 120
-        if: matrix.profile == 'end2end' && matrix.java == '11' && ( github.ref == env.MAIN_BRANCH_REF || startsWith(github.ref, 'releases/') )
+        if: matrix.profile == 'end2end' && matrix.java == '8' && ( github.ref == env.MAIN_BRANCH_REF || startsWith(github.ref, 'releases/') )
         env:
           JIRA_E2E_LICENSE: ${{ secrets.JIRA_E2E_LICENSE }}
           CYPRESS_AWS_ACCESS_KEY_ID: ${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}
