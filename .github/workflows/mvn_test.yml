@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [ 8 ]
+        java: [ 8, 11 ]
         profile: ['integration', '!integration', 'smoketest', 'functest', 'end2end']
 
     steps:
