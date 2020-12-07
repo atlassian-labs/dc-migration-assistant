@@ -15,6 +15,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
+          args: --reachable
 
       - name: Run Snyk Node to check for vulnerabilities
         uses: snyk/actions/node@master
@@ -22,3 +23,4 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
+          args: --file=frontend/package.json
