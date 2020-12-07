@@ -23,4 +23,4 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          args: --file=frontend/package.json
+          args: --yarn-workspaces --file=frontend/package.json
