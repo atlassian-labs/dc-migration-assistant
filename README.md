@@ -98,6 +98,10 @@ Will additionally fix any automatically-fixable issues.
 
 See [the testing README](jira-e2e-tests/README.md) for details.
 
+### Security scan
+
+The project is regularly scanned for security vulnerabilities via Snyk vulnerability scanner.
+
 ## Contributions
 
 Contributions to DC Migration Assistant are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details
