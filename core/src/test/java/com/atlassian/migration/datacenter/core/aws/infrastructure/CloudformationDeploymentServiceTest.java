@@ -22,6 +22,7 @@ import com.atlassian.migration.datacenter.spi.MigrationService;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError;
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentState;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -92,13 +93,14 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
+    @Disabled("DCD-1163")
     void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
         final String badStatus = "it broke";
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
 
         deploySimpleStack();
 
-        Thread.sleep(1000);
+        Thread.sleep(100);
 
         assertTrue(deploymentFailed);
         assertFalse(deploymentSucceeded);
@@ -115,12 +117,13 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
+    @Disabled("DCD-1163")
     void shouldCallHandleSuccessfulDeploymentWhenDeploymentSucceeds() throws InterruptedException, InfrastructureDeploymentError {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
         deploySimpleStack();
 
-        Thread.sleep(1000);
+        Thread.sleep(100);
 
         assertTrue(deploymentSucceeded);
         assertFalse(deploymentFailed);
