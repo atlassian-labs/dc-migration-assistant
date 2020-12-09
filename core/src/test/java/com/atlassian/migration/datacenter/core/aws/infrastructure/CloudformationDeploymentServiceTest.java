@@ -98,7 +98,7 @@ class CloudformationDeploymentServiceTest {
 
         deploySimpleStack();
 
-        Thread.sleep(700);
+        Thread.sleep(1000);
 
         assertTrue(deploymentFailed);
         assertFalse(deploymentSucceeded);
@@ -120,7 +120,7 @@ class CloudformationDeploymentServiceTest {
 
         deploySimpleStack();
 
-        Thread.sleep(700);
+        Thread.sleep(1000);
 
         assertTrue(deploymentSucceeded);
         assertFalse(deploymentFailed);
