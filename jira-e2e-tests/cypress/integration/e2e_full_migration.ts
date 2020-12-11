@@ -43,7 +43,7 @@ describe('Migration plugin', () => {
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
-    const cidrBlock = Cypress.env('IP_ADDRESS') != undefined ? `${Cypress.env('IP_ADDRESS')}/32` : '0.0.0.0/32';
+    const cidrBlock = Cypress.env('IP_ADDRESS') ? `${Cypress.env('IP_ADDRESS')}/32` : '0.0.0.0/0';
     let serviceUrl;
 
     before(() => {
