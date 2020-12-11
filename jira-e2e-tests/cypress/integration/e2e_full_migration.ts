@@ -43,7 +43,7 @@ describe('Migration plugin', () => {
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
-    const cidrBlock = `${Cypress.env('CYPRESS_IP_ADDRESS')}/32` || '0.0.0.0/32';
+    const cidrBlock = Cypress.env('IP_ADDRESS') != undefined ? `${Cypress.env('IP_ADDRESS')}/32` : '0.0.0.0/32';
     let serviceUrl;
 
     before(() => {
@@ -51,7 +51,7 @@ describe('Migration plugin', () => {
         cy.viewport('macbook-15');
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
-        Cypress.Cookies.defaults({ whitelist: ['JSESSIONID', 'atlassian.xsrf.token'] });
+        Cypress.Cookies.defaults({whitelist: ['JSESSIONID', 'atlassian.xsrf.token']});
         cy.jira_login(ctx);
 
         if (shouldReset) {
