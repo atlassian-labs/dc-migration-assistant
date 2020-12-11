@@ -80,7 +80,7 @@ class S3FinalSyncRunnerTest {
         every { sqsApi.emptyQueue("dlq") } just Runs
         every { jiraIssueAttachmentListener.stop() } just Runs
         every { migrationHelperDeploymentService.migrationS3BucketName } returns "migration-bucket"
-        every { client.get() } returns S3AsyncClient.create()
+        every { client.get() } returns mockk()
         every { fileSystemMigrationReportManager.resetReport(ReportType.Final) } returns report
         every { attachmentSyncManager.capturedAttachments } returns emptySet()
         every { report.failedFiles } returns emptySet()
