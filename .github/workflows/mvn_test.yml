@@ -68,6 +68,10 @@ jobs:
           ./postgres/inject-license
           JIRA_VERSION=latest docker-compose up --force-recreate --build --exit-code-from cypress --abort-on-container-exit postgresql jira cypress
 
+      - name: Public IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+
       - name: End to end test with production image
         timeout-minutes: 120
         if: matrix.profile == 'end2end' && matrix.java == '8' && ( github.ref == env.MAIN_BRANCH_REF || startsWith(github.ref, 'releases/') )
@@ -77,6 +81,7 @@ jobs:
           CYPRESS_AWS_SECRET_ACCESS_KEY: ${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}
           CYPRESS_ADMIN_PASSWORD: ${{ secrets.CYPRESS_ADMIN_PASSWORD }}
           CYPRESS_TARGET_TESTSUITE: e2e_full_migration
+          CYPRESS_IP_ADDRESS: ${{ steps.ip.outputs.ipv4 }}
         run: |
           mvn package -DskipTests
           mv jira-plugin/target/jira-plugin-*.jar jira-e2e-tests/jira/
