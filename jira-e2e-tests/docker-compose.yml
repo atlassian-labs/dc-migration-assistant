@@ -48,11 +48,12 @@ services:
     environment:
       - CYPRESS_AWS_ACCESS_KEY_ID=${CYPRESS_AWS_ACCESS_KEY_ID}
       - CYPRESS_AWS_SECRET_ACCESS_KEY=${CYPRESS_AWS_SECRET_ACCESS_KEY}
+      - CYPRESS_IP_ADDRESS=${CYPRESS_IP_ADDRESS}
       - CYPRESS_ADMIN_PASSWORD=${CYPRESS_ADMIN_PASSWORD}
       - CYPRESS_TARGET_TESTSUITE=${CYPRESS_TARGET_TESTSUITE}
     volumes:
-      - "/tmp/cypress/screenshots:/opt/cypress/screenshots"
-      - "/tmp/cypress/videos:/opt/cypress/videos"
+      - "./results/screenshots:/opt/cypress/screenshots"
+      - "./results/videos:/opt/cypress/videos"
     command: >
       bash -c "
           cd /opt/cypress &&

@@ -16,24 +16,18 @@
 
 /// <reference types="Cypress" />
 
-import type { AWSCredentials } from '../support/common';
+import type {AWSCredentials} from '../support/common';
 
-import { waitForProvisioning } from '../support/pages/ProvisioningPage';
-import { getContext, validate_issue } from '../support/jira';
-import {
-    configureQuickStartFormWithoutVPC,
-    submitQuickstartForm,
-} from '../support/pages/QuickstartForm';
-import { startMigration } from '../support/pages/LandingPage';
-import { selectPrefixOnASIPage } from '../support/pages/SelectAsiPage';
-import { fillCrendetialsOnAuthPage } from '../support/pages/AwsAuthPage';
-import {
-    startFileSystemInitialMigration,
-    monitorFileSystemMigration,
-} from '../support/pages/FileSystemMigration';
-import { showsBlockUserWarning, continueWithMigration } from '../support/pages/BlockUsersPage';
-import { runFinalSync, monitorFinalSync } from '../support/pages/FinalSync';
-import { showsValidationPage } from '../support/pages/ValidationPage';
+import {waitForProvisioning} from '../support/pages/ProvisioningPage';
+import {getContext, validate_issue} from '../support/jira';
+import {configureQuickStartFormWithoutVPC, submitQuickstartForm,} from '../support/pages/QuickstartForm';
+import {startMigration} from '../support/pages/LandingPage';
+import {selectPrefixOnASIPage} from '../support/pages/SelectAsiPage';
+import {fillCrendetialsOnAuthPage} from '../support/pages/AwsAuthPage';
+import {monitorFileSystemMigration, startFileSystemInitialMigration,} from '../support/pages/FileSystemMigration';
+import {continueWithMigration, showsBlockUserWarning} from '../support/pages/BlockUsersPage';
+import {monitorFinalSync, runFinalSync} from '../support/pages/FinalSync';
+import {showsValidationPage} from '../support/pages/ValidationPage';
 
 const shouldReset = true;
 
@@ -49,6 +43,7 @@ describe('Migration plugin', () => {
     const region = 'ap-southeast-2';
     const testId = Math.random().toString(36).substring(2, 8);
     const credentials = getAwsTokens();
+    const cidrBlock = Cypress.env('IP_ADDRESS') ? `${Cypress.env('IP_ADDRESS')}/32` : '0.0.0.0/0';
     let serviceUrl;
 
     before(() => {
@@ -56,7 +51,7 @@ describe('Migration plugin', () => {
         cy.viewport('macbook-15');
         expect(credentials.keyId, 'Set AWS_ACCESS_KEY_ID, see README.md').to.not.be.undefined;
 
-        Cypress.Cookies.defaults({ whitelist: ['JSESSIONID', 'atlassian.xsrf.token'] });
+        Cypress.Cookies.defaults({whitelist: ['JSESSIONID', 'atlassian.xsrf.token']});
         cy.jira_login(ctx);
 
         if (shouldReset) {
@@ -85,6 +80,7 @@ describe('Migration plugin', () => {
             stackName: `teststack-${testId}`,
             dbPassword: `XadD54^${testId}`,
             dbMasterPassword: `YadD54^${testId}`,
+            cidrBlock: cidrBlock
         });
         submitQuickstartForm();
     });
