@@ -83,7 +83,7 @@ class FileSystemMigrationEndpoint(private val fsMigrationService: FilesystemMigr
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("final-sync")
+    @Path("/final-sync")
     fun getFinalSyncFiles(): Response {
         val files = attachmentSyncManager.capturedAttachments
                 .stream()
