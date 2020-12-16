@@ -84,10 +84,15 @@
     </pluginRepositories>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com:atlassian-labs/dc-migration-assistant.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:atlassian-labs/dc-migration-assistant.git</developerConnection>
+        <connection>scm:git:git://git@github.com:atlassian-labs/dc-migration-assistant.git</connection>
+        <developerConnection>scm:git:git://git@github.com:atlassian-labs/dc-migration-assistant.git</developerConnection>
         <url>https://github.com/atlassian-labs/dc-migration-assistant</url>
+        <tag>HEAD</tag>
     </scm>
+    <issueManagement>
+        <system>Jira</system>
+        <url>https://jira.atlassian.com/projects/SCALE</url>
+    </issueManagement>
 
     <dependencyManagement>
         <dependencies>
