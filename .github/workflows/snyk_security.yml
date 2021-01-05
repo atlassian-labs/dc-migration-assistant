@@ -1,7 +1,9 @@
 name: Security Scan
 
-on: [push]
-
+on:
+  push:
+    branches:
+      - secrets.MAIN_BRANCH_REF
 jobs:
   security:
     runs-on: ubuntu-latest
