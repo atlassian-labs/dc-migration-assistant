@@ -1,7 +1,9 @@
 name: Tests
 
-on: [push]
-
+on:
+  push:
+  schedule:
+    - cron: "0 0 * * *" # every day at midnight
 env:
   MAIN_BRANCH_REF: ${{ secrets.MAIN_BRANCH_REF }}
 
@@ -12,8 +14,8 @@ jobs:
 
     strategy:
       matrix:
-        java: [ 8 ]
-        profile: ['integration', '!integration', 'smoketest', 'functest', 'end2end']
+        java: [8]
+        profile: ["integration", "!integration", "smoketest", "functest", "end2end"]
 
     steps:
       - name: Checkout code
