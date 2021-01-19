@@ -17,7 +17,6 @@
 package com.atlassian.migration.datacenter.core.aws;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.dbexporter.DatabaseInformations;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.migration.datacenter.analytics.OsType;
 import com.atlassian.migration.datacenter.analytics.events.MigrationCompleteEvent;
