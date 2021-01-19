@@ -16,6 +16,7 @@
 
 package com.atlassian.migration.datacenter.core.fs.captor
 
+import com.atlassian.event.api.EventListener
 import com.atlassian.migration.datacenter.core.aws.SqsApi
 import com.atlassian.migration.datacenter.core.aws.infrastructure.AWSMigrationHelperDeploymentService
 import com.atlassian.migration.datacenter.core.fs.FileSystemMigrationReportManager
@@ -23,8 +24,8 @@ import com.atlassian.migration.datacenter.core.fs.ReportType
 import com.atlassian.migration.datacenter.core.fs.S3UploadConfig
 import com.atlassian.migration.datacenter.core.fs.S3Uploader
 import com.atlassian.migration.datacenter.core.fs.jira.listener.JiraIssueAttachmentListener
-import com.atlassian.migration.datacenter.core.fs.reporting.DefaultFileSystemMigrationReport
 import com.atlassian.migration.datacenter.core.util.MigrationJobRunner
+import com.atlassian.migration.datacenter.events.MigrationResetEvent
 import com.atlassian.migration.datacenter.spi.infrastructure.InfrastructureDeploymentError
 import com.atlassian.scheduler.JobRunnerRequest
 import com.atlassian.scheduler.JobRunnerResponse
@@ -57,13 +58,14 @@ class S3FinalSyncRunner(
 
     override fun runJob(request: JobRunnerRequest): JobRunnerResponse? {
         if (!isRunning.compareAndSet(false, true)) {
-            return JobRunnerResponse.aborted("Database migration job is already running")
+            log.warn("The database migration job is already running.")
+            return JobRunnerResponse.aborted("Database migration job is already running.")
         }
 
         try {
             sqsApi.emptyQueue(migrationHelperDeploymentService.deadLetterQueueResource)
         } catch (e: InfrastructureDeploymentError) {
-            log.warn("unable to purge deadletter queue because we cannot find it from migration stack")
+            log.warn("Unable to purge dead-letter queue because we cannot find it in migration stack.")
         }
 
         log.info("Stopping attachment event listener. Attachments created from this point onwards will not be migrated.")
@@ -94,6 +96,16 @@ class S3FinalSyncRunner(
 
         log.info("Finished final file sync migration job")
 
+        isRunning.set(false)
         return JobRunnerResponse.success("Final file sync migration complete")
+    }
+
+    @EventListener
+    fun onMigrationReset(event: MigrationResetEvent) {
+        log.debug("Reset S3 final filesystem sync job")
+        if (isRunning.get()) {
+            log.warn("The migration job was running, cancelling")
+            isRunning.set(false)
+        }
     }
 }
