@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -155,10 +156,10 @@ class S3UploaderTest {
 
 
         final AtomicInteger count = new AtomicInteger(0);
-        Future<?> exec = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+        final AtomicBoolean pass = new AtomicBoolean(false);
+        final Future<?> exec = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             if (report.getNumberOfCommencedFileUploads() != 1L) {
                 if(count.getAndIncrement() > 10) {
-                    fail();
                     try {
                         queue.finish();
                     } catch (InterruptedException e) {
@@ -166,6 +167,7 @@ class S3UploaderTest {
                     }
                 }
             } else {
+                pass.set(true);
                 try {
                     queue.finish();
                 } catch (InterruptedException e) {
@@ -175,8 +177,8 @@ class S3UploaderTest {
         },0, 200, TimeUnit.MILLISECONDS);
 
         uploader.upload(queue);
-
         exec.cancel(true);
+        assertTrue(pass.get());
     }
 
     Path addFileToQueue(String fileName) throws IOException, InterruptedException {
