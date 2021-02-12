@@ -37,10 +37,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -150,21 +153,30 @@ class S3UploaderTest {
 
         addFileToQueue("file1");
 
-        final Future<?> submit = Executors.newFixedThreadPool(1).submit(() -> {
-            try {
-                uploader.upload(queue);
-            } catch (FileUploadException e) {
-                throw new RuntimeException(e);
+
+        final AtomicInteger count = new AtomicInteger(0);
+        Future<?> exec = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            if (report.getNumberOfCommencedFileUploads() != 1L) {
+                if(count.getAndIncrement() > 10) {
+                    fail();
+                    try {
+                        queue.finish();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                try {
+                    queue.finish();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        });
+        },0, 200, TimeUnit.MILLISECONDS);
 
-        Thread.sleep(100);
+        uploader.upload(queue);
 
-        assertEquals(1, report.getNumberOfCommencedFileUploads());
-
-        queue.finish();
-
-        submit.get();
+        exec.cancel(true);
     }
 
     Path addFileToQueue(String fileName) throws IOException, InterruptedException {
