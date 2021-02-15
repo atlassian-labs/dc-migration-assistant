@@ -30,11 +30,13 @@ describe('Plugin installation smoke tests', () => {
     it('Ensure plugin loaded', () => {
         cy.visit(ctx.upmURL);
 
+        cy.scrollTo('bottom');
+
         cy.get('[data-key="com.atlassian.migration.datacenter.jira-plugin"]', {
             timeout: 60 * 1000,
         })
             .should('exist')
-            .click({ scrollBehavior: 'bottom' });
+            .click('left');
 
         cy.get('.upm-count-enabled').should((el) => {
             expect(el.first()).to.contain('9 of 9 modules enabled');
