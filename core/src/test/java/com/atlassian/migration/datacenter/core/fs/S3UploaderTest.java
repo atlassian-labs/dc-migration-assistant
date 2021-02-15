@@ -37,10 +37,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -150,21 +154,31 @@ class S3UploaderTest {
 
         addFileToQueue("file1");
 
-        final Future<?> submit = Executors.newFixedThreadPool(1).submit(() -> {
-            try {
-                uploader.upload(queue);
-            } catch (FileUploadException e) {
-                throw new RuntimeException(e);
+
+        final AtomicInteger count = new AtomicInteger(0);
+        final AtomicBoolean pass = new AtomicBoolean(false);
+        final Future<?> exec = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            if (report.getNumberOfCommencedFileUploads() != 1L) {
+                if(count.getAndIncrement() > 10) {
+                    try {
+                        queue.finish();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                pass.set(true);
+                try {
+                    queue.finish();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        });
+        },0, 50, TimeUnit.MILLISECONDS);
 
-        Thread.sleep(100);
-
-        assertEquals(1, report.getNumberOfCommencedFileUploads());
-
-        queue.finish();
-
-        submit.get();
+        uploader.upload(queue);
+        exec.cancel(true);
+        assertTrue(pass.get());
     }
 
     Path addFileToQueue(String fileName) throws IOException, InterruptedException {
