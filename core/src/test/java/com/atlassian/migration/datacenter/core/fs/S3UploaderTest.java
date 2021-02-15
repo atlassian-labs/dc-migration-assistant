@@ -174,7 +174,7 @@ class S3UploaderTest {
                     throw new RuntimeException(e);
                 }
             }
-        },0, 200, TimeUnit.MILLISECONDS);
+        },0, 50, TimeUnit.MILLISECONDS);
 
         uploader.upload(queue);
         exec.cancel(true);
