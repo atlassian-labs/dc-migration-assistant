@@ -34,6 +34,7 @@ describe('Plugin installation smoke tests', () => {
             timeout: 60 * 1000,
         })
             .should('exist')
+            .scrollIntoView()
             .click();
 
         cy.get('.upm-count-enabled').should((el) => {
