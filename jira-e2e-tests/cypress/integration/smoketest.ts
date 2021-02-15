@@ -30,6 +30,9 @@ describe('Plugin installation smoke tests', () => {
     it('Ensure plugin loaded', () => {
         cy.visit(ctx.upmURL);
 
+        // The UPM row isn't in the viewport on load and for some reason cypress won't scroll
+        // to the element when clicking it. We scroll to the bottom of the screen before the click
+        // so that we can guarantee the row appears within the viewport so it can be clicked
         cy.scrollTo('bottom');
 
         cy.get('[data-key="com.atlassian.migration.datacenter.jira-plugin"]', {
