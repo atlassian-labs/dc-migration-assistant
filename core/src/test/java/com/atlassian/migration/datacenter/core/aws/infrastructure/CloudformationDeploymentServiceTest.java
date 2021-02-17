@@ -29,6 +29,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -55,8 +57,8 @@ class CloudformationDeploymentServiceTest {
 
     CloudformationDeploymentService sut;
 
-    boolean deploymentFailed = false;
-    boolean deploymentSucceeded = false;
+    boolean deploymentFailed;
+    boolean deploymentSucceeded;
 
     @BeforeEach
     void setup() {
@@ -92,13 +94,14 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InterruptedException, InfrastructureDeploymentError {
-        final String badStatus = "it broke";
+    void shouldCallHandleFailedDeploymentWhenDeploymentFails() throws InfrastructureDeploymentError, InterruptedException {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_FAILED);
 
-        deploySimpleStack();
+        CompletableFuture<?> future = deploySimpleStack();
 
-        Thread.sleep(100);
+        while (!future.isDone()) {
+            Thread.sleep(100);
+        }
 
         assertTrue(deploymentFailed);
         assertFalse(deploymentSucceeded);
@@ -107,7 +110,7 @@ class CloudformationDeploymentServiceTest {
     }
 
     @Test
-    void shouldBeFailedWhenStatusIsDeleted() throws InterruptedException, InfrastructureDeploymentError {
+    void shouldBeFailedWhenStatusIsDeleted() {
         givenDeploymentStateIs(InfrastructureDeploymentState.CREATE_FAILED);
 
         InfrastructureDeploymentState state = sut.getDeploymentStatus();
@@ -118,16 +121,18 @@ class CloudformationDeploymentServiceTest {
     void shouldCallHandleSuccessfulDeploymentWhenDeploymentSucceeds() throws InterruptedException, InfrastructureDeploymentError {
         when(mockCfnApi.getStatus(STACK_NAME)).thenReturn(InfrastructureDeploymentState.CREATE_COMPLETE);
 
-        deploySimpleStack();
+        CompletableFuture<?> future = deploySimpleStack();
 
-        Thread.sleep(100);
+        while (!future.isDone()) {
+            Thread.sleep(100);
+        }
 
         assertTrue(deploymentSucceeded);
         assertFalse(deploymentFailed);
     }
 
-    private void deploySimpleStack() throws InfrastructureDeploymentError {
-        sut.deployCloudformationStack(TEMPLATE_URL, STACK_NAME, STACK_PARAMS);
+    private CompletableFuture<?> deploySimpleStack() throws InfrastructureDeploymentError {
+        return sut.deployCloudformationStack(TEMPLATE_URL, STACK_NAME, STACK_PARAMS);
     }
 
     private void givenDeploymentStateIs(InfrastructureDeploymentState state) {

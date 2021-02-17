@@ -68,23 +68,30 @@ public abstract class CloudformationDeploymentService {
     protected abstract void handleFailedDeployment(String error);
 
     /**
-     * Deploys a cloudformation stack and starts a thread to monitor the deployment.
+     * Deploys a cloudformation stack and starts a thread to monitor the deployment. If the deployment succeeds,
+     * the {@link CloudformationDeploymentService#handleSuccessfulDeployment()} callback will be invoked. If the
+     * deployment fails, the {@link CloudformationDeploymentService#handleFailedDeployment(String)} will be invoked
+     * with the error message as the value.
      *
      * @param templateUrl the S3 url of the cloudformation template to deploy
      * @param stackName   the name for the cloudformation stack
      * @param params      the parameters for the cloudformation template
      *
+     * @return a future which is completed when the deployment finishes (successfully or otherwise). It is provided only
+     * for timing purposes. Handling the finished deployment should be done in the implementation of
+     * {@link CloudformationDeploymentService#handleSuccessfulDeployment()} and
+     * {@link CloudformationDeploymentService#handleFailedDeployment(String)}
      */
-    protected void deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
+    protected CompletableFuture<?> deployCloudformationStack(String templateUrl, String stackName, Map<String, String> params) throws InfrastructureDeploymentError {
         cfnApi.provisionStack(templateUrl, stackName, params);
-        beginWatchingDeployment(stackName);
+        return beginWatchingDeployment(stackName);
     }
 
     protected InfrastructureDeploymentState getDeploymentStatus() {
         return migrationService.getCurrentContext().getDeploymentState();
     }
 
-    private void beginWatchingDeployment(String stackName) {
+    private CompletableFuture<String> beginWatchingDeployment(String stackName) {
         CompletableFuture<String> stackCompleteFuture = new CompletableFuture<>();
 
         final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -123,6 +130,8 @@ public abstract class CloudformationDeploymentService {
             deploymentWatcher.cancel(true);
             canceller.cancel(true);
         });
+
+        return stackCompleteFuture;
     }
 
     private boolean isFailedToCreateDeploymentState(InfrastructureDeploymentState state) {
