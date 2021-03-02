@@ -3,13 +3,13 @@
 exports[`migration process progress Should render a full progress bar when process completeness is 1 1`] = `
 <div>
   <section
-    class="sc-bxivhb brjzuU"
+    class="sc-htpNat fKWjMr"
   >
     <div
-      class="sc-dnqmqq PgEDm"
+      class="sc-htoDjs dhCKpw"
     >
       <span
-        class="sc-htpNat jsDFjY"
+        class="css-1y26a9w-IconWrapper"
         role="presentation"
       >
         <svg
@@ -29,7 +29,7 @@ exports[`migration process progress Should render a full progress bar when proce
               r="10"
             />
             <path
-              d="M9.707 11.293a1 1 0 1 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4a1 1 0 1 0-1.414-1.414L11 12.586l-1.293-1.293z"
+              d="M9.707 11.293a1 1 0 10-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 10-1.414-1.414L11 12.586l-1.293-1.293z"
               fill="inherit"
             />
           </g>
@@ -37,10 +37,10 @@ exports[`migration process progress Should render a full progress bar when proce
       </span>
     </div>
     <div
-      class="sc-ifAKCX ezQlwD"
+      class="sc-bxivhb khxFsg"
     >
       <div
-        class="sc-bZQynM jBPlWM"
+        class="sc-EHOje LEGXM"
       >
         <strong>
           180GB of database
@@ -51,7 +51,7 @@ exports[`migration process progress Should render a full progress bar when proce
     </div>
   </section>
   <h4
-    class="sc-gZMcBi jPsQyQ"
+    class="sc-jTzLTM habWox"
   >
     Complete
   </h4>
@@ -68,12 +68,12 @@ exports[`migration process progress Should render a full progress bar when proce
     />
   </div>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.started
   </p>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.mins_elapsed
   </p>
@@ -83,7 +83,7 @@ exports[`migration process progress Should render a full progress bar when proce
 exports[`migration process progress Should render a partially completed progress bar with timing data when completeness is between 0 and 1 1`] = `
 <div>
   <h4
-    class="sc-gZMcBi jPsQyQ"
+    class="sc-jTzLTM habWox"
   >
     Downloading data into new instance
   </h4>
@@ -100,12 +100,12 @@ exports[`migration process progress Should render a partially completed progress
     />
   </div>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.started
   </p>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.mins_elapsed
   </p>
@@ -115,13 +115,13 @@ exports[`migration process progress Should render a partially completed progress
 exports[`migration process progress Should render an error message when one is given 1`] = `
 <div>
   <section
-    class="sc-bxivhb jsxfHf"
+    class="sc-htpNat jPavTo"
   >
     <div
-      class="sc-dnqmqq PgEDm"
+      class="sc-htoDjs dhCKpw"
     >
       <span
-        class="sc-htpNat kNbdZf"
+        class="css-1ey0z6v-IconWrapper"
         role="presentation"
       >
         <svg
@@ -135,11 +135,11 @@ exports[`migration process progress Should render an error message when one is g
             fill-rule="evenodd"
           >
             <path
-              d="M13.416 4.417a2.002 2.002 0 0 0-2.832 0l-6.168 6.167a2.002 2.002 0 0 0 0 2.833l6.168 6.167a2.002 2.002 0 0 0 2.832 0l6.168-6.167a2.002 2.002 0 0 0 0-2.833l-6.168-6.167z"
+              d="M13.416 4.417a2.002 2.002 0 00-2.832 0l-6.168 6.167a2.002 2.002 0 000 2.833l6.168 6.167a2.002 2.002 0 002.832 0l6.168-6.167a2.002 2.002 0 000-2.833l-6.168-6.167z"
               fill="currentColor"
             />
             <path
-              d="M12 14a1 1 0 0 1-1-1V8a1 1 0 0 1 2 0v5a1 1 0 0 1-1 1m0 3a1 1 0 0 1 0-2 1 1 0 0 1 0 2"
+              d="M12 14a1 1 0 01-1-1V8a1 1 0 012 0v5a1 1 0 01-1 1m0 3a1 1 0 010-2 1 1 0 010 2"
               fill="inherit"
             />
           </g>
@@ -147,13 +147,13 @@ exports[`migration process progress Should render an error message when one is g
       </span>
     </div>
     <div
-      class="sc-ifAKCX ezQlwD"
+      class="sc-bxivhb khxFsg"
     >
       <div
-        class="sc-bZQynM jBPlWM"
+        class="sc-EHOje LEGXM"
       >
         <p
-          class="sc-iwsKbI fQqfNj"
+          class="sc-VigVT cWsEAl"
         >
           Unable to connect to target database
            
@@ -169,7 +169,7 @@ exports[`migration process progress Should render an error message when one is g
     </div>
   </section>
   <h4
-    class="sc-gZMcBi jPsQyQ"
+    class="sc-jTzLTM habWox"
   >
     Failed to install data in new instance
   </h4>
@@ -186,12 +186,12 @@ exports[`migration process progress Should render an error message when one is g
     />
   </div>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.started
   </p>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.mins_elapsed
   </p>
@@ -201,7 +201,7 @@ exports[`migration process progress Should render an error message when one is g
 exports[`migration process progress Should render indeterminate progress bar when completeness is not given 1`] = `
 <div>
   <h4
-    class="sc-gZMcBi jPsQyQ"
+    class="sc-jTzLTM habWox"
   >
     Transferring your data. This may take a while...
      (atlassian.migration.datacenter.common.estimating...)
@@ -222,12 +222,12 @@ exports[`migration process progress Should render indeterminate progress bar whe
     />
   </div>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.started
   </p>
   <p
-    class="sc-gqjmRU kwvhvQ"
+    class="sc-fjdhpX fkmJfS"
   >
     atlassian.migration.datacenter.common.progress.mins_elapsed
   </p>
