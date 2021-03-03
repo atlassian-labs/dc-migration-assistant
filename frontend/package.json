@@ -70,10 +70,12 @@
     },
     "devDependencies": {
         "@atlassian/i18n-properties-loader": "^0.7.3",
-        "@storybook/addon-actions": "^5.3.19",
-        "@storybook/addon-links": "^5.3.19",
+        "@storybook/addon-actions": "^6.1.20",
+        "@storybook/addon-essentials": "^6.1.20",
+        "@storybook/addon-links": "^6.1.20",
         "@storybook/addons": "^5.3.19",
-        "@storybook/preset-create-react-app": "^3.1.4",
+        "@storybook/node-logger": "^6.1.20",
+        "@storybook/preset-create-react-app": "^3.1.6",
         "@storybook/react": "^6.1.20",
         "@testing-library/jest-dom": "^5.4.0",
         "@types/jest": "^25.2.1",
@@ -119,7 +121,7 @@
         "update-snapshots": "jest --updateSnapshot --config ./config/jest/jest.config.js",
         "eject": "react-scripts eject",
         "lint": "eslint './**/*.{jsx,ts,tsx}'",
-        "storybook": "start-storybook -p 9009 -s public",
+        "storybook": "start-storybook -p 6006 -s public",
         "build-storybook": "build-storybook -s public"
     },
     "browserslist": [
