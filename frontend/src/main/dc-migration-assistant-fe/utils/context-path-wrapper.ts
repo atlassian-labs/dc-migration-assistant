@@ -23,7 +23,7 @@ const contextPathWrapper = (): string => {
     } catch (typeError) {
         // eslint-disable-next-line no-prototype-builtins
         if (window.hasOwnProperty('contextPath')) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             return window.contextPath;
         }
