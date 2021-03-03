@@ -23,7 +23,7 @@ import { MigrationTransferProps, MigrationTransferPage } from '../shared/Migrati
 import { ProgressBuilder, ProgressCallback } from '../shared/Progress';
 import { fs, FileSystemMigrationStatusResponse } from '../../api/fs';
 import { MigrationStage } from '../../api/migration';
-import { fsPath, warningPath } from '../../utils/RoutePaths';
+import { warningPath } from '../../utils/RoutePaths';
 
 const dummyStarted = moment();
 
