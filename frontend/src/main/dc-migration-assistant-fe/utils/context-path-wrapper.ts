@@ -17,14 +17,18 @@
 // eslint-disable-next-line import/no-unresolved
 import contextPath from 'wrm/context-path';
 
+declare global {
+    interface Window {
+        contextPath?: string;
+    }
+}
+
 const contextPathWrapper = (): string => {
     try {
         return contextPath();
     } catch (typeError) {
         // eslint-disable-next-line no-prototype-builtins
         if (window.hasOwnProperty('contextPath')) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
             return window.contextPath;
         }
         throw typeError;

@@ -15,11 +15,10 @@
  */
 
 import React, { FunctionComponent, useState } from 'react';
-import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
+import Modal, { ActionProps, ModalTransition } from '@atlaskit/modal-dialog';
 import styled from 'styled-components';
 import { I18n } from '@atlassian/wrm-react-i18n';
 import { Redirect } from 'react-router-dom';
-import { ButtonProps } from '@atlaskit/button';
 import { migration } from '../../api/migration';
 import { homePath } from '../../utils/RoutePaths';
 import { ErrorFlag } from './ErrorFlag';
@@ -63,7 +62,7 @@ export const CancelModal: FunctionComponent<CancelModalProps> = ({
             });
     };
 
-    const actions: Array<ButtonProps & { text: string }> = [
+    const actions: ActionProps[] = [
         {
             text: I18n.getText('atlassian.migration.datacenter.generic.nevermind'),
             onClick: closeModal,

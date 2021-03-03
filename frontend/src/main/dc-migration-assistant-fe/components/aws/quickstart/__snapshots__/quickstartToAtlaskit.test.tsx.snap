@@ -15,9 +15,9 @@ exports[`Quick Start to Atlaskit Input Converter Should create a number input 1`
 exports[`Quick Start to Atlaskit Input Converter Should create a password input for NoEcho parameters 1`] = `
 <input
   aria-invalid="false"
-  aria-labelledby="TestParam-uid8-label TestParam-uid8-helper TestParam-uid8-valid TestParam-uid8-error"
+  aria-labelledby="TestParam-uid7-label TestParam-uid7-helper TestParam-uid7-valid TestParam-uid7-error"
   class="css-tonkbf-Input"
-  id="TestParam-uid8"
+  id="TestParam-uid7"
   name="TestParam"
   type="password"
   value="test default"
@@ -27,7 +27,7 @@ exports[`Quick Start to Atlaskit Input Converter Should create a password input 
 exports[`Quick Start to Atlaskit Input Converter Should create a select input when there are multiple allowed values that are not boolean 1`] = `
 <input
   aria-autocomplete="list"
-  aria-labelledby="TestParam-uid6-label TestParam-uid6-helper TestParam-uid6-valid TestParam-uid6-error"
+  aria-labelledby="TestParam-uid5-label TestParam-uid5-helper TestParam-uid5-valid TestParam-uid5-error"
   autocapitalize="none"
   autocomplete="off"
   autocorrect="off"
@@ -42,9 +42,7 @@ exports[`Quick Start to Atlaskit Input Converter Should create a select input wh
 
 exports[`Quick Start to Atlaskit Input Converter Should create a toggle input when there are two allowed values that are boolean 1`] = `
 <input
-  checked=""
-  class="sc-iwsKbI bCvnPm"
-  id="uid5"
+  id="TestParam-uid4"
   name="TestParam"
   type="checkbox"
   value=""
