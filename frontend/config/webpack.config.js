@@ -117,12 +117,8 @@ module.exports = (env, argv = {}) => {
         if (!isProductionEnv(mode)) {
             const envScopedOverridesFile = `${dotEnvFilePath}.${mode}`;
             const envVarOverrides = loadEnvVarsFrom(envScopedOverridesFile, varsFromEnvFile);
-            console.log(`Loaded env vars with overrides`);
-            console.log(envVarOverrides);
             return envVarOverrides;
         }
-        console.log(`Loaded env vars`);
-        console.log(varsFromEnvFile);
         return varsFromEnvFile;
     };
 
