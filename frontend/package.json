@@ -108,7 +108,7 @@
     },
     "resolutions": {
         "**/websocket-extensions": "~0.1.4",
-        "**/@types/react-select": "3.0.11"
+        "**/@types/react-select": "3.1.2"
     },
     "scripts": {
         "watch": "webpack --watch --display-modules --config ./config/webpack.config.js",
