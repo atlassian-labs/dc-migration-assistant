@@ -548,7 +548,7 @@
         <jsr.311.api.version>1.1.1</jsr.311.api.version>
         <jta.version>1.0.1b</jta.version>
         <junit.version>5.4.2</junit.version>
-        <localstack.version>0.2.1</localstack.version>
+        <localstack.version>0.2.10</localstack.version>
         <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
         <mockito.version>3.2.4</mockito.version>
         <mockk.version>1.10.0</mockk.version>
