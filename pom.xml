@@ -551,7 +551,7 @@
         <localstack.version>0.2.1</localstack.version>
         <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
         <mockito.version>3.2.4</mockito.version>
-        <mockk.version>1.10.0</mockk.version>
+        <mockk.version>1.11.0</mockk.version>
         <postgres.driver.version>42.2.10</postgres.driver.version>
         <sal.version>4.0.0</sal.version>
         <slf4j.version>1.7.30</slf4j.version>
