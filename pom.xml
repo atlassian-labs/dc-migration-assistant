@@ -510,7 +510,7 @@
 
     <properties>
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
-        <frontend.maven.plugin.version>1.9.1</frontend.maven.plugin.version>
+        <frontend.maven.plugin.version>1.11.3</frontend.maven.plugin.version>
         <frontend.maven.plugin.install.directory>${project.build.directory}</frontend.maven.plugin.install.directory>
         <nodeVersion>v12.13.0</nodeVersion>
         <yarnVersion>v1.19.1</yarnVersion>
