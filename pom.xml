@@ -549,7 +549,7 @@
         <jta.version>1.0.1b</jta.version>
         <junit.version>5.4.2</junit.version>
         <localstack.version>0.2.1</localstack.version>
-        <maven-frontend-plugin.version>1.9.1</maven-frontend-plugin.version>
+        <maven-frontend-plugin.version>1.11.3</maven-frontend-plugin.version>
         <mockito.version>3.2.4</mockito.version>
         <mockk.version>1.10.0</mockk.version>
         <postgres.driver.version>42.2.10</postgres.driver.version>
