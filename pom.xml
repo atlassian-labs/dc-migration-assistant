@@ -527,7 +527,7 @@
         <apache.wink.client.version>1.4</apache.wink.client.version>
         <apache.maven.exec.version>3.0.0</apache.maven.exec.version>
         <ao.version>3.2.2</ao.version>
-        <amps.version>8.0.4</amps.version>
+        <amps.version>8.3.0-128eead6d</amps.version>
         <amps.jvm.args />
         <atlassian.platform.version>5.0.13</atlassian.platform.version>
         <atlassian.plugins.osgi.javaconfig.version>0.2.0</atlassian.plugins.osgi.javaconfig.version>
