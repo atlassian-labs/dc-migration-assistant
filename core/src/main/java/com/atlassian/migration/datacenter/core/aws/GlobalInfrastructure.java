@@ -39,6 +39,7 @@ public class GlobalInfrastructure {
                     }
                     return partitionMetadata.id().equals("aws");
                 })
+                .map(Region::toString)
                 .collect(Collectors.toList());
     }
 }
