@@ -534,7 +534,7 @@
         <atlassian.plugins.version>5.2.1</atlassian.plugins.version>
         <atlassian.scheduler.api.version>3.0.0</atlassian.scheduler.api.version>
         <atlassian.util.concurrent.version>3.0.0</atlassian.util.concurrent.version>
-        <aws.sdk.version>2.10.61</aws.sdk.version>
+        <aws.sdk.version>2.16.44</aws.sdk.version>
         <hsqldb.version>2.5.0</hsqldb.version>
         <hamcrest.version>2.0.0.0</hamcrest.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>

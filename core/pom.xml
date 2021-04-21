@@ -182,7 +182,7 @@
         <dependency>
             <groupId>com.impossibl.pgjdbc-ng</groupId>
             <artifactId>pgjdbc-ng</artifactId>
-            <version>0.8.4</version>
+            <version>0.8.7</version>
         </dependency>
 
         <dependency>
@@ -275,12 +275,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- CVE-2020-11612 -->
-        <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec</artifactId>
-          <version>4.1.46.Final</version>
-        </dependency>
+        <!-- <!-\- CVE-2020-11612 -\-> -->
+        <!-- <dependency> -->
+        <!--   <groupId>io.netty</groupId> -->
+        <!--   <artifactId>netty-codec</artifactId> -->
+        <!--   <version>4.1.46.Final</version> -->
+        <!-- </dependency> -->
 
       </dependencies>
 </project>
