@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static software.amazon.awssdk.regions.Region.AF_SOUTH_1;
 import static software.amazon.awssdk.regions.Region.AP_EAST_1;
 import static software.amazon.awssdk.regions.Region.AP_NORTHEAST_1;
 import static software.amazon.awssdk.regions.Region.AP_NORTHEAST_2;
@@ -61,7 +62,7 @@ public class GlobalInfrastructureTest {
                 .sorted()
                 .collect(Collectors.toList());
 
-        final List<String> supportedRegions = Arrays.asList(AP_SOUTH_1, EU_NORTH_1, EU_SOUTH_1, EU_WEST_3, EU_WEST_2, EU_WEST_1, AP_NORTHEAST_2, AP_NORTHEAST_1, ME_SOUTH_1, CA_CENTRAL_1, SA_EAST_1, AP_EAST_1, AP_SOUTHEAST_1, AP_SOUTHEAST_2, EU_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2)
+        final List<String> supportedRegions = Arrays.asList(AF_SOUTH_1, AP_SOUTH_1, EU_NORTH_1, EU_SOUTH_1, EU_WEST_3, EU_WEST_2, EU_WEST_1, AP_NORTHEAST_2, AP_NORTHEAST_1, ME_SOUTH_1, CA_CENTRAL_1, SA_EAST_1, AP_EAST_1, AP_SOUTHEAST_1, AP_SOUTHEAST_2, EU_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2)
                 .stream()
                 .map(Region::toString)
                 .sorted()
