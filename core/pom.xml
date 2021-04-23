@@ -184,6 +184,11 @@
             <artifactId>pgjdbc-ng</artifactId>
             <version>0.8.7</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
