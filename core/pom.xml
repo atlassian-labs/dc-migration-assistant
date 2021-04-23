@@ -132,7 +132,7 @@
                 </exclusion>
                 <exclusion>
                     <groupId>io.netty</groupId>
-                    <artifactId>*</artifactId>
+                    <artifactId>netty-codec</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -190,7 +190,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>io.netty</groupId>
-                    <artifactId>*</artifactId>
+                    <artifactId>netty-codec</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
