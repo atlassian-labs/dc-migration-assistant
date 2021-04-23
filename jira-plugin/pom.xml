@@ -153,6 +153,7 @@
                             !com.jcraft.jzlib,
                             !com.ning.compress.*,
                             !com.oracle.svm.core.*,
+                            !io.netty.internal.tcnative,
                             !lzma.sdk.*,
                             !net.jpountz.*,
                             !org.apache.logging.log4j.*,
