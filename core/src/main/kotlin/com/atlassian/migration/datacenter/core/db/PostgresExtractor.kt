@@ -51,7 +51,7 @@ class PostgresExtractor(private val applicationConfiguration: ApplicationConfigu
 
         log.info("Dump database to $target using $numJobs threads")
 
-        val pgdump = databaseClientTools.getDatabaseDumpClientPath() ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
+        val pgdump = databaseClientTools.getBinaryPath("pg_dump") ?: throw DatabaseMigrationFailure("Failed to find appropriate pg_dump executable.")
         val config = applicationConfiguration.databaseConfiguration
 
         val args = listOf(pgdump,

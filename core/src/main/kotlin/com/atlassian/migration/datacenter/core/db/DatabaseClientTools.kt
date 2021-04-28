@@ -22,5 +22,5 @@ interface DatabaseClientTools {
     
     fun getDatabaseServerVersion(): SemVer?
 
-    fun getDatabaseDumpClientPath(): String?
+    fun getBinaryPath(binaryName: String): String?
 }

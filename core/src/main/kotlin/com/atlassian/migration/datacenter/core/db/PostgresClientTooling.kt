@@ -16,20 +16,16 @@
 package com.atlassian.migration.datacenter.core.db
 
 import com.atlassian.migration.datacenter.core.application.ApplicationConfiguration
-import com.impossibl.postgres.jdbc.PGDriver
 import net.swiftzer.semver.SemVer
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.sql.SQLException
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 class PostgresClientTooling(private val applicationConfiguration: ApplicationConfiguration) : DatabaseClientTools {
     companion object {
         private val log = LoggerFactory.getLogger(PostgresClientTooling::class.java)
-        private val defaultPgDumpPaths = arrayOf(Paths.get("/usr/bin/pg_dump"), Paths.get("/usr/local/bin/pg_dump"))
         private val versionPattern = Regex("^pg_dump\\s+\\([^\\)]+\\)\\s+(\\d[\\d\\.]+)[\\s$]")
         
         @JvmStatic
@@ -45,7 +41,7 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
      * @return semantic version of the dump utility
      */
     override fun getDatabaseDumpClientVersion(): SemVer? {
-        val pgdump = getDatabaseDumpClientPath() ?: return null
+        val pgdump = getBinaryPath("pg_dump") ?: return null
 
         try {
             val proc = ProcessBuilder(pgdump,
@@ -71,8 +67,8 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
      *
      * @return the path to the dump utility
      */
-    override fun getDatabaseDumpClientPath(): String? {
-        for (path in resolvePgDumpPath()) {
+    override fun getBinaryPath(binaryName: String): String? {
+        for (path in resolveBinaryPath(binaryName)) {
             if (Files.isReadable(path) && Files.isExecutable(path)) {
                 return path.toString()
             }
@@ -86,32 +82,42 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
      * @return the semantic version of postgres in use
      */
     override fun getDatabaseServerVersion(): SemVer? {
-        // NOTE: We use the NG Postgres driver here as the official
-        // one doesn't play well with OSGI.
+        val psql = getBinaryPath("psql") ?: return null
         val config = applicationConfiguration.databaseConfiguration
-        val url = "jdbc:pgsql://${config.host}:${config.port}/${config.name}"
-        val props = Properties().apply {
-            setProperty("user", config.username)
-            setProperty("password", config.password)
+        val url = "postgresql://${config.username}:${config.password}@${config.host}:${config.port}/${config.name}"
+
+        try {
+            /*
+             * pg_dump availability is a hard requirements on this plugin. 
+             * If pg_dump is available we can assume psql will also be available.
+             * 
+             * The pg_dump utility is obtained by installing a postgres
+             * client library. These clients typically include psql.
+             */
+            val proc = ProcessBuilder(psql,
+                    "-At",
+                    url,
+                    "-c", "SHOW server_version")
+                    .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                    .redirectError(ProcessBuilder.Redirect.PIPE)
+                    .start()
+
+            proc.waitFor(60, TimeUnit.SECONDS)
+
+            val version = proc.inputStream.bufferedReader().readLine()
+
+            return SemVer.parse(version)
+
+        } catch (e: Exception) {
+            log.error("Failed to get server version from command-line")
+            return null
         }
-
-        val conn = try {
-            PGDriver().connect(url, props)
-        } catch (e: SQLException) {
-            log.error("Exception opening DB connection for version", e)
-            null
-        } ?: return null
-
-        val meta = conn.metaData
-        conn.close()
-
-        return SemVer.parse(meta.databaseProductVersion)
     }
 
-    private fun resolvePgDumpPath(): Array<Path> {
+    private fun resolveBinaryPath(binaryName: String): Array<Path> {
         return try {
-            val proc = ProcessBuilder("which", 
-                    "pg_dump")
+            val proc = ProcessBuilder("which",
+                    binaryName)
                     .redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
                     .start()
@@ -119,11 +125,15 @@ class PostgresClientTooling(private val applicationConfiguration: ApplicationCon
             proc.waitFor(60, TimeUnit.SECONDS)
 
             arrayOf(Paths.get(proc.inputStream.bufferedReader().readLine()))
-            
+
         } catch (e: Exception) {
-            log.error("Failed to resolve path to pg_dump binary. Falling back to default locations '/usr/bin/pg_dump and '/usr/local/bin/pg_dump'", e)
-            //Fallback to documented paths for pg_dump if one could not be dynamically found
-            defaultPgDumpPaths
+            log.error("Failed to resolve path to $binaryName binary. Falling back to default locations '/usr/bin/$binaryName and '/usr/local/bin/$binaryName'", e)
+            //Fallback to documented paths for binary if one could not be dynamically found
+            getDefaultBinaryPaths(binaryName)
         }
+    }
+
+    private fun getDefaultBinaryPaths(binaryName: String): Array<Path> {
+        return arrayOf(Paths.get("/usr/bin/$binaryName"), Paths.get("/usr/local/bin/$binaryName"))
     }
 }
