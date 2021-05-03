@@ -84,9 +84,9 @@
     </pluginRepositories>
 
     <scm>
-        <connection>scm:git:https://github.com/atlassian-labs/dc-migration-assistant.git</connection>
-        <developerConnection>scm:git:https://github.com/atlassian-labs/dc-migration-assistant.git</developerConnection>
-        <url>https://github.com/atlassian-labs/dc-migration-assistant</url>
+        <connection>scm:git:${project.scm.url}</connection>
+        <developerConnection>scm:git:${project.scm.url}</developerConnection>
+        <url>git@github.com:atlassian-labs/dc-migration-assistant</url>
         <tag>HEAD</tag>
     </scm>
     <issueManagement>
@@ -561,5 +561,6 @@
         <testcontainers.version>1.15.1</testcontainers.version>
         <webfragments.version>5.1.0</webfragments.version>
         <woodstox.core.version>6.0.3</woodstox.core.version>
+        <project.scm.url>git@github.com:atlassian-labs/dc-migration-assistant.git</project.scm.url>
     </properties>
 </project>
