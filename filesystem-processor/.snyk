@@ -1,0 +1,15 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JAVA-COMFASTERXMLJACKSONDATAFORMAT-1047329:
+    - '*':
+        reason: No direct upgrade or patch
+        expires: 2021-07-03T00:00:00.000Z
+        created: 2021-05-03T04:16:21.312Z
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-1080637:
+    - '*':
+        reason: No direct upgrade or patch
+        expires: 2021-07-03T00:00:00.000Z
+        created: 2021-05-03T04:17:07.686Z
+patch: {}

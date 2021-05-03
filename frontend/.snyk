@@ -1,0 +1,36 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-LODASHTEMPLATE-1088054:
+    - '*':
+        reason: >-
+          No direct upgrade or patch. Currently using latest version of
+          react-scripts
+        expires: 2021-07-03T00:00:00.000Z
+        created: 2021-05-03T05:07:52.081Z
+  SNYK-JS-SSRI-1085630:
+    - '*':
+        reason: >-
+          Already using latest version (4.46) of webpack 4. This vulnrability is
+          a transitive dependency of webpack 4 as such it cannot be remediated.
+          It may be fixable in webpack 5 although tests show that it isnt.
+        expires: 2021-07-03T00:00:00.000Z
+        created: 2021-05-03T05:30:07.105Z
+  SNYK-JS-SSRI-124639:
+    - '*':
+        reason: >-
+          Already using latest version (4.46) of webpack 4. This vulnrability is
+          a transitive dependency of webpack 4 as such it cannot be remediated.
+          It may be fixable in webpack 5 although tests show that it isnt.
+        expires: 2021-07-03T00:00:00.000Z
+        created: 2021-05-03T05:30:29.801Z
+  SNYK-JS-SSRI-1246392:
+    - '*':
+        reason: >-
+          Already using latest version (4.46) of webpack 4. This vulnrability is
+          a transitive dependency of webpack 4 as such it cannot be remediated.
+          It may be fixable in webpack 5 although tests show that it isnt.
+        expires: 2021-07-03T00:00:00.000Z
+        created: 2021-05-03T05:41:51.460Z
+patch: {}
