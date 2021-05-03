@@ -2,9 +2,10 @@
 
 name: On branch Snyk security scan
 
-on: push
-  branches:
-    - '!master'   # excludes master
+on:
+  push:
+    branches-ignore:
+      - master
         
 jobs:
   security:

@@ -10,11 +10,12 @@
 
 name: Master branch Snyk security scan
 
-on: push:
-  branches:
-    - 'master'
-  schedule:
-    - cron: "0 0 * * *" # every day at midnight
+on:
+  push:
+    branches:
+      - master
+    schedule:
+      - cron: "0 0 * * *" # every day at midnight
 
 jobs:
   security:
