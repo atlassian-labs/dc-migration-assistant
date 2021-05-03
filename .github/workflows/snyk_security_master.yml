@@ -1,11 +1,21 @@
-# Snyk on branch security scanning
+# Snyk security scan to be run everyday at midnight.
+#
+# As of 03/05/2022 there are no severe security issues
+# associated with master, other than those which have exemptions
+# defined in the respective module .snyk files. 
+#
+# If there are severe issues encountered on master this action 
+# will fail and cause the build to go red until the security issue 
+# is remediated. 
 
-name: On branch Snyk security scan
+name: Master branch Snyk security scan
 
-on: push
+on: push:
   branches:
-    - '!master'   # excludes master
-        
+    - 'master'
+  schedule:
+    - cron: "0 0 * * *" # every day at midnight
+
 jobs:
   security:
     runs-on: ubuntu-latest
@@ -13,7 +23,6 @@ jobs:
       - uses: actions/checkout@master
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven-3-jdk-11@master
-        continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
