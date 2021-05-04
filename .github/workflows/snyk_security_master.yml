@@ -11,6 +11,7 @@
 name: Security scanning - daily on main
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * *" # every day at midnight
 
