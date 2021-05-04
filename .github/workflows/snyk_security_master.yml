@@ -1,12 +1,19 @@
-# Snyk on branch security scanning
+# Snyk security scan to be run everyday at midnight.
+#
+# As of 03/05/2022 there are no severe security issues
+# associated with master, other than those which have exemptions
+# defined in the respective module .snyk files. 
+#
+# If there are severe issues encountered on master this action 
+# will fail and cause the build to go red until the security issue 
+# is remediated. 
 
-name: Security scan - branch push
+name: Security scanning - daily on main
 
 on:
-  push:
-    branches-ignore:
-      - master
-        
+  schedule:
+    - cron: "0 0 * * *" # every day at midnight
+
 jobs:
   security:
     runs-on: ubuntu-latest
@@ -19,7 +26,6 @@ jobs:
         with:
           args: --all-projects --exclude=templates --severity-threshold=high --sarif-file-output=snyk.sarif
       - name: Upload result to GitHub Code Scanning
-        if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: snyk.sarif
