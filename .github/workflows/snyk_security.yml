@@ -19,7 +19,7 @@ jobs:
         with:
           args: --all-projects --exclude=templates --sarif-file-output=snyk.sarif
       - name: Print the content for the snyk.sarif file
-        if: ${{ always() }
+        if: ${{ always() }}
         run: |
           cat snyk.sarif
       - name: Upload result to GitHub Code Scanning
