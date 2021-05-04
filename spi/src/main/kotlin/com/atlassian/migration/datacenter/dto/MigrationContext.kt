@@ -49,4 +49,6 @@ interface MigrationContext : Entity {
     var migrationQueueUrl: String
     // AO mandates that generated field names of properties should be no longer than 30 chars.
     var migrationDLQueueUrl: String
+
+    var dbSecretName: String
 }

@@ -17,6 +17,7 @@
 package com.atlassian.migration.datacenter.core.aws.infrastructure.migrationStack
 
 import com.atlassian.migration.datacenter.core.aws.CfnApi
+import com.atlassian.migration.datacenter.core.aws.db.restore.TargetDbCredentialsStorageService
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -37,6 +38,9 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
     @MockK
     lateinit var cfnApi: CfnApi
 
+    @MockK
+    lateinit var credentialsStorageService: TargetDbCredentialsStorageService
+
     private val stackName = "my-stack"
 
     private val testSg = "test-sg"
@@ -45,6 +49,7 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
     private val testSubnet2 = "subnet-456"
     private val testVpc = "vpc-01234"
     private val testEfs = "fs-1234"
+    private val dbSecretIdentifier = "bar-secret-id"
 
     private val jiraStackName = "my-jira-stack"
     private val mockRootResources = mapOf("JiraDCStack" to StackResource.builder().physicalResourceId(jiraStackName).build())
@@ -60,21 +65,24 @@ internal class QuickstartWithVPCMigrationStackInputGatheringStrategyTest {
 
     @BeforeEach
     internal fun setUp() {
-        sut = QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi, QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi))
+        sut = QuickstartWithVPCMigrationStackInputGatheringStrategy(cfnApi, QuickstartStandaloneMigrationStackInputGatheringStrategy(cfnApi, credentialsStorageService))
         every { cfnApi.exports } returns mockExportsDefaultPrefix
         every { cfnApi.getStackResources(stackName) } returns mockRootResources
         every { cfnApi.getStackResources(jiraStackName) } returns mockJiraResources
         every { cfnApi.getStack(jiraStackName) } returns Optional.of(jiraStack)
+
+        every { credentialsStorageService.secretName } returns dbSecretIdentifier
     }
 
     @Test
     fun shouldGatherInputsWithDefaultPrefix() {
-        val params = sut.gatherMigrationStackInputsFromApplicationStack(stack)
+        val params = sut.gatherMigrationStackInputs(stack)
 
         val expectation = mapOf(
                 "NetworkPrivateSubnet" to testSubnet1,
                 "EFSFileSystemId" to testEfs,
                 "EFSSecurityGroup" to testSg,
+                "RDSPasswordSecretIdentifier" to dbSecretIdentifier,
                 "RDSSecurityGroup" to testSg,
                 "RDSEndpoint" to testDbEndpoint,
                 "HelperInstanceType" to "c5.large",

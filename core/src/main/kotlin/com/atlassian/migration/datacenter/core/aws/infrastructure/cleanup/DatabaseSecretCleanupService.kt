@@ -31,7 +31,7 @@ import java.util.function.Supplier
 
 class DatabaseSecretCleanupService(
         private val secretsManagerClient: Supplier<SecretsManagerClient>,
-        private val targetDbCredentialsStorageService: TargetDbCredentialsStorageService
+        private val dbCredentialsStorageService: TargetDbCredentialsStorageService
 ) : MigrationInfrastructureCleanupService {
 
     companion object {
@@ -41,7 +41,7 @@ class DatabaseSecretCleanupService(
     override fun startMigrationInfrastructureCleanup(): Boolean {
         val client = secretsManagerClient.get()
 
-        val secretName = targetDbCredentialsStorageService.secretName
+        val secretName = dbCredentialsStorageService.secretName
         logger.info("deleting database secret: $secretName")
 
         return try {
@@ -68,7 +68,7 @@ class DatabaseSecretCleanupService(
     override fun getMigrationInfrastructureCleanupStatus(): InfrastructureCleanupStatus {
         val client = secretsManagerClient.get()
 
-        val secretName = targetDbCredentialsStorageService.secretName
+        val secretName = dbCredentialsStorageService.secretName
 
         logger.info("getting status of database secret $secretName cleanup")
 
