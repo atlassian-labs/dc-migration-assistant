@@ -18,6 +18,10 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --all-projects --exclude=templates --sarif-file-output=snyk.sarif
+      - name: Print the content for the snyk.sarif file
+        if: ${{ always() }
+        run: |
+          cat snyk.sarif
       - name: Upload result to GitHub Code Scanning
         if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@v1
