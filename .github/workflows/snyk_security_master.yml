@@ -22,7 +22,7 @@ jobs:
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven-3-jdk-11@master
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_V2 }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --all-projects --exclude=templates --severity-threshold=high --sarif-file-output=snyk.sarif
       - name: Upload result to GitHub Code Scanning
