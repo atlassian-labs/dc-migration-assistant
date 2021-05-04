@@ -8,9 +8,10 @@
 # will fail and cause the build to go red until the security issue 
 # is remediated. 
 
-name: Security scanning - daily on main
+name: Security scan - daily on main
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * *" # every day at midnight
 

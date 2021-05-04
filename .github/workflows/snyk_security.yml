@@ -3,6 +3,7 @@
 name: Security scan - branch push
 
 on:
+  workflow_dispatch:
   push:
     branches-ignore:
       - master
