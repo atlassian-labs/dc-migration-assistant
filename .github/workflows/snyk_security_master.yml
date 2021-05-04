@@ -8,14 +8,11 @@
 # will fail and cause the build to go red until the security issue 
 # is remediated. 
 
-name: Master branch Snyk security scan
+name: Security scanning - daily on main
 
 on:
-  push:
-    branches:
-      - master
-    schedule:
-      - cron: "0 0 * * *" # every day at midnight
+  schedule:
+    - cron: "0 0 * * *" # every day at midnight
 
 jobs:
   security:
