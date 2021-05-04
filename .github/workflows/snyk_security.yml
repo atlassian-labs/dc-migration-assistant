@@ -1,6 +1,6 @@
 # Snyk on branch security scanning
 
-name: On branch Snyk security scan
+name: Security scan - branch push
 
 on:
   push:
