@@ -2,7 +2,7 @@
 
 Atlassian server app for migrating to Data Center on AWS
 
-[![Atlassian license](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)](LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md) [![Security scan - daily on main](https://github.com/atlassian-labs/dc-migration-assistant/actions/workflows/snyk_security_master.yml/badge.svg)](https://github.com/atlassian-labs/dc-migration-assistant/actions/workflows/snyk_security_master.yml) ![Build](https://github.com/atlassian-labs/dc-migration-assistant/workflows/Tests/badge.svg) 
+[![Atlassian license](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)](LICENSE) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md) [![Security scan - daily on main](https://github.com/atlassian-labs/dc-migration-assistant/actions/workflows/snyk_security_master.yml/badge.svg)](https://github.com/atlassian-labs/dc-migration-assistant/actions/workflows/snyk_security_master.yml) [![Tests](https://github.com/atlassian-labs/dc-migration-assistant/actions/workflows/mvn_test.yml/badge.svg)](https://github.com/atlassian-labs/dc-migration-assistant/actions/workflows/mvn_test.yml)
 
 ## Usage
 
