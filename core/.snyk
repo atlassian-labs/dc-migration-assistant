@@ -5,17 +5,17 @@ ignore:
   SNYK-JAVA-IONETTY-543490:
     - '*':
         reason: No direct upgrade or patch
-        expires: 2021-10-03T00:00:00.000Z
+        expires: 2021-08-03T00:00:00.000Z
         created: 2021-05-03T04:23:25.670Z
   SNYK-JAVA-IONETTY-543669:
     - '*':
         reason: No direct upgrade or patch
-        expires: 2021-10-03T00:00:00.000Z
+        expires: 2021-08-03T00:00:00.000Z
         created: 2021-05-03T04:23:39.918Z
   SNYK-JAVA-IONETTY-564897:
     - '*':
         reason: No direct upgrade or patch
-        expires: 2021-10-03T00:00:00.000Z
+        expires: 2021-08-03T00:00:00.000Z
         created: 2021-05-03T04:23:53.690Z
   SNYK-JAVA-COMMONSCOLLECTIONS-30078:
     - '*':
